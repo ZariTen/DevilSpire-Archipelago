@@ -1,7 +1,7 @@
 # Devil Spire x Archipelago - TODO
 
 Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md](patch/README.md). Research: [docs/](docs/).
-**The patched game has never been run yet; everything in-game is untested.**
+The patched game runs (real Steam install under Proton): boot, Archipelago mode and floor checks in `ap_out.txt` confirmed. Most in-game behaviour below is still untested.
 
 ## Decisions
 - Patched game = your own Steam `data.win`, patched in place by the client's `/auto_patch` with a bsdiff4 patch shipped in the apworld (backup `data.win.orig`, `/restore`, Steam verify as fallback). Separate save folder `Devil_Spire_AP` (GEN8 Name). No game files or patch in git.
@@ -35,7 +35,9 @@ Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md
 - [ ] Gear clutter: inventory/encumbrance with equipment re-grants; stat/level interaction of re-granted orbs.
 - [ ] Chest edge cases: reachable (not inside decor), opens, re-arm for mid-run items, after death + new character, Continue from camp save, souls once across deaths, slot reset.
 - [ ] First-ever character (tutorial skips the camp): how does the player get the chest?
-- [ ] Client with the real game: save-folder detection, reconnect, items not duplicated on reload.
+- [ ] Client with the real game: save-folder detection, reconnect, items not duplicated on reload / Continue.
+- [ ] Client robustness in-game: client started after the game (config picked up live), seed switch while running (stale message, backup), chest save at camp then quit + Continue.
+- [x] Client robustness (sim): offline checks, client/server restarts, item doubling, seed switch: `client/tests/e2e_robustness.py` + FakeGame.
 
 ## After a full run
 - [ ] Add a difficulty slot option (default Extreme).

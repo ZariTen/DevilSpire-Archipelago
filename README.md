@@ -12,7 +12,7 @@ You need [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases) 0.
 1. **Install the apworld:** download `devilspire.apworld` from [Releases](../../releases) and double-click it (or copy it into Archipelago's `custom_worlds` folder).
 2. **Patch the game (once):** open the Archipelago Launcher, start **Devil Spire Client**, and type `/auto_patch`.
    It finds Devil Spire in your Steam libraries (or use `/auto_patch <game folder>`), keeps a backup of the original `data.win` as `data.win.orig`, and patches the game.
-3. **Connect first:** in the Devil Spire Client, connect (server address, slot name, password) **before** starting the game.
+3. **Connect:** in the Devil Spire Client, connect (server address, slot name, password). The game and the client can be started in any order.
 4. **Play:** start Devil Spire from Steam as usual, choose *New Game*. Open the chest next to the bonfire in the camp to get your items.
 
 The patched game keeps its saves in a separate `Devil_Spire_AP` folder, so your normal Devil Spire saves are never touched.
@@ -31,7 +31,7 @@ Details: [docs/HOST_GUIDE.md](docs/HOST_GUIDE.md).
 
 ## Problems?
 - `/auto_patch` says the game is a different version: see [troubleshooting](docs/PLAYER_GUIDE.md#7-troubleshooting).
-- Items don't arrive: start the client before the game and open the chest (twice); see [the guide](docs/PLAYER_GUIDE.md#3-play).
+- Items don't arrive: check the client is connected and open the chest (twice); see [the guide](docs/PLAYER_GUIDE.md#3-play).
 - Client can't find your save folder: use `/savedir`, see [the guide](docs/PLAYER_GUIDE.md#4-saves).
 
 Full guide: [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md). Developers: [patch/README.md](patch/README.md), [TODO.md](TODO.md).

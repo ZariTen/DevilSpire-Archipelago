@@ -73,7 +73,7 @@ class DevilSpireCommandProcessor(ClientCommandProcessor):
         c = self.ctx
         logger.info(f"save dir: {c.save_dir}; found locations: {len(c.found_locations)}; "
                     f"sent: {len(c.sent_locations)}; items in ap_in.txt: {len(c.in_writer.items) if c.in_writer else 0}; "
-                    f"goal: {c.finished_game}")
+                    f"server-checked: {len(c.checked_locations)}; goal: {c.finished_game}; slot: {c.slot_id}")
         return True
 
 
@@ -95,6 +95,8 @@ class DevilSpireContext(CommonContext):
         self.sent_locations: set[int] = set()    # ids sent in this connection (dedupe)
         self.goal_seen = False
         self.session_ready = False               # Connected processed, catch-up read done
+        self.items_synced = False                # got ReceivedItems since the last Connected (else ap_in is stale)
+        self.slot_id: typing.Optional[str] = None
         self._warned_dir = False
         self.set_save_dir(fp.find_save_dir(save_dir))
 
@@ -108,7 +110,7 @@ class DevilSpireContext(CommonContext):
         self.in_writer = fp.InWriter(path / fp.IN_FILE)
         self.session_ready = False
         logger.info(f"Devil Spire save dir: {path}")
-        if self.slot_data:
+        if self.slot_data and self.slot is not None:
             self.on_connected_setup()
 
     def make_gui(self):
@@ -129,40 +131,59 @@ class DevilSpireContext(CommonContext):
             self.death_link = bool(self.slot_data.get("death_link"))
             asyncio.create_task(self.update_death_link(self.death_link))
             self.sent_locations.clear()
+            self.items_synced = False
             self.on_connected_setup()
         elif cmd == "ReceivedItems":
+            self.items_synced = True
             self.refresh_items()
         elif cmd == "RoomUpdate":
             self.refresh_items()
 
     def on_connected_setup(self) -> None:
-        """Called after Connected (and when the save dir changes): write config, sync identity, rewrite ap_in."""
+        """Called after Connected (and when the save dir changes): sync identity, write config, rescan ap_out.
+
+        Identity = seed name + team + slot (`slot_id`, also written to ap_config.ini and used by the game to tag
+        check lines). First connection for a save dir adopts its existing files (offline checks are sent). A
+        different seed/slot moves this slot's files to ap_backup/<time>_<old>/ and starts clean."""
         if self.save_dir is None or self.tailer is None or self.in_writer is None:
             return
-        identity = {"seed": self.server_seed_name, "team": self.team, "slot": self.slot,
-                    "name": self.auth, "base_id": self.slot_data.get("base_id")}
-        old = fp.load_state(self.save_dir)
-        if old.get("identity") != identity:
-            # different multiworld/slot than the files were written for: forget stale checks, clear ap_out.txt
-            if old.get("identity"):
-                logger.info("New seed/slot detected for this save dir: clearing ap_out.txt and local state.")
+        self.slot_id = fp.make_slot_id(self.server_seed_name, self.team, self.slot)
+        identity = {"slot_id": self.slot_id, "name": self.auth, "base_id": self.slot_data.get("base_id")}
+        old = fp.load_state(self.save_dir).get("identity")
+        if old and "slot_id" not in old:  # state file of an older client version
+            old = dict(old, slot_id=fp.make_slot_id(old.get("seed"), old.get("team"), old.get("slot")))
+        if old and old.get("slot_id") != self.slot_id:
+            dest = fp.reset_save_dir(self.save_dir, str(old.get("slot_id", "old")))
+            logger.warning(f"This save folder belonged to another multiworld/slot ({old.get('slot_id')}). "
+                           f"Its Archipelago character and files were moved to {dest}. If Devil Spire is running, "
+                           "quit and restart it, then start a New Game.")
             self.found_locations.clear()
             self.goal_seen = False
-            self.tailer.truncate_file()
             self.in_writer.deaths.clear()
+            self.in_writer.items = []
+            self.in_writer._last = None
+        elif not old:
+            if fp.repair_souls_file(self.save_dir):
+                logger.info("Reset ap_souls_granted.txt (no items were received before the first connection).")
+        if old != identity:
             fp.store_state(self.save_dir, {"identity": identity})
-        try:
-            if fp.write_config(self.save_dir, self.slot_data, slot_id=f"{self.server_seed_name}:{self.slot}"):
-                logger.info("Wrote ap_config.ini (restart the game if it is already running; it is read at start).")
-        except (OSError, KeyError) as e:
-            logger.error(f"Could not write ap_config.ini: {e!r}")
-        # catch-up: everything already in ap_out.txt (boss/floor checks persist across runs). DeathLink lines are
-        # historic at this point and must NOT be re-sent.
+        self.write_config()
+        # catch-up: rescan the WHOLE ap_out.txt on every (re)connect, so checks made while the client was closed or
+        # disconnected are sent (the server ignores duplicates). DeathLink lines are historic here: not re-sent.
+        self.tailer.reset()
         for ev in self.tailer.poll_events():
             self.handle_event(ev, replay=True)
         self.session_ready = True
-        self.refresh_items(force=True)
+        if self.items_synced:
+            self.refresh_items(force=True)
         asyncio.create_task(self.flush_locations())
+
+    def write_config(self) -> None:
+        try:
+            if fp.write_config(self.save_dir, self.slot_data, slot_id=self.slot_id):
+                logger.info("Wrote ap_config.ini (the game picks it up within a second).")
+        except (OSError, KeyError) as e:
+            logger.error(f"Could not write ap_config.ini (retrying): {e!r}")
 
     def on_deathlink(self, data: dict) -> None:
         super().on_deathlink(data)
@@ -172,7 +193,8 @@ class DevilSpireContext(CommonContext):
 
     # -- ap_in.txt --------------------------------------------------------------------------------------------
     def refresh_items(self, force: bool = False) -> None:
-        if self.in_writer is None or self.slot is None:
+        # never write a list that is not the server's current full list for THIS slot (e.g. right after Connected)
+        if self.in_writer is None or self.slot is None or not self.items_synced or not self.session_ready:
             return
         items = []
         for it in self.items_received:
@@ -191,13 +213,15 @@ class DevilSpireContext(CommonContext):
         try:
             self.in_writer.flush(force)
         except OSError as e:
-            logger.error(f"Could not write ap_in.txt: {e!r}")
+            logger.error(f"Could not write ap_in.txt (retrying): {e!r}")
 
     # -- ap_out.txt -------------------------------------------------------------------------------------------
     def connected_to_slot(self) -> bool:
         return bool(self.slot is not None and self.server and self.server.socket and not self.server.socket.closed)
 
     def handle_event(self, ev: fp.OutEvent, replay: bool = False) -> None:
+        if ev.kind in "LG" and ev.slot is not None and ev.slot != self.slot_id:
+            return  # emitted while the game belonged to another multiworld/slot: never send it here
         if ev.kind == "L" and ev.location_id is not None:
             self.found_locations.add(ev.location_id)
         elif ev.kind == "G":
@@ -239,6 +263,8 @@ class DevilSpireContext(CommonContext):
                     for ev in self.tailer.poll_events():
                         self.handle_event(ev)
                     await self.flush_locations()
+                    self.write_config()   # no-op unless missing/changed (e.g. a failed write on Windows)
+                    self.write_in()       # no-op unless the last write failed or content changed
             except Exception:
                 logger.exception("file watcher error")
             await asyncio.sleep(POLL_SECONDS)

@@ -38,32 +38,39 @@ The script refuses to run on an already patched file. `patch/gml/*.gml` are the 
 ## Files (all in the patched game's save dir; under Proton `.../compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire_AP/`)
 Text, one record per line, fields separated by `|`.
 
-### `ap_config.ini` (client -> game, read once at game start)
+### `ap_config.ini` (client -> game; re-read on every poll, so client and game can start in any order)
 ```
 [ap]
 death_link=1            ; 0/1
 floor_check_step=1      ; 1 every floor, 5 every 5th, 10 every 10th, 0 off  (floor N counts if (N-1) mod step == 0)
 base_id=38470000         ; apworld BASE_ID 
 poll_frames=30          ; optional, default 30
+slot_id=<seed>:<team>:<slot>   ; multiworld identity (see "Multiworld identity" below)
 ```
 Client mapping from slot_data `floor_checks`: 0->1, 1->5, 2->10, 3->0.
 
-### `ap_out.txt` (game -> client, append-only; client dedups / tracks its read offset)
-- `L|<location id>` boss cleared (`base_id + (N-9)/10`, floors -9..-99) or floor reached (`base_id + 100 + N-1`)
-- `G|1` goal: Rhamdon defeated
+### `ap_out.txt` (game -> client, append-only)
+- `L|<location id>|<slot_id>` boss cleared (`base_id + (N-9)/10`, floors -9..-99) or floor reached (`base_id + 100 + N-1`)
+- `G|1|<slot_id>` goal: Rhamdon defeated (L/G carry the slot id the game belonged to; empty before the first connection)
 - `D|<cause>` player died (only when death_link=1 and the death was not caused by an incoming DeathLink)
 - `X|<text>` informational (death caused by DeathLink); `N|1|..` new Descent run started; `S|1|..` patch started; `E|..` error
-The client may truncate/delete the file at any time.
+The client rescans the WHOLE file on every (re)connect (the server ignores duplicate checks), so checks made while the client was closed or disconnected are never lost; while connected it tails by byte offset (reset when the file shrinks or is replaced). DeathLink lines found in a rescan are historic and not re-sent. L/G lines tagged with another slot id are ignored. The client may move the file away (seed switch).
 
 ### `ap_in.txt` (client -> game; client rewrites the WHOLE file atomically: write tmp, rename)
 - `I|<index>|<item id>|<item name>|<sender>`  full received-items list, indexes 0,1,2,... contiguous, in AP order. Game stores them by index and ignores indexes it already has.
 - `D|<seq>|<text>`  DeathLink events; `seq` strictly increasing. On the first poll after start the game adopts the max seq (old events are not replayed); a higher seq later kills the player (when alive in the dungeon, Descent only).
 
 ### `ap_souls_granted.txt` (game-private)
-Line 1: highest received-item index whose **Pouch of Souls** was already granted (-1 = none); line 2: `slot_id`. Souls live in the vault (persist across deaths), so each Pouch (by received index) is granted only ONCE; re-applying the list on a new run skips it silently. Reset: automatically when `ap_config.ini` has a `slot_id` (client writes `<seed name>:<slot>`) that differs from line 2; otherwise delete the file (e.g. `make_test_ap_in.sh --reset`) when starting a new multiworld. Gold, orbs, etc. keep re-granting each run.
+Line 1: highest received-item index whose **Pouch of Souls** was already granted (-1 = none); line 2: `slot_id`. Souls live in the vault (persist across deaths), so each Pouch (by received index) is granted only ONCE; re-applying the list on a new run skips it silently. Reset: automatically when `ap_config.ini` has a `slot_id` that differs from line 2, and by the client on a seed switch (file moved to the backup). Builds before 37b2dda4 parsed "-1" as 1; the client resets an untagged file to -1 on the first connection. Gold, orbs, etc. keep re-granting each run.
 
 ### `ap_granted.txt` (game-private)
-Number of received items already granted to the CURRENT run; `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items become pending again. They are applied ONLY when the player opens the Archipelago chest (below), in index order. Ungrantable items (inventory/grimoire full) stop the batch (message "open again"); retried on 5 chest opens, then skipped (`E|skipped...`).
+Line 1: number of received items already granted to the CURRENT run (line 2: slot id of that run; a different configured slot at start => -1); `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items become pending again. They are applied ONLY when the player opens the Archipelago chest (below), in index order. Ungrantable items (inventory/grimoire full) stop the batch (message "open again"); retried on 5 chest opens, then skipped (`E|skipped...`). After granting in the camp the chest also calls `save_souls(); save_game(mode)`, so quitting at the camp and choosing Continue neither loses nor re-grants items (the game itself only saves on floor change). Game restart mid-run: `ap_granted` persists, `ap_in` indexes are re-read from 0, only indexes >= ap_granted are pending.
+
+### Multiworld identity
+`slot_id` = `<seed name>:<team>:<slot>` (client: `make_slot_id`), stored in `ap_client_state.json` (client) and `ap_config.ini`, `ap_granted.txt`, `ap_souls_granted.txt` (game).
+- Client, first connection for a save dir (no state file): adopts existing files (offline checks sent).
+- Client, same slot: nothing reset. Different slot: moves `descent_character.ini, corpse.ini, ap_granted.txt, ap_souls_granted.txt, ap_out.txt, ap_in.txt, ap_config.ini, ap_client_state.json` to `ap_backup/<time>_<old slot>/` (never deleted; `souls.ini`/`unlocks.ini` stay), then writes the new config. It does not write `ap_in.txt` until the first ReceivedItems after Connected.
+- Game (`ap_slot_check` each poll): empty session slot + configured X => adopt X. Session slot X, configured Y => **stale** until restart: no L/G/D lines, `ap_in.txt` ignored, chest refuses, `ap_granted=-1`, message "Quit and restart the game". On the next start the old run (if the game re-saved it) is inactive; a New Game starts the new multiworld.
 
 ## Item ids (relative to `base_id + 500`; full table and effects in docs/item-catalog.md)
 No depth keys / gating (all floors reachable; removed 2026-10-11). 100-103 Orb of STR/INT/VIT/AGI (+3 stat), 104 Stat Point, 110 Yellow Orb (Gold) (150-450 gold), 111 Gold Hoard (1000), 112 Blue Orb (Stone) (random stone 0-35), 113 Pouch of Souls (+100), 120/121 Red/Blue Potion Pack (3x), 122 White Potion, 130/131/132 Spell Page Basic/Advanced/Master, 140-142 Weapon Lv25/50/75, 143-145 Armor Piece, 146-148 Accessory, 149/150 Shield Lv25/50, 151 Mystic Ring, 200 Ambush / 201 Plague / 202 Pickpocket trap.

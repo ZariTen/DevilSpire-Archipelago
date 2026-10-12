@@ -12,7 +12,9 @@ import file_protocol as fp  # noqa: E402
 class ParseTests(unittest.TestCase):
     def test_lines(self):
         self.assertEqual(fp.parse_out_line("L|38470100"), fp.OutEvent("L", location_id=38470100))
-        self.assertEqual(fp.parse_out_line("L|38470100|extra\r"), fp.OutEvent("L", location_id=38470100))
+        self.assertEqual(fp.parse_out_line("L|38470100|seed:0:1\r"), fp.OutEvent("L", location_id=38470100, slot="seed:0:1"))
+        self.assertEqual(fp.parse_out_line("L|38470100|\r"), fp.OutEvent("L", location_id=38470100))  # empty tag
+        self.assertEqual(fp.parse_out_line("G|1|s:0:2").slot, "s:0:2")
         self.assertEqual(fp.parse_out_line("G|1").kind, "G")
         self.assertEqual(fp.parse_out_line("D|Died on floor 12").text, "Died on floor 12")
         self.assertEqual(fp.parse_out_line("X|death caused by DeathLink").kind, "X")
@@ -42,6 +44,17 @@ class TailTests(unittest.TestCase):
         evs = self.t.poll_events()
         self.assertEqual([(e.kind, e.location_id) for e in evs], [("L", 11), ("G", None)])
         self.assertEqual(self.t.poll_events(), [])
+
+    def test_replaced_file_resets_offset(self):
+        d = Path(tempfile.mkdtemp())
+        p = d / "ap_out.txt"
+        p.write_text("L|1\nL|2\n")
+        t = fp.OutTailer(p)
+        self.assertEqual(len(t.poll()), 2)
+        tmp = d / "new"
+        tmp.write_text("L|3\nL|4\nL|5\n")  # rotated: a different, longer file
+        os.replace(tmp, p)
+        self.assertEqual(t.poll(), ["L|3", "L|4", "L|5"])
 
     def test_truncation_resets_offset(self):
         self.p.write_bytes(b"L|1\nL|2\nL|3\n")
@@ -123,6 +136,36 @@ class ConfigTests(unittest.TestCase):
         self.assertTrue(fp.write_config(d, sd))
         self.assertFalse(fp.write_config(d, sd))
         self.assertIn("floor_check_step=10", (d / "ap_config.ini").read_text())
+
+
+class IdentityTests(unittest.TestCase):
+    def test_reset_moves_slot_files_only(self):
+        d = Path(tempfile.mkdtemp())
+        for n in ("descent_character.ini", "corpse.ini", "ap_granted.txt", "ap_out.txt", "ap_client_state.json",
+                  "souls.ini", "unlocks.ini"):
+            (d / n).write_text(n)
+        dest = fp.reset_save_dir(d, "old:0:1")
+        self.assertEqual(dest.parent, d / fp.BACKUP_DIR)
+        self.assertTrue(dest.name.endswith("old_0_1"))
+        self.assertEqual(sorted(p.name for p in d.iterdir()), ["ap_backup", "souls.ini", "unlocks.ini"])
+        self.assertEqual((dest / "descent_character.ini").read_text(), "descent_character.ini")
+        self.assertIsNone(fp.reset_save_dir(d, "x"))  # nothing left to move
+        (d / "ap_out.txt").write_text("again")
+        dest2 = fp.reset_save_dir(d, "old:0:1")  # same second: must not collide
+        self.assertNotEqual(dest, dest2)
+
+    def test_repair_souls(self):
+        d = Path(tempfile.mkdtemp())
+        self.assertFalse(fp.repair_souls_file(d))
+        (d / "ap_souls_granted.txt").write_text("1\n\n")
+        self.assertTrue(fp.repair_souls_file(d))
+        self.assertEqual((d / "ap_souls_granted.txt").read_text(), "-1\n\n")
+        (d / "ap_souls_granted.txt").write_text("3\nseed:0:1\n")  # tagged: real state, keep
+        self.assertFalse(fp.repair_souls_file(d))
+
+    def test_slot_id(self):
+        self.assertEqual(fp.make_slot_id("123", 0, 2), "123:0:2")
+        self.assertEqual(fp.make_slot_id("a|b", 0, 1), "a/b:0:1")
 
 
 class SaveDirTests(unittest.TestCase):

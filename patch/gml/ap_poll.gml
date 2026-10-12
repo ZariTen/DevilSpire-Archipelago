@@ -9,7 +9,8 @@ if (global.ap_tick < global.ap_poll_frames)
     exit;
 }
 global.ap_tick = 0;
-if (file_exists("ap_in.txt"))
+ap_slot_check(ap_read_config());
+if (!global.ap_stale && file_exists("ap_in.txt"))
 {
     var f = file_text_open_read("ap_in.txt");
     if (f != -1)
@@ -26,7 +27,8 @@ if (file_exists("ap_in.txt"))
             {
                 var si = string_digits(ap_field(line, 1));
                 var sid = string_digits(ap_field(line, 2));
-                if (string_length(si) > 0 && string_length(sid) > 0)
+                // ignore truncated lines: a complete item line has 5 fields (I|idx|id|name|sender)
+                if (string_length(si) > 0 && string_length(sid) > 0 && string_count("|", line) >= 4)
                 {
                     var idx = real(si);
                     if (idx >= global.ap_n && idx == global.ap_n)
@@ -78,7 +80,7 @@ if (file_exists("ap_in.txt"))
     }
 }
 // run-state gated actions (Descent only, player alive in the dungeon)
-if (global.mode == 1 && room == rom_dungeon && instance_exists(obj_player))
+if (!global.ap_stale && global.mode == 1 && room == rom_dungeon && instance_exists(obj_player))
 {
     if (obj_player.hp > 0 && obj_player.death == 0)
     {

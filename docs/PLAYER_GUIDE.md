@@ -20,7 +20,7 @@ What it does: checks that `data.win` is exactly the supported original, saves it
 ## 3. Play
 1. Open the Launcher > **Devil Spire Client**.
 2. Type the server in the box at the top (e.g. `archipelago.gg:38281`) and connect, enter your slot name (and password). Wait until it says connected.
-3. **Only now** start Devil Spire from Steam as usual. The game reads its Archipelago settings (DeathLink etc.) once when it starts; if you started it first, close it and start again.
+3. Start Devil Spire from Steam as usual (before or after the client: the game picks up the client's settings within a second). Checks you make while the client is closed or disconnected are sent when it reconnects.
 4. Choose *New Game* and create a character. The only game mode is **Archipelago** (descend 100 floors; reaching floors and killing bosses are checks).
 5. In the pre-tower camp, open the **chest next to the bonfire** (interact twice) to receive everything you were sent. Items that arrive mid-run wait until the chest is opened again or the next camp visit.
 6. Each new run (after dying) re-grants your received items; checks you already found stay found.
@@ -32,6 +32,9 @@ The patched game uses its **own** save folder `Devil_Spire_AP` (the normal game 
 - Windows: `%APPDATA%\Devil_Spire_AP` (paste into the Explorer address bar).
 - Linux with Proton: `<Steam library>/steamapps/compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire_AP`.
 The Archipelago files (`ap_in.txt`, `ap_out.txt`, `ap_config.ini`, ...) live in the same folder. The client finds it automatically (all Steam libraries); `/savedir` shows or overrides it.
+
+### Playing another multiworld
+When you connect to a different multiworld (or slot), the client moves your Archipelago character and files to `Devil_Spire_AP/ap_backup/<date>_<old slot>/` (nothing is deleted) and starts clean: choose **New Game**. If the game was running at that moment it shows "different multiworld connected": quit and restart it. Reconnecting to the same multiworld never resets anything.
 
 ## 5. Uninstall
 - Type `/restore` in the client: the backup `data.win.orig` is checked and put back as `data.win`, then the backup is removed.
@@ -48,5 +51,5 @@ Steam may replace the patched `data.win` when you verify files or when the game 
 - **Permission / file errors:** close the game first. Make sure the game folder is writable (Windows: Steam in `Program Files` may need the client run as administrator).
 - **Game does not start after patching:** `/restore` (or verify files in Steam), check that the game starts, then `/auto_patch` again. If it only fails when patched, report it with your Windows/Proton version.
 - **Client can't find the save folder:** start the game once (and create a character) so the folder exists, then use `/savedir` in the client to see what it uses. To force a path: `/savedir C:\Users\You\AppData\Roaming\Devil_Spire_AP` (any path works), or start the client with `--savedir PATH`, or set the environment variable `DEVILSPIRE_SAVE_DIR`. On Linux look for the folder with `find ~ -type d -name Devil_Spire_AP 2>/dev/null`.
-- **Items don't arrive:** is the client connected? did you start the client before the game? open the camp chest (twice); check `/apstatus`.
+- **Items don't arrive:** is the client connected? open the camp chest (twice); check `/apstatus`.
 - **Different Proton prefix than detected:** the client picks the newest `Devil_Spire_AP` folder; pass the right one with `/savedir`.

@@ -85,14 +85,16 @@ try:
     zd, bd = tmp / "zari_save", tmp / "buddy_save"
     zd.mkdir(); bd.mkdir()
     BASE = 38_470_000
-    # stale data from a "previous seed" must be wiped
+    # stale data from a "previous seed" must be moved away (backup), not sent
     (zd / "ap_out.txt").write_text(f"L|{BASE + 1}\nG|1\n")
+    (zd / "ap_client_state.json").write_text(json.dumps({"identity": {"slot_id": "oldseed:0:1"}}))
     zc = start_client("Zari", zd, tmp / "zari.log")
     bc = start_client("Buddy", bd, tmp / "buddy.log")
     cfg = wait_for(lambda: read(zd / "ap_config.ini"))
     check("ap_config.ini written", cfg.startswith(f"[ap]\ndeath_link=1\nfloor_check_step=5\nbase_id={BASE}\n") and "slot_id=" in cfg, repr(cfg))
-    check("stale ap_out.txt cleared on first connect to a new seed", wait_for(lambda: read(zd / "ap_out.txt") == ""))
-    check("empty ap_in.txt written", wait_for(lambda: (zd / "ap_in.txt").exists()))
+    check("stale ap_out.txt of another seed moved to ap_backup", wait_for(lambda: read(zd / "ap_out.txt") == "" and
+          any((zd / "ap_backup").glob("*/ap_out.txt"))))
+    check("ap_in.txt written", wait_for(lambda: (zd / "ap_in.txt").exists()))
     time.sleep(1)
     # simulate the game: boss -9 (id +0), floor 1 (+100), floor 6 (+105), duplicate, garbage, truncated line, partial
     with open(zd / "ap_out.txt", "a") as f:
@@ -152,7 +154,7 @@ try:
     check("reconnect rewrites FULL ap_in.txt (30 items)", again)
     time.sleep(2)
     log2 = read(tmp / "zari2.log")
-    check("reconnect: same seed not treated as new seed", "New seed/slot detected" not in log2)
+    check("reconnect: same seed not treated as new seed", "belonged to another multiworld" not in log2)
     def own_errors(txt):  # ignore "Could not load world X" noise from unrelated worlds missing optional deps
         return [l for l in txt.splitlines() if ("ds_client" in l or "file_protocol" in l or "DevilSpire" in l)
                 and ("File " in l or "Error" in l) and "DevilSpireClient.py\", line" not in l]

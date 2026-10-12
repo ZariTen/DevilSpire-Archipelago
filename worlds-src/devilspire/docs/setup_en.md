@@ -18,5 +18,5 @@ To undo: `/restore` in the client, or Steam's *Verify integrity of game files*. 
 
 ## Playing
 1. Open the Launcher and start **Devil Spire Client**; connect to the server.
-2. Only then start the game from Steam, choose New Game, and open the chest next to the camp bonfire to receive items.
+2. Start the game from Steam (before or after the client), choose New Game, and open the chest next to the camp bonfire to receive items.
 Each new run re-grants all received items. Full guide: docs/PLAYER_GUIDE.md in the repository.

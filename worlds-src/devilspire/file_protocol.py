@@ -85,7 +85,16 @@ def atomic_write_text(path: Path, text: str) -> None:
             os.fsync(f.fileno())
         except OSError:
             pass
-    os.replace(tmp, path)
+    # Windows: os.replace fails with PermissionError while the game has the target open; retry briefly, then give up
+    # (callers keep the content dirty and retry on the next poll)
+    for attempt in range(5):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if attempt == 4:
+                raise
+            time.sleep(0.05)
 
 
 # ---------------------------------------------------------------------------------------------- ap_config.ini
@@ -126,6 +135,7 @@ class OutEvent:
     kind: str                     # "L" location, "G" goal, "D" death, or other informational kinds
     location_id: Optional[int] = None
     text: str = ""
+    slot: Optional[str] = None    # L/G: slot id the game belonged to when it emitted the line (None = untagged)
 
 
 def parse_out_line(line: str) -> Optional[OutEvent]:
@@ -134,13 +144,15 @@ def parse_out_line(line: str) -> Optional[OutEvent]:
     if len(line) < 2 or line[1] != "|":
         return None
     kind, rest = line[0], line[2:]
+    parts = rest.split("|")
+    tag = parts[1].strip() if len(parts) > 1 and parts[1].strip() else None
     if kind == "L":
-        field_ = rest.split("|", 1)[0].strip()
+        field_ = parts[0].strip()
         if field_.isdigit():
-            return OutEvent("L", location_id=int(field_))
+            return OutEvent("L", location_id=int(field_), slot=tag)
         return None
     if kind == "G":
-        return OutEvent("G", text=rest) if rest.split("|", 1)[0].strip() == "1" else None
+        return OutEvent("G", text=rest, slot=tag) if parts[0].strip() == "1" else None
     if kind == "D":
         return OutEvent("D", text=rest)
     if kind in "XNSE":
@@ -158,6 +170,7 @@ class OutTailer:
     def __init__(self, path: Path):
         self.path = Path(path)
         self.offset = 0
+        self.file_id: Optional[tuple] = None   # (st_dev, st_ino) of the file the offset belongs to
 
     def reset(self) -> None:
         self.offset = 0
@@ -171,12 +184,14 @@ class OutTailer:
 
     def poll(self) -> list[str]:
         try:
-            size = self.path.stat().st_size
+            st = self.path.stat()
         except OSError:
             self.offset = 0
             return []
-        if size < self.offset:
-            self.offset = 0
+        size, fid = st.st_size, (st.st_dev, st.st_ino)
+        if size < self.offset or (self.file_id is not None and fid != self.file_id and st.st_ino):
+            self.offset = 0   # truncated, or replaced by another file (rotation)
+        self.file_id = fid
         if size == self.offset:
             return []
         try:
@@ -237,6 +252,48 @@ class InWriter:
 
 
 # ---------------------------------------------------------------------------------------------- session identity
+# Files that belong to one multiworld slot. On a seed/slot switch they are MOVED (never deleted) into
+# ap_backup/<timestamp>_<old slot>/ so the next run starts clean. Meta progression (souls.ini, unlocks.ini) stays.
+RESET_FILES = ("descent_character.ini", "corpse.ini", "ap_granted.txt", "ap_souls_granted.txt", OUT_FILE, IN_FILE,
+               CONFIG_FILE, STATE_FILE)
+BACKUP_DIR = "ap_backup"
+
+
+def make_slot_id(seed_name: object, team: object, slot: object) -> str:
+    return clean_field(f"{seed_name}:{team}:{slot}")
+
+
+def reset_save_dir(save_dir: Path, label: str = "") -> Optional[Path]:
+    """Move this slot's files into a timestamped backup folder. Returns that folder (None if nothing to move)."""
+    save_dir = Path(save_dir)
+    present = [n for n in RESET_FILES if (save_dir / n).exists()]
+    if not present:
+        return None
+    safe = "".join(c if c.isalnum() or c in "-_." else "_" for c in label)[:60]
+    base = save_dir / BACKUP_DIR / (time.strftime("%Y%m%d-%H%M%S") + (f"_{safe}" if safe else ""))
+    dest, n = base, 1
+    while dest.exists():
+        n += 1
+        dest = base.with_name(f"{base.name}_{n}")
+    dest.mkdir(parents=True)
+    for name in present:
+        os.replace(save_dir / name, dest / name)
+    return dest
+
+
+def repair_souls_file(save_dir: Path) -> bool:
+    """Older patch builds parsed "-1" in ap_souls_granted.txt as 1 (souls of item 0/1 then never granted). Before the
+    first connection no item can have been received, so an untagged file is reset to "-1". Returns True if changed."""
+    p = Path(save_dir) / "ap_souls_granted.txt"
+    try:
+        lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return False
+    if (len(lines) < 2 or not lines[1].strip()) and lines and lines[0].strip() != "-1":
+        atomic_write_text(p, "-1\n\n")
+        return True
+    return False
+
 def load_state(save_dir: Path) -> dict:
     import json
     try:

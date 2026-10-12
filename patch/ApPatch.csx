@@ -11,7 +11,7 @@ using UndertaleModLib.Models;
 string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
-    "ap_save_souls", "ap_grant_pending", "ap_chest_open", "ap_chest_spawn", "ap_chest_init" };
+    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_chest_open", "ap_chest_spawn", "ap_chest_init" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
