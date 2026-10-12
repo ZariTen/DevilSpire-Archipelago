@@ -31,7 +31,7 @@ Details: [docs/HOST_GUIDE.md](docs/HOST_GUIDE.md).
 
 ## Problems?
 - `/auto_patch` says the game is a different version: see [troubleshooting](docs/PLAYER_GUIDE.md#7-troubleshooting).
-- The client warns about an unpatched or outdated game: run `/auto_patch` (after a Devil Spire update, wait for a new apworld).
+- The client warns about an unpatched or outdated game: run `/auto_patch`.
 - Items don't arrive: check the client is connected and open the chest (twice); see [the guide](docs/PLAYER_GUIDE.md#3-play).
 - Client can't find your save folder: use `/savedir`, see [the guide](docs/PLAYER_GUIDE.md#4-saves).
 

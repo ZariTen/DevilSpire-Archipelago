@@ -17,7 +17,7 @@ python client/DevilSpireClient.py --ap-root ~/Archipelago --connect host:38281 -
 ## Save dir
 Priority: `--savedir` > `$DEVILSPIRE_SAVE_DIR` > auto-detect (`%APPDATA%\Devil_Spire`, Steam Proton prefixes
 `~/.local/share/Steam/steamapps/compatdata/*/pfx/drive_c/users/*/AppData/Roaming/Devil_Spire` (also ~/.steam, Flatpak Steam); newest wins).
-In the client: `/savedir [path]` shows/sets it, `/apstatus` shows counters.
+In the client: `/savedir [path]` shows/sets it, `/status` shows patch/connection state.
 
 ## Behavior
 - `ap_out.txt` is tailed by byte offset (only complete lines; truncated/deleted/empty file resets the offset; garbage lines ignored).

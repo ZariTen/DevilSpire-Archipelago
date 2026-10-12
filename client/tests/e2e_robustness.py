@@ -90,7 +90,7 @@ class Client:
         procs.append(self.p)
 
     def status(self):
-        self.p.stdin.write("/apstatus\n")
+        self.p.stdin.write("/status\n")
         self.p.stdin.flush()
         time.sleep(0.6)
         m = re.findall(r"server-checked: (\d+); goal: \w+; slot: (\S+)", read(self.log))

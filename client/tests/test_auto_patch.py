@@ -72,9 +72,8 @@ class InPlaceTests(unittest.TestCase):
         self.assertEqual(self.patch_().state, "patched")
         self.assertEqual((self.game / "data.win").read_bytes(), PATCHED)
         self.assertEqual((self.game / ap.BACKUP).read_bytes(), ORIG)
-        self.assertEqual(self.files(), ["Devil Spire.exe", "ap_patch_info.json", "data.win", "data.win.orig"])
+        self.assertEqual(self.files(), ["Devil Spire.exe", "data.win", "data.win.orig"])
         self.assertEqual(self.patch_().state, "patched")  # second run: no-op
-        self.assertEqual(self.patch_(force=True).state, "patched")  # re-patch from backup
         self.assertEqual((self.game / ap.BACKUP).read_bytes(), ORIG)
         st = ap.restore(self.game, self.info, **QUIET)
         self.assertEqual((st.state, st.backup), ("original", "missing"))
@@ -96,21 +95,20 @@ class InPlaceTests(unittest.TestCase):
         (self.game / "data.win").write_bytes(PATCHED)  # patched but no backup
         with self.assertRaisesRegex(ap.PatchError, "missing.*Verify integrity"):
             ap.restore(self.game, self.info, **QUIET)
+        (self.game / "data.win").write_bytes(OLD)  # older build of ours, no backup
         with self.assertRaisesRegex(ap.PatchError, "missing"):
-            self.patch_(force=True)
+            self.patch_()
         (self.game / ap.BACKUP).write_bytes(b"corrupt")
         with self.assertRaisesRegex(ap.PatchError, "invalid"):
             ap.restore(self.game, self.info, **QUIET)
         self.assertEqual((self.game / ap.BACKUP).read_bytes(), b"corrupt")
 
-    def test_restore_refuses_after_game_update(self):
+    def test_unknown_data_win(self):
         self.patch_()
-        (self.game / "data.win").write_bytes(b"new game version from steam")
-        with self.assertRaisesRegex(ap.PatchError, "game update"):
-            ap.restore(self.game, self.info, **QUIET)
-        self.assertEqual((self.game / "data.win").read_bytes(), b"new game version from steam")
-        with self.assertRaisesRegex(ap.PatchError, "updated apworld"):
+        (self.game / "data.win").write_bytes(b"something else")
+        with self.assertRaisesRegex(ap.PatchError, "supported"):
             self.patch_()
+        self.assertEqual(ap.restore(self.game, self.info, **QUIET).state, "original")  # valid backup: restored
 
     def test_accented_game_dir(self):
         game = make_game(Path(self.t.name) / "Jogos Ção" / "Devil Spire")

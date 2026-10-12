@@ -21,7 +21,7 @@ The patched game runs (real Steam install under Proton): boot, Archipelago mode 
 - [x] **Single mode "Archipelago":** other modes hidden, "Descent" renamed, Extreme/Nightmare unlocked without prices.
 - [x] **Camp chest:** fixed spot next to the bonfire in the pre-tower camp; grants received items, re-arms for mid-run items.
 - [x] **No-gating boost pool:** keys and tier rules removed; new item ids and grant code.
-- [x] **Install via client:** `/auto_patch [force] [game dir]`, `/restore`, `/patch_status` (Steam library detection incl. libraryfolders.vdf, hash checks, verified backup, atomic replace, upgrade from older builds via `patch/KNOWN_PATCHED_SHA256`); patch built by `scripts/build_apworld.sh`; unit tests + e2e on a temp copy of the game.
+- [x] **Install via client:** `/auto_patch` (`/patch`), `/restore`, `/status`, `/savedir` (Steam library detection incl. libraryfolders.vdf, hash checks, verified backup, atomic replace, upgrade from older builds via `patch/KNOWN_PATCHED_SHA256`); patch built by `scripts/build_apworld.sh`; unit tests + e2e on a temp copy of the game.
 - [x] **Separate saves:** GEN8 Name `Devil_Spire` -> `Devil_Spire_AP`; client looks in all Steam libraries' Proton prefixes and %APPDATA%.
 - [x] **Docs:** README, player guide, host guide.
 - [x] **License:** MIT.
@@ -37,8 +37,8 @@ The patched game runs (real Steam install under Proton): boot, Archipelago mode 
 - [ ] First-ever character (tutorial skips the camp): how does the player get the chest?
 - [ ] Client with the real game: save-folder detection, reconnect, items not duplicated on reload / Continue.
 - [ ] Client robustness in-game: client started after the game (config picked up live), seed switch while running (stale message, backup), chest save at camp then quit + Continue.
-- [ ] Edge cases in-game: DeathLink at title/camp ignored; 100-item chest batches; health warnings (unpatched game, Steam update) with the real install; non-ASCII Windows user name.
-- [x] Edge cases (sim/unit): unpatched/outdated data.win + protocol warnings, unpatched-game activity, Steam Cloud notice, /restore refuses after a game update, new character re-grants once, 500-item burst in batches, DeathLink without run ignored, offline goal resent, stable item indexes across server crash, UTF-8 paths.
+- [ ] Edge cases in-game: DeathLink at title/camp ignored; 100-item chest batches; health warnings (unpatched game after Steam verify) with the real install; non-ASCII Windows user name.
+- [x] Edge cases (sim/unit): unpatched/outdated data.win + protocol warnings, unpatched-game activity, Steam Cloud notice, new character re-grants once, 500-item burst in batches, DeathLink without run ignored, offline goal resent, stable item indexes across server crash, UTF-8 paths.
 - [x] Client robustness (sim): offline checks, client/server restarts, item doubling, seed switch: `client/tests/e2e_robustness.py` + FakeGame.
 
 ## After a full run

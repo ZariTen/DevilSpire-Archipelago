@@ -5,9 +5,9 @@ Fan-made, unofficial. Patches a **copy** of your own `data.win` (never the Steam
 ## Player install (`/auto_patch` in the client)
 Players do not run UndertaleModCli. The apworld ships `data/devilspire.bsdiff4` + `data/patch.json` (original sha256, current patched sha256, `known_patched_sha256` = all builds listed in `patch/KNOWN_PATCHED_SHA256`), built by `scripts/build_apworld.sh` (-> `scripts/make_patch.py`: bsdiff4 from pristine `game-copy/data.win` to `game-copy/data_patched.win`, self-checked, appends the new hash to KNOWN_PATCHED_SHA256; patch outputs are git-ignored). bsdiff4 is an Archipelago core requirement.
 Client commands (`worlds-src/devilspire/auto_patch.py`), game folder found in Steam libraries (default roots + `libraryfolders.vdf`; Windows also the registry) unless given:
-- `/auto_patch [force] [dir]`: original -> backup `data.win.orig` (only written when missing; an existing invalid file is moved to `data.win.orig.invalid`, a valid one is never overwritten), patch in memory, verify, write `data.win.ap-tmp`, fsync, atomic rename, verify, write `ap_patch_info.json`. Current patch -> no-op (`force` re-patches from backup). Older known patch -> re-patch from the valid backup. Unknown hash -> refused, nothing changed.
-- `/restore [dir]`: backup verified -> atomically put back as data.win -> verify -> only then delete backup + `ap_patch_info.json`. Missing/invalid backup -> error pointing to Steam "Verify integrity of game files".
-- `/patch_status [dir]`.
+- `/auto_patch [dir]` (alias `/patch`): original -> backup `data.win.orig` (only written when missing; an invalid file there is moved to `data.win.orig.invalid`, a valid one is never overwritten), patch in memory, verify, write `data.win.ap-tmp`, fsync, atomic rename, verify. Current build -> nothing. Older build of ours (KNOWN_PATCHED_SHA256) -> re-patched from the valid backup. Anything else -> refused, nothing changed.
+- `/restore [dir]`: valid backup -> atomically put back, verified, then the backup is deleted. Missing/invalid backup -> points to Steam "Verify integrity of game files".
+- `/status`: patch state + save folder + connection counters. `/savedir [path]` for unusual save locations.
 Changing the patch (ApPatch.csx / GML): rebuild `game-copy/data_patched.win` with `apply_patch.sh`, then `scripts/build_apworld.sh`.
 
 ## Client health checks (every 10 s, `health.py`)

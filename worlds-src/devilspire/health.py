@@ -1,6 +1,6 @@
 """Setup health checks for the Devil Spire client (pure Python, no Archipelago imports). Fan-made, unofficial.
 
-* data.win of the Steam install is not the current patched build (original, older build, game update)
+* data.win of the Steam install is not the current patched build (original after a Steam file check, older build)
 * the game runs an unexpected patch protocol (S|<version> line in ap_out.txt)
 * the UNPATCHED game is being played (activity in the original Devil_Spire save folder, which the patched game
   never touches)
@@ -40,10 +40,10 @@ class DataWinCheck:
         state = getattr(self._status, "state", None)
         if state == "patched" or state is None:
             return None
-        why = {"original": "is NOT patched (Steam may have restored it after an update or file check)",
+        why = {"original": "is NOT patched (a Steam file check or reinstall restores the original)",
                "outdated": "has an older Archipelago patch",
                "missing": "is missing",
-               "unknown": "is an unknown version (a game update? then wait for an updated apworld)"}[state]
+               "unknown": "is not the supported version (Steam Verify restores it)"}[state]
         return f"Devil Spire's data.win in {game_dir} {why}. Run /auto_patch."
 
 

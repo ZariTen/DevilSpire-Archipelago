@@ -1,4 +1,4 @@
-"""Devil Spire in-place patcher used by the client (`/auto_patch`, `/restore`, `/patch_status`). Fan-made, unofficial.
+"""Devil Spire in-place patcher used by the client (`/auto_patch`, `/restore`, `/status`). Fan-made, unofficial.
 
 Patches the game's own data.win with the bsdiff4 patch shipped inside the apworld (data/devilspire.bsdiff4,
 data/patch.json = {"original_sha256", "patched_sha256", "known_patched_sha256": [older builds]}).
@@ -24,7 +24,6 @@ PATCH_RESOURCE = "data/devilspire.bsdiff4"
 PATCH_INFO_RESOURCE = "data/patch.json"
 BACKUP = "data.win.orig"
 TMP = "data.win.ap-tmp"
-MARKER_FILE = "ap_patch_info.json"
 STEAM_VERIFY_HINT = ("Steam > right-click Devil Spire > Properties > Installed Files > "
                      "Verify integrity of game files restores the original data.win.")
 
@@ -137,7 +136,7 @@ class Status:
     def describe(self) -> str:
         msg = {"original": "original (not patched)", "patched": "patched (current Archipelago version)",
                "outdated": "patched with an OLDER Archipelago version", "missing": "data.win missing",
-               "unknown": f"unknown data.win (sha256 {self.data_sha})"}[self.state]
+               "unknown": "not the supported version"}[self.state]
         return f"{self.game_dir}: {msg}; backup {BACKUP}: {self.backup}"
 
 
@@ -146,7 +145,7 @@ def _resolve_dir(game_dir: Optional[Path]) -> Path:
         game_dir = find_game_dir()
         if game_dir is None:
             raise PatchError("Devil Spire not found in any Steam library; pass the game folder, "
-                             "e.g. /auto_patch <folder> (Steam > Manage > Browse local files shows it).")
+                             "e.g. /auto_patch <folder>.")
     game_dir = Path(game_dir).expanduser()
     if not game_dir.is_dir():
         raise PatchError(f"not a folder: {game_dir}")
@@ -186,84 +185,63 @@ def _atomic_write(path: Path, data: bytes) -> None:
 
 # ------------------------------------------------------------------------------------------------ commands
 def auto_patch(game_dir: Optional[Path] = None, patch: Optional[bytes] = None, info: Optional[dict] = None,
-               force: bool = False, log: Callable[[str], None] = print) -> Status:
-    """Patch data.win in place. Already current: nothing (force=True re-patches from the backup).
-    Older AP build: re-patched from the valid backup. Unknown hash: refused."""
+               log: Callable[[str], None] = print) -> Status:
+    """Patch data.win in place. Current build: nothing to do. Older build of ours: re-patched from the backup."""
     if patch is None or info is None:
         patch, info = load_patch()
     game_dir = _resolve_dir(game_dir)
     st = get_status(game_dir, info)
     win, bak = game_dir / "data.win", game_dir / BACKUP
-    log(st.describe())
     if st.state == "missing":
         raise PatchError(f"no data.win in {game_dir}")
     if st.state == "unknown":
-        raise PatchError(f"unsupported data.win (sha256 {st.data_sha}, expected {info['original_sha256']}). "
-                         "Nothing was changed. If Devil Spire was just updated on Steam, this apworld does not support "
-                         "the new version yet: wait for an updated apworld (your normal game works as usual). "
-                         f"Otherwise: {STEAM_VERIFY_HINT} Other game versions/stores are not supported.")
-    if st.state == "patched" and not force:
-        log("Already patched with this version. Nothing to do (use /auto_patch force to re-patch from the backup).")
+        raise PatchError(f"data.win is not the supported Steam version (sha256 {st.data_sha}). Nothing was changed. "
+                         + STEAM_VERIFY_HINT)
+    if st.state == "patched":
+        log("Already patched.")
         return st
     if st.state == "original":
         source = win.read_bytes()
-        if st.backup == "valid":
-            pass  # keep the existing good backup
-        else:
+        if st.backup != "valid":
             if st.backup == "invalid":  # never overwrite a file we cannot vouch for: keep it aside
-                aside = game_dir / (BACKUP + ".invalid")
-                os.replace(bak, aside)
-                log(f"Existing {BACKUP} was not the original; moved it to {aside.name}.")
+                os.replace(bak, game_dir / (BACKUP + ".invalid"))
             _atomic_write(bak, source)
             if sha256_file(bak) != info["original_sha256"]:
                 raise PatchError("writing the backup failed verification; nothing was patched")
-            log(f"Backup saved: {bak}")
-    else:  # patched (force) or outdated: start from the backup
+    else:  # older build of this patch: start from the backup
         if st.backup != "valid":
-            raise PatchError(f"data.win is already patched but {BACKUP} is {st.backup}, so it cannot be re-patched. "
-                             + STEAM_VERIFY_HINT + " Then run /auto_patch again.")
+            raise PatchError(f"data.win has an older patch but {BACKUP} is {st.backup}. {STEAM_VERIFY_HINT} "
+                             "Then run /auto_patch again.")
         source = bak.read_bytes()
-        log("Re-patching from the backup.")
     out = apply_bsdiff(source, patch)
     if hashlib.sha256(out).hexdigest() != info["patched_sha256"]:
         raise PatchError("patched result has the wrong checksum; data.win was not changed")
     _atomic_write(win, out)
     if sha256_file(win) != info["patched_sha256"]:
-        raise PatchError("data.win verification after writing failed; run /restore or verify files in Steam")
-    (game_dir / MARKER_FILE).write_text(json.dumps({k: info[k] for k in ("original_sha256", "patched_sha256")},
-                                                   indent=1), encoding="utf-8")
-    log("Patched. Start Devil Spire from Steam as usual (it uses its own save folder Devil_Spire_AP).")
+        raise PatchError(f"data.win verification after writing failed. {STEAM_VERIFY_HINT}")
+    log("Patched. Start Devil Spire from Steam as usual.")
     return get_status(game_dir, info)
 
 
 def restore(game_dir: Optional[Path] = None, info: Optional[dict] = None,
             log: Callable[[str], None] = print) -> Status:
-    """Put the verified backup back as data.win, then delete the backup and the marker."""
+    """Put the verified backup back as data.win, then delete the backup."""
     if info is None:
         info = load_patch()[1]
     game_dir = _resolve_dir(game_dir)
     st = get_status(game_dir, info)
     win, bak = game_dir / "data.win", game_dir / BACKUP
     if st.state == "original":
-        log(f"data.win is already the original. Nothing to restore.")
-        if st.backup == "valid":
-            bak.unlink()
-        (game_dir / MARKER_FILE).unlink(missing_ok=True)
+        log("data.win is already the original.")
+        bak.unlink(missing_ok=True)
         return get_status(game_dir, info)
-    if st.state in ("unknown", "missing"):
-        # neither original nor one of our builds: most likely a game update replaced data.win; putting the old
-        # backup back would downgrade/break the game
-        raise PatchError(f"cannot restore: data.win is not a file this apworld made (sha256 {st.data_sha}); "
-                         f"probably a game update. Nothing was changed. {STEAM_VERIFY_HINT} "
-                         f"You can then delete {BACKUP} and {MARKER_FILE}.")
     if st.backup != "valid":
         raise PatchError(f"cannot restore: backup {BACKUP} is {st.backup}. {STEAM_VERIFY_HINT}")
     _atomic_write(win, bak.read_bytes())
     if sha256_file(win) != info["original_sha256"]:
         raise PatchError(f"restored data.win failed verification; backup kept. {STEAM_VERIFY_HINT}")
     bak.unlink()
-    (game_dir / MARKER_FILE).unlink(missing_ok=True)
-    log("Restored the original data.win and removed the backup.")
+    log("Restored the original data.win.")
     return get_status(game_dir, info)
 
 

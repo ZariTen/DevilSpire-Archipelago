@@ -48,37 +48,46 @@ def remember_game_dir(d: Path) -> None:
 
 
 class DevilSpireCommandProcessor(ClientCommandProcessor):
-    def _patch_cmd(self, fn, args, **kw) -> bool:
+    def _patch_cmd(self, fn, args) -> bool:
         src = Path(" ".join(args)).expanduser() if args else None
         try:
-            st = fn(src, log=logger.info, **kw) if fn is not ap_patch.patch_status else fn(src)
-            remember_game_dir(st.game_dir)
-            self.ctx.next_health = 0.0  # re-check now
+            st = fn(src, log=logger.info)
         except ap_patch.PatchError as e:
             logger.error(str(e))
             return False
         except OSError as e:
             logger.error(f"File error: {e!r} (close the game; check the folder is writable)")
             return False
-        logger.info(st.describe())
+        remember_game_dir(st.game_dir)
+        self.ctx.next_health = 0.0  # re-check now
         return True
 
-    def _cmd_auto_patch(self, *args: str) -> bool:
-        """Patch Devil Spire in place for Archipelago (backup: data.win.orig). Optional: `force` (re-patch from the
-        backup) and/or the game folder (default: found in your Steam libraries)."""
-        force = bool(args) and args[0].lower() == "force"
-        return self._patch_cmd(ap_patch.auto_patch, args[1:] if force else args, force=force)
+    def _cmd_auto_patch(self, *game_dir: str) -> bool:
+        """Patch Devil Spire for Archipelago (optional: game folder)."""
+        return self._patch_cmd(ap_patch.auto_patch, game_dir)
+
+    def _cmd_patch(self, *game_dir: str) -> bool:
+        """Same as /auto_patch."""
+        return self._cmd_auto_patch(*game_dir)
 
     def _cmd_restore(self, *game_dir: str) -> bool:
-        """Undo the patch: put the original data.win back from data.win.orig. Optional: the game folder."""
+        """Undo the patch (optional: game folder)."""
         return self._patch_cmd(ap_patch.restore, game_dir)
 
-    def _cmd_patch_status(self, *game_dir: str) -> bool:
-        """Show whether the game's data.win is original or patched, and whether the backup is valid."""
-        return self._patch_cmd(ap_patch.patch_status, game_dir)
+    def _cmd_status(self) -> bool:
+        """Show patch, save folder and connection state."""
+        c = self.ctx
+        try:
+            logger.info(ap_patch.patch_status(remembered_game_dir()).describe())
+        except ap_patch.PatchError as e:
+            logger.info(str(e))
+        logger.info(f"save dir: {c.save_dir}; checks found: {len(c.found_locations)}; "
+                    f"items: {len(c.in_writer.items) if c.in_writer else 0}; "
+                    f"server-checked: {len(c.checked_locations)}; goal: {c.finished_game}; slot: {c.slot_id}")
+        return True
 
     def _cmd_savedir(self, path: str = "") -> bool:
-        """Show or set the Devil Spire save directory (where ap_out.txt / ap_in.txt live)."""
+        """Show or set the save folder (only needed if not found)."""
         if path:
             p = Path(path).expanduser()
             if not p.is_dir():
@@ -86,14 +95,6 @@ class DevilSpireCommandProcessor(ClientCommandProcessor):
                 return False
             self.ctx.set_save_dir(p)
         logger.info(f"Save dir: {self.ctx.save_dir}")
-        return True
-
-    def _cmd_apstatus(self) -> bool:
-        """Show what the client currently knows (found locations, items written to ap_in.txt)."""
-        c = self.ctx
-        logger.info(f"save dir: {c.save_dir}; found locations: {len(c.found_locations)}; "
-                    f"sent: {len(c.sent_locations)}; items in ap_in.txt: {len(c.in_writer.items) if c.in_writer else 0}; "
-                    f"server-checked: {len(c.checked_locations)}; goal: {c.finished_game}; slot: {c.slot_id}")
         return True
 
 

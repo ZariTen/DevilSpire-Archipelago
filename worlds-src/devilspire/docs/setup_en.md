@@ -10,7 +10,7 @@
 Open the Launcher, start **Devil Spire Client** and type `/auto_patch` (or `/auto_patch <game folder>` if Steam is not found).
 It backs up the original `data.win` as `data.win.orig` and patches the game in place; launch it from Steam as usual.
 The patched game saves to its own `Devil_Spire_AP` folder (your normal saves are untouched).
-To undo: `/restore` in the client, or Steam's *Verify integrity of game files*. `/patch_status` shows the current state.
+To undo: `/restore` in the client, or Steam's *Verify integrity of game files*. `/status` shows the current state.
 
 ## Generating a game
 1. Create a YAML (Launcher "Generate Template Options", or the example yaml in the repository).
