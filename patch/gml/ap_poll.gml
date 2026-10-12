@@ -94,34 +94,17 @@ if (global.mode == 1 && room == rom_dungeon && instance_exists(obj_player))
         }
         else if (global.ap_granted >= 0 && global.ap_granted < global.ap_n)
         {
-            var cnt = 0;
-            var changed = 0;
-            while (global.ap_granted < global.ap_n && cnt < 8)
+            // items are NOT granted automatically any more: they stay pending until the player opens the Archipelago chest.
+            // If the chest of this floor was already emptied, re-arm it (new placeholder loot, lid closed).
+            with (obj_chest)
             {
-                global.ap_cur = global.ap_granted;
-                if (ap_grant_item(global.ap_item_id[global.ap_granted]))
+                if (ap_chest && item == -4)
                 {
-                    global.ap_fail = 0;
-                    global.ap_granted += 1;
-                    cnt += 1;
-                    changed = 1;
+                    item = generate_gold(1);
+                    open = 0;
+                    float = 0;
+                    image_index = 0;
                 }
-                else
-                {
-                    global.ap_fail += 1;
-                    if (global.ap_fail >= 5)
-                    {
-                        global.ap_fail = 0;
-                        global.ap_granted += 1; // give up on an ungrantable item (e.g. inventory full)
-                        changed = 1;
-                        ap_emit("E|skipped item idx " + string(global.ap_granted - 1));
-                    }
-                    break;
-                }
-            }
-            if (changed)
-            {
-                ap_save_granted();
             }
         }
     }

@@ -10,7 +10,8 @@ using UndertaleModLib.Models;
 
 string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
-    "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll" };
+    "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
+    "ap_save_souls", "ap_grant_pending", "ap_chest_open", "ap_chest_spawn", "ap_chest_init" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
@@ -71,6 +72,16 @@ Edit("gml_Script_buttonize_title", @"""Descent \(entrance\)""", "\"Archipelago (
 Edit("gml_Script_buttonize_title", @"""Descent \(flr\. """, "\"Archipelago (flr. \"", "rename continue label 2");
 Edit("gml_Script_mode_difficulty_floor", @"modus = ""Descent"";", "modus = \"Archipelago\";", "HUD/gameover/ending mode name");
 Edit("gml_Object_obj_title_Draw_64", @"""Climb Down#Floors: 99#Dungeons: 10#Ending T""", "\"Archipelago#Floors: 99#Dungeons: 10#Ending T\"", "mode description");
+
+// (j) Archipelago chest: obj_chest Create uses ap_chest_init() instead of the loot roll when global.ap_chest_spawn is set
+group.QueuePrepend(Data.Code.ByName("gml_Object_obj_chest_Create_0"),
+    "ap_chest = 0;\nif (global.ap_chest_spawn)\n{\nap_chest_init();\nexit;\n}");
+// using an OPENED Archipelago chest grants the pending items instead of the (placeholder) item
+Edit("gml_Script_interact", @"else if \(open == 90\)(\s*)\{(\s*)if \(argument0 == 0 \|\| other\.monster\)",
+     "else if (open == 90)$1{\nif (ap_chest)\n{\nap_chest_open();\nexit;\n}$2if (argument0 == 0 || other.monster)", "AP chest open");
+// spawn it at the end of normal floor generation
+Edit("gml_Object_obj_dungeoncreator_Step_0", @"if \(global\.murderer && !instance_exists\(obj_ending\)\)",
+     "ap_chest_spawn();\nif (global.murderer && !instance_exists(obj_ending))", "AP chest spawn");
 
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");

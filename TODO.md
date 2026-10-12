@@ -159,3 +159,7 @@ devilspire/
 - [x] Patch: `ap_grant_item` rewritten for the new ids (stat orbs, stat point, gold/stone/souls, potion packs, spell pages, equipment tiers, ring, live-only traps). Rebuilt from pristine; loads/re-dumps. **Runtime UNTESTED.**
 - [ ] Test in game: each grant effect, inventory clutter / encumbrance with equipment re-grants, grimoire-full handling, trap effects, stat/level interaction of re-granted orbs.
 - [ ] Decide equipment re-grant volume and tier levels; consider "sent item" popups with sender names.
+
+## Status 2026-10-11 (starting chest + souls once)
+- [x] Souls (Pouch) granted once per slot (`ap_souls_granted.txt`, reset on slot_id change written by the client). Auto grant removed; items granted when opening the Archipelago chest (spawned next to the spawn point of floor -1 / floors with pending items). `patch/make_test_ap_in.sh` for offline testing. Rebuilt from pristine, loads and re-dumps; installed. **Runtime UNTESTED.**
+- [ ] Test: chest position/collision, open+grant, re-arm for mid-run items, souls once across deaths, slot reset, trap behaviour, item messages.

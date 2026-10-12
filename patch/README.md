@@ -19,7 +19,10 @@ The script refuses to run on an already patched file. `patch/gml/*.gml` are the 
 - `obj_rhamdon_Step_1`: `ap_goal()` right before `room = rom_ending;` (only Descent emits).
 - `obj_player_Step_0` (hp==0 block): `ap_death_send()`.
 - `obj_charcreation_Alarm_0`: `ap_new_run(mode)` before the first save of a new character.
-- `obj_god_Step_1`: `ap_poll()` every step (does work every `poll_frames` steps).
+- `obj_god_Step_1`: `ap_poll()` every step (does work every `poll_frames` steps; reads `ap_in.txt`, tracks the item list and DeathLink; **no longer grants items**).
+- `obj_chest_Create_0`: `ap_chest = 0;` + branch to `ap_chest_init()` when `global.ap_chest_spawn` is set (Archipelago chest, no vanilla loot roll/key).
+- `interact` (obj_chest case, opened state): `if (ap_chest) { ap_chest_open(); exit; }`.
+- `obj_dungeoncreator_Step_0` (end of normal floor generation): `ap_chest_spawn()`.
 
 ## Files (all in the game's save dir; under Proton `.../compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire/`)
 Text, one record per line, fields separated by `|`.
@@ -45,8 +48,11 @@ The client may truncate/delete the file at any time.
 - `I|<index>|<item id>|<item name>|<sender>`  full received-items list, indexes 0,1,2,... contiguous, in AP order. Game stores them by index and ignores indexes it already has.
 - `D|<seq>|<text>`  DeathLink events; `seq` strictly increasing. On the first poll after start the game adopts the max seq (old events are not replayed); a higher seq later kills the player (when alive in the dungeon, Descent only).
 
+### `ap_souls_granted.txt` (game-private)
+Line 1: highest received-item index whose **Pouch of Souls** was already granted (-1 = none); line 2: `slot_id`. Souls live in the vault (persist across deaths), so each Pouch (by received index) is granted only ONCE; re-applying the list on a new run skips it silently. Reset: automatically when `ap_config.ini` has a `slot_id` (client writes `<seed name>:<slot>`) that differs from line 2; otherwise delete the file (e.g. `make_test_ap_in.sh --reset`) when starting a new multiworld. Gold, orbs, etc. keep re-granting each run.
+
 ### `ap_granted.txt` (game-private)
-Number of received items already granted to the CURRENT run; `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items are re-applied (index order, up to 8 per poll). Ungrantable items (inventory full/weight) are retried 5 polls then skipped (`E|skipped...`).
+Number of received items already granted to the CURRENT run; `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items become pending again. They are applied ONLY when the player opens the Archipelago chest (below), in index order. Ungrantable items (inventory/grimoire full) stop the batch (message "open again"); retried on 5 chest opens, then skipped (`E|skipped...`).
 
 ## Item ids (relative to `base_id + 500`; full table and effects in docs/item-catalog.md)
 No depth keys / gating (all floors reachable; removed 2026-10-11). 100-103 Orb of STR/INT/VIT/AGI (+3 stat), 104 Stat Point, 110 Yellow Orb (150-450 gold), 111 Gold Hoard (1000), 112 Blue Orb (random stone 0-35), 113 Pouch of Souls (+100), 120/121 Red/Blue Potion Pack (3x), 122 White Potion, 130/131/132 Spell Page Basic/Advanced/Master, 140-142 Weapon Lv25/50/75, 143-145 Armor Piece, 146-148 Accessory, 149/150 Shield Lv25/50, 151 Mystic Ring, 200 Ambush / 201 Plague / 202 Pickpocket trap.
@@ -64,3 +70,17 @@ Only Descent (internal `global.mode == 1`) is selectable and it is shown as **Ar
 - Continue list only shows/considers `descent_character.ini` (other saves hidden, files untouched); labels "Archipelago (entrance|flr. N)".
 - `mode_difficulty_floor` (HUD pause menu, char creation "Mode:", gameover, ending): "Descent" -> "Archipelago" (e.g. "Normal Archipelago 1x"). Mode description text on title: "Archipelago#Floors: 99...".
 - Not changed: ini/save names, `global.mode` checks, `unlockable()` (never reached), dead code strings like "< Descent >" remain in the string table but are unreachable. Runtime **UNTESTED**.
+
+## Starting chest (test version, 2026-10-11)
+- Items are no longer auto-granted. At the end of floor generation `ap_chest_spawn()` creates an `obj_chest` (marked `ap_chest=1`, arena-chest textures `tex_chest*3` so it looks different, placeholder loot = 1 gold object for the floating visual, never picked up) on a random free spot 26-38 px from the player's spawn (0,0), found with `place_free` (+ not on stairs/trap/player, + 10px margin on the strict pass; relaxed second pass). If no spot: no chest, `E|no free position...` in ap_out.txt.
+- Spawns on Descent floor -1 always, and on any later floor when received items are still pending (also after Continue). Not when `ap_granted == -1` (no active run, e.g. dead/legacy save).
+- Use it like a normal chest: interact once to open (lid animation), interact again -> `ap_chest_open()` grants ALL pending items (souls once only, traps only if received live), plays the treasure sound and shows `Archipelago: received N items` (+ per-item messages stay off). Chest then stays open and empty.
+- Items arriving mid-run stay pending; `ap_poll` re-arms the emptied chest of the current floor (closed again, new placeholder) so it can be opened again; otherwise they are given by the next floor's chest.
+
+## Offline testing (no client)
+1. `patch/make_test_ap_in.sh` (add `--reset` to also delete `ap_granted.txt`, `ap_souls_granted.txt`, `ap_out.txt`). It writes a 20-item `ap_in.txt` (orbs, stat point, gold, blue orb, 2x souls pouch, potions, spell page, gear, ring, one Ambush trap) and `ap_config.ini` (`slot_id=offline-test:Tester`) into the Proton save dir `.../compatdata/2579370111/.../Devil_Spire/` (originals kept as `*.bak`).
+2. Start the game from the AP copy, New Game -> create a character -> you start in the tutorial/village; descend to floor -1.
+3. Find the differently-tinted chest next to the stairs where you spawned; open it (interact twice). Expect `Archipelago: received 20 items`, stats/gold/potions/gear in inventory, +100 souls once (the second pouch is skipped), no trap (traps only fire when received while playing).
+4. Die, create a new character: chest again grants everything except souls (check `ap_souls_granted.txt` = 7).
+5. Mid-run: append a line `I|20|7470600|Orb of Strength|Tester` (id = 7470500 + code; 7470600 = Orb of Strength; the file index must continue 0..N contiguously) to `ap_in.txt` while playing; within ~1 s the chest re-arms (or appears next floor) and the new item is granted on opening; as a live item, an Ambush trap line (7470700) fires on opening.
+Risky/untested: all of the above at runtime, chest placement collisions (place_free assumption), re-arm via `item = generate_gold(1)`, `exit` in Create_0 prepend, messages overlapping.

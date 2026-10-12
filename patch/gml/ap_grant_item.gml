@@ -1,5 +1,5 @@
 // ap_grant_item(item_id): apply one received item to the live run (docs/item-catalog.md). Returns 1 when handled, 0 to retry later.
-// Item id = ap_base + 500 + code. Items are re-granted on every new run (ap_granted reset by ap_new_run); traps only fire
+// Item id = ap_base + 500 + code. Items are re-granted on every new run when the Archipelago chest is opened (ap_granted reset by ap_new_run; souls only once per slot); traps only fire
 // when they were received live (global.ap_live[global.ap_cur], set by ap_poll) and are then consumed.
 var rel = argument0 - global.ap_base - 500;
 var ok = 1;
@@ -63,8 +63,14 @@ else if (rel == 104)
 }
 else if (rel == 113)
 {
-    global.souls += 100;
-    save_souls();
+    // souls persist in the vault across deaths: grant only the first time this received item index is applied
+    if (global.ap_cur > global.ap_souls_max)
+    {
+        global.souls += 100;
+        save_souls();
+        global.ap_souls_max = global.ap_cur;
+        ap_save_souls();
+    }
 }
 else if (rel == 110)
 {

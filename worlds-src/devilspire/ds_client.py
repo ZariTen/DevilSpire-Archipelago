@@ -123,7 +123,7 @@ class DevilSpireContext(CommonContext):
             self.in_writer.deaths.clear()
             fp.store_state(self.save_dir, {"identity": identity})
         try:
-            if fp.write_config(self.save_dir, self.slot_data):
+            if fp.write_config(self.save_dir, self.slot_data, slot_id=f"{self.server_seed_name}:{self.slot}"):
                 logger.info("Wrote ap_config.ini (restart the game if it is already running; it is read at start).")
         except (OSError, KeyError) as e:
             logger.error(f"Could not write ap_config.ini: {e!r}")

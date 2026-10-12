@@ -91,20 +91,24 @@ def floor_step(floor_checks: int) -> int:
     return FLOOR_STEP_BY_OPTION.get(int(floor_checks), 1)
 
 
-def render_config(slot_data: Mapping, poll_frames: Optional[int] = None) -> str:
+def render_config(slot_data: Mapping, poll_frames: Optional[int] = None, slot_id: Optional[str] = None) -> str:
     lines = ["[ap]",
              f"death_link={1 if slot_data.get('death_link') else 0}",
              f"floor_check_step={floor_step(slot_data.get('floor_checks', 0))}",
              f"base_id={int(slot_data['base_id'])}"]
     if poll_frames:
         lines.append(f"poll_frames={int(poll_frames)}")
+    if slot_id:
+        # lets the game reset its "souls granted once" state when the multiworld seed / slot changes
+        lines.append(f"slot_id={clean_field(slot_id)}")
     return "\n".join(lines) + "\n"
 
 
-def write_config(save_dir: Path, slot_data: Mapping, poll_frames: Optional[int] = None) -> bool:
+def write_config(save_dir: Path, slot_data: Mapping, poll_frames: Optional[int] = None,
+                 slot_id: Optional[str] = None) -> bool:
     """Returns True if the file content changed."""
     p = Path(save_dir) / CONFIG_FILE
-    text = render_config(slot_data, poll_frames)
+    text = render_config(slot_data, poll_frames, slot_id)
     try:
         if p.read_text(encoding="utf-8") == text:
             return False
