@@ -144,3 +144,8 @@ devilspire/
 - [ ] Python client (CommonContext) writing ap_in.txt/ap_config.ini and reading ap_out.txt.
 - [ ] Depth-key floor gating in game, trap items, real item/location tables, "received" popups with sender.
 - [ ] Verify get_item/generate_stone/attribute inline effects; verify obj_god persists across rooms.
+
+## Status 2026-10-11 (late): orbs + Python client
+- [x] Orbs: Red Orb was already applied directly by `ap_grant_item` (+3 random stat, now also with the game's >=40 stat achievements); Yellow Orb = gold item (the game's yellow orb also gives a gold item, gold is an inventory currency stack); Blue Orb = random Stone item (stones must be applied to equipment, so kept as inventory item; range fixed to all 24 stones, was 0-5). Patched data.win rebuilt from pristine, loads and re-dumps; installed to ~/Games/DevilSpire-AP (backup data_patched.win.bak). **Runtime UNTESTED.**
+- [x] Client: `worlds-src/devilspire/ds_client.py` + `file_protocol.py`, launcher component "Devil Spire Client", `client/DevilSpireClient.py`, README, 16 unit tests + local e2e (server + 2 clients + simulated ap_out, 15/15 pass). apworld slot_data already had death_link/floor_checks/base_id (test added; 46 tests pass). Verified against AP 0.6.8.
+- [ ] Try the client with the real game; Launcher "Build APWorlds" + load test of the apworld containing ds_client.

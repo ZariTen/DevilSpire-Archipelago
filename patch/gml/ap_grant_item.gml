@@ -1,3 +1,5 @@
+// Orbs: Red Orb is applied DIRECTLY (same effect as the game's obj_orb pickup: +3 to a random stat). Yellow Orb = gold item (the game's yellow orb also gives a gold item),
+// Blue Orb = random Stone item (stones must be applied to equipment by the player, so it stays an inventory item).
 // ap_grant_item(item_id): apply one received item to the live run. Returns 1 when handled, 0 to retry later.
 var rel = argument0 - global.ap_base - 500;
 var ok = 1;
@@ -26,6 +28,10 @@ else if (rel == 101)
                 physpow += (3 * attribute_multiplier(0));
                 swingspd += (3 * attribute_multiplier(5));
                 maxcarry += (3 * attribute_multiplier(10));
+                if (global.str >= 40)
+                {
+                    steam_give_achievement("ach_TheBarbarian");
+                }
                 break;
             case 1:
                 global.int += 3;
@@ -33,6 +39,10 @@ else if (rel == 101)
                 maxmp += (3 * attribute_multiplier(3));
                 mindres += (3 * attribute_multiplier(9));
                 mp += (3 * attribute_multiplier(3));
+                if (global.int >= 40)
+                {
+                    steam_give_achievement("ach_TheSorcerer");
+                }
                 break;
             case 2:
                 global.vit += 3;
@@ -40,12 +50,20 @@ else if (rel == 101)
                 bodyres += (3 * attribute_multiplier(8));
                 maxequip += (3 * attribute_multiplier(11));
                 hp += (3 * attribute_multiplier(2));
+                if (global.vit >= 40)
+                {
+                    steam_give_achievement("ach_TheWarrior");
+                }
                 break;
             case 3:
                 global.agi += 3;
                 atkspd += (3 * attribute_multiplier(4));
                 castspd += (3 * attribute_multiplier(6));
                 movespd += (3 * attribute_multiplier(7));
+                if (global.agi >= 40)
+                {
+                    steam_give_achievement("ach_TheRogue");
+                }
                 break;
         }
     }
@@ -59,7 +77,7 @@ else if (rel == 102 || rel == 103)
     }
     else
     {
-        it = generate_stone(irandom(5));
+        it = generate_stone(irandom(23));
     }
     global.ap_tmp = 1;
     with (obj_player)

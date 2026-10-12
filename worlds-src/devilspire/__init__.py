@@ -5,10 +5,20 @@ from typing import Any
 
 from BaseClasses import Tutorial
 from worlds.AutoWorld import WebWorld, World
+from worlds.LauncherComponents import Component, Type, components, launch as launch_component
 
 from . import items, locations, regions, rules
 from . import options as ds_options
 from .constants import BASE_ID, GAME_NAME
+
+
+def launch_client(*args: str) -> None:
+    from .ds_client import launch  # lazy: pulls in CommonClient
+    launch_component(launch, name="DevilSpireClient", args=args)
+
+
+components.append(Component("Devil Spire Client", func=launch_client, component_type=Type.CLIENT,
+                            game_name=GAME_NAME, supports_uri=True))
 
 
 class DevilSpireWebWorld(WebWorld):

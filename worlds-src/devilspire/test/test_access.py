@@ -106,3 +106,14 @@ class TestFloorChecksOff(DevilSpireTestBase):
     def test_counts(self) -> None:
         self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 10)
         self.assertEqual(len(self.multiworld.itempool), 10)
+
+
+class TestSlotData(DevilSpireTestBase):
+    """The client needs these keys to write ap_config.ini."""
+    options = {"death_link": True, "floor_checks": "every_10th"}
+
+    def test_client_keys(self) -> None:
+        sd = self.world.fill_slot_data()
+        self.assertEqual(sd["death_link"], 1)
+        self.assertEqual(sd["floor_checks"], 2)
+        self.assertEqual(sd["base_id"], 7_470_000)
