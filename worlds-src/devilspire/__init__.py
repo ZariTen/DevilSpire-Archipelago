@@ -30,7 +30,7 @@ class DevilSpireWorld(World):
     """
     Devil Spire is a roguelike dungeon crawler. In this fan-made randomizer you descend 100 floors of the
     Descent, defeat the bosses guarding every tenth floor, and finally slay Rhamdon. When you die the run
-    resets, but everything you have received stays with you. (Unofficial; not affiliated with the developer.)
+    resets, but everything you have received (including filler) is re-granted on the next run. (Unofficial; not affiliated with the developer.)
     """
 
     game = GAME_NAME
@@ -91,7 +91,7 @@ class DevilSpireWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         return {
-            **self.options.as_dict("death_link", "floor_key_mode", "starting_depth", "floor_milestones"),
+            **self.options.as_dict("death_link", "floor_key_mode", "starting_depth", "floor_checks"),
             "goal": "descent_rhamdon",  # fixed
             "descent_unlocked": True,  # patch force-unlocks Descent
             "persistent_items": True,  # client must re-apply ALL received items on every new Descent save

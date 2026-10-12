@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 from BaseClasses import Location
 
-from .constants import BASE_ID, LOCATION_OFFSET, MILESTONE_OFFSET
+from .constants import BASE_ID, LOCATION_OFFSET, FLOOR_OFFSET
 
 
 class DevilSpireLocation(Location):
@@ -28,7 +28,7 @@ BOSS_LOCATIONS: list[LocationData] = [
     LocationData("Slime defeated (Floor -9)", -9, 0, 0),
     LocationData("Abomination defeated (Floor -19)", -19, 1, 1),
     LocationData("Idol defeated (Floor -29)", -29, 2, 2),
-    LocationData("Golems defeated (Floor -39)", -39, 3, 3),  # two obj_golem, last kill counts
+    LocationData("Golems defeated (Floor -39)", -39, 3, 3),  # two obj_golem: ONE check, fires when the last one dies
     LocationData("Dragon defeated (Floor -49)", -49, 4, 4),
     LocationData("Snake defeated (Floor -59)", -59, 5, 5),
     LocationData("Apparition defeated (Floor -69)", -69, 6, 6),
@@ -37,20 +37,29 @@ BOSS_LOCATIONS: list[LocationData] = [
     LocationData("Gauntlet cleared (Floor -99)", -99, 9, 9),  # 15 plain enemies, no boss object
 ]
 
-# STUB (disabled by default, option `floor_milestones`): "Reach Floor -N" for N = 5, 15, ..., 95
-MILESTONE_LOCATIONS: list[LocationData] = [
-    LocationData(f"Reach Floor -{t * 10 + 5}", -(t * 10 + 5), t, t) for t in range(10)
+# Floor checks: "Reach Floor -N" for every Descent floor N = 1..100 (floor -100 is the Rhamdon/goal floor).
+# Separate from boss checks (a boss floor has both). Which ones exist depends on option `floor_checks`.
+# Floor N lives in tier (N-1)//10, so it needs the same depth keys as that tier.
+FLOOR_LOCATIONS: list[LocationData] = [
+    LocationData(f"Reach Floor -{n}", -n, (n - 1) // 10, n - 1) for n in range(1, 101)
 ]
+
+
+def floor_checks_enabled(step: int) -> list[LocationData]:
+    """step: 0 = none, else every `step`-th floor (1, 5, 10)."""
+    if step <= 0:
+        return []
+    return [d for d in FLOOR_LOCATIONS if -d.floor % step == 0]
 
 VICTORY_LOCATION = "Rhamdon defeated"  # event location (no id), holds the "Victory" event item
 VICTORY_ITEM = "Victory"
 
 LOCATION_NAME_TO_ID: dict[str, int] = {
     **{d.name: BASE_ID + LOCATION_OFFSET + d.code for d in BOSS_LOCATIONS},
-    **{d.name: BASE_ID + MILESTONE_OFFSET + d.code for d in MILESTONE_LOCATIONS},
+    **{d.name: BASE_ID + FLOOR_OFFSET + d.code for d in FLOOR_LOCATIONS},
 }
 
 LOCATION_NAME_GROUPS: dict[str, set[str]] = {
     "Bosses": {d.name for d in BOSS_LOCATIONS},
-    "Floor Milestones": {d.name for d in MILESTONE_LOCATIONS},
+    "Floor Checks": {d.name for d in FLOOR_LOCATIONS},
 }

@@ -37,12 +37,24 @@ class TrapPercentage(Range):
     default = 0
 
 
-class FloorMilestones(Toggle):
+class FloorChecks(Choice):
     """
-    STUB: adds a "Reach Floor -N" location at every 10 floors (-5, -15, ... -95). Disabled by default.
-    Not yet implemented in the patch.
+    Granularity of "Reach Floor -N" location checks (separate from boss kill checks).
+    Every Floor: all 100 Descent floors (-1 to -100) are checks. Every 5th / Every 10th: only floors that are a
+    multiple of 5 / 10 (-100 is always included unless Off). Off: no floor checks (bosses only).
+    Floors are reached by descending; floor N needs the depth keys of its 10-floor tier.
+    Checks persist across runs; your received items are re-granted on every new run.
     """
-    display_name = "Floor Milestone Locations"
+    display_name = "Floor Checks"
+    option_every_floor = 0
+    option_every_5th = 1
+    option_every_10th = 2
+    option_off = 3
+    default = 0
+
+    @property
+    def step(self) -> int:
+        return {0: 1, 1: 5, 2: 10, 3: 0}[self.value]
 
 
 @dataclass
@@ -51,10 +63,10 @@ class DevilSpireOptions(PerGameCommonOptions):
     floor_key_mode: FloorKeyMode
     starting_depth: StartingDepth
     trap_percentage: TrapPercentage
-    floor_milestones: FloorMilestones
+    floor_checks: FloorChecks
 
 
 option_groups = [
-    OptionGroup("Progression", [FloorKeyMode, StartingDepth]),
-    OptionGroup("Extras", [DeathLink, TrapPercentage, FloorMilestones]),
+    OptionGroup("Progression", [FloorKeyMode, StartingDepth, FloorChecks]),
+    OptionGroup("Extras", [DeathLink, TrapPercentage]),
 ]

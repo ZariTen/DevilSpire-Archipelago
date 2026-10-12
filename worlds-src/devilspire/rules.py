@@ -16,6 +16,11 @@ if TYPE_CHECKING:
 # (Each run is assumed capable of reaching any unlocked tier; surviving is the player's job.)
 
 
+# Floor N (1..100) is reachable iff its tier ((N-1)//10) is: tier 0 free, tier t needs t progressive keys / key t
+# (and, by chaining the tier regions, all shallower keys). Boss checks share their floor's tier; the Golems are a
+# single check; -99 gauntlet is both a boss-type check and a floor check. -100 floor check and Rhamdon: tier 9.
+
+
 def tier_rule(world: DevilSpireWorld, tier: int) -> Callable[[CollectionState], bool] | None:
     p = world.player
     mode = world.options.floor_key_mode

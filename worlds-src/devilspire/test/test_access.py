@@ -29,7 +29,8 @@ class TestIndividual(DevilSpireTestBase):
 
     def test_dependency(self) -> None:
         from ..items import key_name
-        self.assertAccessDependency(["Gauntlet cleared (Floor -99)", "Rhamdon defeated"], [[key_name(t) for t in range(9, 10)]])
+        tier9 = ["Gauntlet cleared (Floor -99)", "Rhamdon defeated"] + [f"Reach Floor -{n}" for n in range(91, 101)]
+        self.assertAccessDependency(tier9, [[key_name(9)]], only_check_listed=True)
         self.assertTrue(self.can_reach_region(tier_region_name(0)))
 
 
@@ -42,8 +43,61 @@ class TestOff(DevilSpireTestBase):
 
 
 class TestStartDepthAndExtras(DevilSpireTestBase):
-    options = {"starting_depth": 9, "trap_percentage": 100, "floor_milestones": True, "death_link": True}
+    options = {"starting_depth": 9, "trap_percentage": 100, "floor_checks": "every_floor", "death_link": True}
 
     def test_open(self) -> None:
         self.assertBeatable(True)
-        self.assertEqual(len(self.multiworld.get_locations(1)), 10 + 10 + 1)
+        self.assertEqual(len(self.multiworld.get_locations(1)), 10 + 100 + 1)
+
+
+class TestFloorChecksDefault(DevilSpireTestBase):
+    def test_counts(self) -> None:
+        locs = [l for l in self.multiworld.get_locations(1) if l.address is not None]
+        self.assertEqual(len(locs), 110)
+        self.assertEqual(len(self.multiworld.itempool), 110)
+        self.assertEqual(len(self.get_items_by_name("Progressive Depth Key")), 9)
+
+    def test_floor_access(self) -> None:
+        self.assertTrue(self.can_reach_location("Reach Floor -1"))
+        self.assertTrue(self.can_reach_location("Reach Floor -10"))
+        self.assertFalse(self.can_reach_location("Reach Floor -11"))
+        self.assertFalse(self.can_reach_location("Reach Floor -100"))
+        self.collect(self.get_items_by_name("Progressive Depth Key")[:1])
+        self.assertTrue(self.can_reach_location("Reach Floor -20"))
+        self.assertFalse(self.can_reach_location("Reach Floor -21"))
+        self.collect(self.get_items_by_name("Progressive Depth Key")[1:])
+        self.assertTrue(self.can_reach_location("Reach Floor -100"))
+
+    def test_single_golem_check(self) -> None:
+        names = [l.name for l in self.multiworld.get_locations(1) if "Golem" in l.name]
+        self.assertEqual(len(names), 1)
+
+    def test_floor_99_both(self) -> None:
+        self.assertIn("Reach Floor -99", [l.name for l in self.multiworld.get_locations(1)])
+        self.assertIn("Gauntlet cleared (Floor -99)", [l.name for l in self.multiworld.get_locations(1)])
+
+
+class TestFloorChecks5(DevilSpireTestBase):
+    options = {"floor_checks": "every_5th"}
+
+    def test_counts(self) -> None:
+        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 30)
+        self.assertIn("Reach Floor -100", [l.name for l in self.multiworld.get_locations(1)])
+        self.assertNotIn("Reach Floor -1", [l.name for l in self.multiworld.get_locations(1)])
+
+
+class TestFloorChecks10(DevilSpireTestBase):
+    options = {"floor_checks": "every_10th"}
+
+    def test_counts(self) -> None:
+        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 20)
+        self.collect_all_but([])
+        self.assertBeatable(True)
+
+
+class TestFloorChecksOff(DevilSpireTestBase):
+    options = {"floor_checks": "off"}
+
+    def test_counts(self) -> None:
+        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 10)
+        self.assertEqual(len(self.multiworld.itempool), 10)

@@ -59,6 +59,7 @@ devilspire/
   test/__init__.py, test_access.py, test_options.py
   data/ (patch script, GML snippets)  # no game assets
 ```
+- [x] Floor checks (100 floors, granularity option), golems as single check, filler re-grant documented.
 - [~] Implement items/locations tables (PLACEHOLDER skeleton done in worlds-src/devilspire; real data pending RE) from phase 1 CSVs (single source of truth shared with the patch generator).
 - [x] World class: game name, item_name_to_id, location_name_to_id, create_regions/items/rules, create_item, filler via get_filler_item_name, completion_condition, item_name_groups.
 - [x] Events for logic (bosses, key doors) as id=None items on id=None locations; goal via victory event.
@@ -133,4 +134,5 @@ devilspire/
 
 ## Roguelike-loop design (2026-10-11)
 - Slay-the-Spire-like: death resets the Descent save; ALL received AP items are re-granted on each new run (client/patch must re-apply the full received list on every new save); boss checks persist across runs; items are persistent unlocks.
+- Locations (2026-10-11): every Descent floor -1..-100 is a check ("Reach Floor -N", option `floor_checks`: every floor [default] / every 5th / every 10th / off), separate from boss checks; Golems = ONE boss check; -99 gauntlet is both. Filler/souls/orbs are re-granted on every new run like all other items.
 - Skeleton apworld: worlds-src/devilspire (placeholder IDs base 7_470_000; 10 boss locations incl. -99 gauntlet, Rhamdon event = Victory; depth keys gate 10-floor tiers).

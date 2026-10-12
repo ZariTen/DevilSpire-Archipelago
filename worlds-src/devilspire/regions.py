@@ -7,7 +7,7 @@ from BaseClasses import Region
 from . import rules
 from .constants import NUM_TIERS
 from .items import DevilSpireItem
-from .locations import (BOSS_LOCATIONS, MILESTONE_LOCATIONS, VICTORY_ITEM, VICTORY_LOCATION, DevilSpireLocation,
+from .locations import (BOSS_LOCATIONS, floor_checks_enabled, VICTORY_ITEM, VICTORY_LOCATION, DevilSpireLocation,
                         LOCATION_NAME_TO_ID)
 
 if TYPE_CHECKING:
@@ -29,9 +29,7 @@ def create_regions(world: DevilSpireWorld) -> None:
         # Menu -> tier 0 is open; deeper tiers chain on the previous one. Key rule per tier (see rules.py).
         tiers[t - 1].connect(tiers[t], f"Descend to tier {t}", rules.tier_rule(world, t))
 
-    locs = list(BOSS_LOCATIONS)
-    if world.options.floor_milestones:
-        locs += MILESTONE_LOCATIONS
+    locs = list(BOSS_LOCATIONS) + floor_checks_enabled(world.options.floor_checks.step)
     for d in locs:
         tiers[d.tier].locations.append(
             DevilSpireLocation(p, d.name, LOCATION_NAME_TO_ID[d.name], tiers[d.tier]))

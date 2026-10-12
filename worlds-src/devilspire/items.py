@@ -2,8 +2,8 @@
 
 Items are PERSISTENT unlocks: the client/patch must re-apply the full received-items list at the start of every
 new Descent run (the Descent save is wiped on death). Therefore no item here is a one-shot 'consumed' effect in
-logic terms; filler like souls/orbs is re-granted per run by the patch, or granted once to the persistent
-souls.ini - to be decided (see docs/en_Devil Spire.md).
+logic terms. DECIDED: filler (souls/orbs) is re-granted on every new run too, like all other received items
+(Slay-the-Spire-like reset loop); the patch/client re-applies the full received list on each new save.
 """
 from __future__ import annotations
 
@@ -34,6 +34,7 @@ def key_name(tier: int) -> str:
 
 KEY_NAMES = [key_name(t) for t in range(1, NUM_TIERS)]  # tier 0 needs no key
 
+# Filler is re-granted on every new run (not a one-shot).
 FILLER_NAMES = ["Pouch of Souls", "Red Orb", "Yellow Orb", "Blue Orb"]  # placeholder; orbs: see research notes
 TRAP_NAMES = ["Weakness Trap", "Monster Swarm Trap"]
 
