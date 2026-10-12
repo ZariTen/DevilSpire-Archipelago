@@ -1,36 +1,27 @@
-# Host guide (fan-made, unofficial)
+# Host guide
 
-## 1. Requirements
-- Archipelago **0.6.8 or newer** (host and every player of this game).
-- `devilspire.apworld` from the GitHub Releases page. Current apworld `world_version`: **0.1.0**. Use the same release for host and players (the apworld contains the world, the client and the game patch); tell your players the version.
+Only you and the Devil Spire players need `devilspire.apworld`. Players of other games don't.
 
-## 2. Install the world
-- Double-click `devilspire.apworld` (Archipelago must be installed), **or** copy it into the `custom_worlds` folder of your Archipelago install, **or** (source install) put the `devilspire` folder in `worlds/`. Restart the Launcher.
-- Check: Launcher > *Generate Template Options* now contains `Devil Spire.yaml`.
+## Steps
+1. Install Archipelago 0.6.8 or newer.
+2. Double-click `devilspire.apworld`. (Or copy it into `custom_worlds`.) Restart the Launcher.
+3. Copy [examples/DevilSpire.yaml](../examples/DevilSpire.yaml). Set `name:` to the player's slot name.
+4. Put all player YAML files in Archipelago's `Players` folder.
+5. In the Launcher, click *Generate*. Then host the `.zip` from the `output` folder.
+6. Send players the address, slot names, password, and the apworld version you used.
 
-## 3. The options file
-Start from [examples/DevilSpire.yaml](../examples/DevilSpire.yaml) or the generated template. Set `name:` (the slot name; players need it) and `game: Devil Spire`. Options:
-- `death_link` (true/false): dying in one DeathLink game kills everyone else with DeathLink on, and vice versa.
-- `floor_checks`: which "Reach Floor -N" locations exist, in addition to boss kills.
-  `every_floor` (all 100 floors, default), `every_5th` (-1, -6, -11, ... -96), `every_10th` (-1, -11, ... -91), `off` (bosses only).
-- `trap_percentage` (0-100, default 0): percent of filler items turned into traps (Ambush: enemies appear; Plague: random ailments; Pickpocket: lose half your carried gold). Traps fire once when received while playing.
-- Standard Archipelago options (`progression_balancing`, `accessibility`, ...) work as usual.
-Goal: beat the final Descent boss (floor -100). Every floor and boss is reachable from the start (no keys).
-Items are persistent unlocks: after a death, all received items are granted again at the next camp chest.
+Use the same apworld version as your Devil Spire players.
 
-## 4. Generate and host
-1. Put every player's yaml into the `Players` folder of Archipelago, then Launcher > *Generate*.
-2. Output is `output/AP_<seed>.zip`. Host it with the Launcher's *Host* (or `ArchipelagoServer`), or upload it to archipelago.gg's host page. Custom (non-core) worlds can only be hosted on archipelago.gg if they ship there; otherwise host it on your own machine, and forward the port (default 38281).
-3. Give players: address:port, slot names, password, and the **release version** (and a link to this project's Releases page and README).
+## Options
+| Option | Values | Meaning |
+|---|---|---|
+| `death_link` | true / false | Deaths are shared with other DeathLink players. |
+| `floor_checks` | `every_floor` (default), `every_5th`, `every_10th`, `off` | Which floors count as checks. Bosses always count. |
+| `trap_percentage` | 0-100 (default 0) | Share of filler items that become traps. |
 
-## 5. Version compatibility
-- Archipelago: min 0.6.8 (`minimum_ap_version` in `archipelago.json`).
-- `world_version` is in `archipelago.json`/the apworld; the client reads item/location IDs from the same apworld, so mismatched apworld versions between the generating host and a player's installed apworld can cause wrong IDs. Items/locations use base ID 38,470,000.
-- The client's `/auto_patch` only supports one exact original `data.win` (sha256 `44df3801...c9b4`, see `patch/EXPECTED_ORIGINAL_SHA256`); the same patch works for every seed. The in-game patch changes only when the apworld version changes (players then run `/auto_patch` again; it upgrades from the backup).
+The goal is beating the boss on floor -100. Nothing is locked: every floor can be reached from the start.
 
-## 6. Troubleshooting
-- Players can't connect: server port open? correct slot name (case sensitive)? same AP version family?
-- "Game not found / unknown game Devil Spire" in Generate: the apworld isn't installed on the generating machine, or the file name is not `devilspire.apworld`.
-- Generation errors: run Generate from the Launcher and read the log; try `floor_checks: off` to rule out the big location set.
-- Player's `/auto_patch` says hash mismatch: see [PLAYER_GUIDE.md](PLAYER_GUIDE.md) section 8.
-- Player's client can't find the save folder: see [PLAYER_GUIDE.md](PLAYER_GUIDE.md) (`/savedir`, `--savedir`).
+## Problems
+- **"Unknown game Devil Spire" when generating:** the apworld isn't installed on this computer.
+- **Players can't connect:** check the port is open and the slot name is exact (case matters).
+- Player-side problems: see the [Player guide](PLAYER_GUIDE.md#problems).

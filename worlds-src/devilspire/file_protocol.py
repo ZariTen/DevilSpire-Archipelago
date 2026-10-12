@@ -1,6 +1,6 @@
 """Devil Spire <-> client file protocol (pure Python, NO Archipelago imports so it can be unit-tested anywhere).
 
-See patch/README.md for the protocol definition. Fan-made, unofficial.
+See docs/dev/patch.md for the protocol definition. Fan-made, unofficial.
 """
 from __future__ import annotations
 

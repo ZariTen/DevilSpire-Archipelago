@@ -4,7 +4,7 @@ ID plan (reserved block: BASE_ID .. BASE_ID + 999):
     +0   .. +99   boss / goal-adjacent locations  (boss kills)
     +100 .. +199  floor checks: id = +100 + (N-1) for Descent floor -N, N=1..100 (default on)
     +200 .. +299  (reserved: chests / shops / NPC quests, future)
-    ITEM ids = BASE_ID + ITEM_OFFSET(500) + code, codes documented in items.py / docs/item-catalog.md:
+    ITEM ids = BASE_ID + ITEM_OFFSET(500) + code, codes documented in items.py / docs/dev/item-catalog.md:
     +100..+104 stat boosts, +110..+113 gold/stone/souls, +120..+122 potions, +130..+132 spell pages,
     +140..+151 equipment, +200..+202 traps. (No keys / progression items: nothing gates anything.)
 """

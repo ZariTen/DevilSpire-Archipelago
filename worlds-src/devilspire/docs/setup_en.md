@@ -1,22 +1,21 @@
-# Devil Spire Setup Guide (fan-made, unofficial, early version)
+# Devil Spire Setup Guide
 
-## Requirements
-- A legitimate copy of Devil Spire (no game files are ever distributed).
-- Archipelago 0.6.8 or newer.
-- `devilspire.apworld` (double-click to install, or put it in Archipelago's `custom_worlds` folder).
-- Devil Spire installed through Steam (Windows, or Linux with Proton).
+Fan-made. Not affiliated with the game's developer.
 
-## Patching the game
-Open the Launcher, start **Devil Spire Client** and type `/auto_patch` (or `/auto_patch <game folder>` if Steam is not found).
-It backs up the original `data.win` as `data.win.orig` and patches the game in place; launch it from Steam as usual.
-The patched game saves to its own `Devil_Spire_AP` folder (your normal saves are untouched).
-To undo: `/restore` in the client, or Steam's *Verify integrity of game files*. `/status` shows the current state.
+## What you need
+- Devil Spire on Steam (Windows, or Linux with Proton).
+- Archipelago 0.6.8 or newer and `devilspire.apworld`.
 
-## Generating a game
-1. Create a YAML (Launcher "Generate Template Options", or the example yaml in the repository).
-2. Put it in `Players/`, run Generate, host the result.
+## Install
+1. Double-click `devilspire.apworld`.
+2. In the Launcher, open **Devil Spire Client** and type `/auto_patch`.
 
-## Playing
-1. Open the Launcher and start **Devil Spire Client**; connect to the server.
-2. Start the game from Steam (before or after the client), choose New Game, and open the chest next to the camp bonfire to receive items.
-Each new run re-grants all received items. Full guide: docs/PLAYER_GUIDE.md in the repository.
+## Play
+1. Connect the client to the server.
+2. Start Devil Spire from Steam. Choose *New Game*.
+3. Open the chest next to the camp bonfire to get your items.
+
+## Uninstall
+Type `/restore` in the client, or use Steam's *Verify integrity of game files*.
+
+Full guide: `docs/PLAYER_GUIDE.md` in the project repository.

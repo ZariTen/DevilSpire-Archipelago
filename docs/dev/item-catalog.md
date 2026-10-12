@@ -1,6 +1,6 @@
-# Item catalog (Devil Spire AP) - grantable items, how they work, what we picked
+# Item catalog
 
-Design (user decision): Slay-the-Spire style. **No gating**: all floors/bosses are reachable from the start, the multiworld is
+Design: Slay-the-Spire style. **No gating**: all floors/bosses are reachable from the start, the multiworld is
 always completable without outside items. Received items are power boosts that persist across deaths and are
 **re-applied on every new run** (patch: `ap_granted` is reset by `ap_new_run`; consumables/gold/souls/equipment are
 handed out again each run - accepted behaviour; stat boosts stack as the list is replayed onto a fresh character).
@@ -28,8 +28,8 @@ Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine c
   - oil (lantern fuel `obj_oil`), keys (`generate_key`, type 99), lockpicks (type 2), skulls (arena/village currency), trash: possible but low value; skipped.
 - Enemy spawn: `instance_create(x, y, obj_enemy)` runs `obj_enemy Create`, which picks `character_sheet(1 + 3*dungeon + irandom(2))` (floor-appropriate). Status ailments are plain player vars (`poison`, `cramp`, `root`, `paralysis`, `headache`, `mute`, `blind`, `confusion`, duration `600/bodyres|mindres` like a purple potion).
 
-## Candidate table
-Recommendation: **Pool** = in the default pool, **Opt** = only as trap via option, **No** = skipped. "V" = verified from code, "G" = guess/untested behaviour.
+## Items
+"Pool (n)" = count in the default pool, "Opt" = trap via option. "V" = verified from code, "G" = guess.
 
 | Item | Effect | How granted (patch) | Balance risk | Rec. | Basis |
 |---|---|---|---|---|---|
@@ -51,11 +51,6 @@ Recommendation: **Pool** = in the default pool, **Opt** = only as trap via optio
 | Ambush Trap | 3-5 enemies spawn next to player, alerted | `instance_create(.., obj_enemy)` | Can kill; live-only | Opt (trap) | V creation, G effect |
 | Plague Trap | 1 random body + 1 random mind ailment | add to ailment timers | Mild | Opt (trap) | V |
 | Pickpocket Trap | lose half the carried gold | halve `count` of gold stacks | Mild | Opt (trap) | V |
-| Weaken trap (-stats) | lower a stat | would reuse artifact code (`global.str--`...) | Permanent for the run; unfair | No | V code exists, rejected |
-| Artifacts | sacrifice X for Y | `generate_artifact` | Net-negative/complex | No | V |
-| Oil, keys, lockpicks, skulls, trash | utility | `generate_*` | Low value | No | V |
-| Depth keys | gating | - | removed by design decision | No | - |
-| Level-up / XP | `global.xp`, `level_up()` | possible | Interacts with level scaling | No (Stat Point instead) | G |
 
 ## Final pool (default 110 = locations with floor checks "every floor")
 Useful: Orb of Strength 4, Intelligence 4, Vitality 6, Agility 4, Stat Point 4, Spell Page (Master) 2, Weapon Lv50 3, Lv75 2, Armor Lv50 3, Lv75 3, Accessory Lv50 2, Lv75 1, Shield Lv50 2 (= 40).

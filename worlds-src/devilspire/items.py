@@ -1,7 +1,7 @@
 """Items: power boosts. NOTHING gates progression (Slay-the-Spire style): all floors/bosses are reachable from the start.
 
 Received items persist across deaths: the patch re-applies the FULL received list at the start of every new run
-(stat orbs stack, consumables/gold/souls are re-granted each run - accepted behaviour). Ids/effects: docs/item-catalog.md.
+(stat orbs stack, consumables/gold/souls are re-granted each run - accepted behaviour). Ids/effects: docs/dev/item-catalog.md.
 Item id = BASE_ID + ITEM_OFFSET + code.
 """
 from __future__ import annotations

@@ -1,6 +1,6 @@
 """Devil Spire Archipelago client (CommonClient based). Fan-made, unofficial.
 
-Bridges the AP server <-> the patched game through text files in the game's save dir (see patch/README.md).
+Bridges the AP server <-> the patched game through text files in the game's save dir (see docs/dev/patch.md).
 Run via the Archipelago Launcher ("Devil Spire Client") or `python DevilSpireClient.py` from client/.
 """
 from __future__ import annotations
