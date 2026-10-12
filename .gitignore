@@ -1,0 +1,12 @@
+# Never commit game assets or patched copies
+*.win
+*.dat
+*.ogg
+*.exe
+*.dll
+build/
+dist/
+game-copy/
+__pycache__/
+*.pyc
+.venv/
