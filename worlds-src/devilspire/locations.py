@@ -39,7 +39,7 @@ BOSS_LOCATIONS: list[LocationData] = [
 
 # Floor checks: "Reach Floor -N" for every Descent floor N = 1..100 (floor -100 is the Rhamdon/goal floor).
 # Separate from boss checks (a boss floor has both). Which ones exist depends on option `floor_checks`.
-# Floor N lives in tier (N-1)//10, so it needs the same depth keys as that tier.
+# Floor N lives in tier (N-1)//10 (readability only; no gating).
 FLOOR_LOCATIONS: list[LocationData] = [
     LocationData(f"Reach Floor -{n}", -n, (n - 1) // 10, n - 1) for n in range(1, 101)
 ]

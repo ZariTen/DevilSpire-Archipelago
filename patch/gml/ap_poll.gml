@@ -33,6 +33,7 @@ if (file_exists("ap_in.txt"))
                     {
                         global.ap_item_id[idx] = real(sid);
                         global.ap_item_name[idx] = ap_field(line, 3);
+                        global.ap_live[idx] = global.ap_loaded; // received while playing (traps only fire for live items)
                         global.ap_n = idx + 1;
                         if (global.ap_loaded && announced < 3)
                         {
@@ -97,6 +98,7 @@ if (global.mode == 1 && room == rom_dungeon && instance_exists(obj_player))
             var changed = 0;
             while (global.ap_granted < global.ap_n && cnt < 8)
             {
+                global.ap_cur = global.ap_granted;
                 if (ap_grant_item(global.ap_item_id[global.ap_granted]))
                 {
                     global.ap_fail = 0;

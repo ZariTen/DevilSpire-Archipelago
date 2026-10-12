@@ -79,10 +79,10 @@ class InWriterTests(unittest.TestCase):
         self.w = fp.InWriter(self.d / "ap_in.txt")
 
     def test_full_list_in_order(self):
-        self.w.items = [(7470600, "Progressive Depth Key", "Alice"), (7470601, "Red Orb", "Bob|x")]
+        self.w.items = [(7470600, "Orb of Vitality", "Alice"), (7470601, "Yellow Orb", "Bob|x")]
         self.assertTrue(self.w.flush())
         self.assertEqual((self.d / "ap_in.txt").read_text(),
-                         "I|0|7470600|Progressive Depth Key|Alice\nI|1|7470601|Red Orb|Bob/x\n")
+                         "I|0|7470600|Orb of Vitality|Alice\nI|1|7470601|Yellow Orb|Bob/x\n")
         self.assertFalse(self.w.flush())  # unchanged -> no rewrite
         self.w.items.append((1, "Name\nwith newline", "C"))
         self.assertTrue(self.w.flush())

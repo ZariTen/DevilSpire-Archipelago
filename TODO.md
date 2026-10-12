@@ -153,3 +153,9 @@ devilspire/
 ## Status 2026-10-11 (single mode "Archipelago")
 - [x] Mode select reduced to one inert "Archipelago" button (= Descent, mode 1); other modes/saves hidden; "Descent" renamed in all player-visible text (HUD mode name, continue labels, mode description). Rebuilt from pristine and installed to ~/Games/DevilSpire-AP (backup data_patched.win.bak = previous build). **Runtime UNTESTED.**
 - [ ] Verify in game: title -> New Game -> Confirm goes to char creation with mode 1; Continue shows the Archipelago save; no way to reach other modes (gamepad too).
+
+## Status 2026-10-11 (no gating, boost item pool)
+- [x] Decision: NO depth keys. apworld: removed keys/`floor_key_mode`/`starting_depth`/tier rules; all locations reachable from Menu (tier regions kept for readability); 110-item boost pool (docs/item-catalog.md), traps via `trap_percentage`; 38 world tests pass; Generate.py sample OK.
+- [x] Patch: `ap_grant_item` rewritten for the new ids (stat orbs, stat point, gold/stone/souls, potion packs, spell pages, equipment tiers, ring, live-only traps). Rebuilt from pristine; loads/re-dumps. **Runtime UNTESTED.**
+- [ ] Test in game: each grant effect, inventory clutter / encumbrance with equipment re-grants, grimoire-full handling, trap effects, stat/level interaction of re-granted orbs.
+- [ ] Decide equipment re-grant volume and tier levels; consider "sent item" popups with sender names.

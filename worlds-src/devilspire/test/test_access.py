@@ -1,5 +1,6 @@
 from test.bases import WorldTestBase
 
+from ..items import ITEM_TABLE, POOL_TEMPLATE, ITEM_NAME_TO_ID, F, T
 from ..regions import tier_region_name
 
 
@@ -7,47 +8,12 @@ class DevilSpireTestBase(WorldTestBase):
     game = "Devil Spire"
 
 
-class TestProgressive(DevilSpireTestBase):
-    options = {"floor_key_mode": "progressive"}
-
-    def test_gating(self) -> None:
-        self.assertEqual(len(self.get_items_by_name("Progressive Depth Key")), 9)
-        self.assertFalse(self.can_reach_location("Abomination defeated (Floor -19)"))
-        self.assertTrue(self.can_reach_location("Slime defeated (Floor -9)"))
-        self.collect(self.get_item_by_name("Progressive Depth Key"))
-        self.assertTrue(self.can_reach_location("Abomination defeated (Floor -19)"))
-        self.assertFalse(self.can_reach_location("Idol defeated (Floor -29)"))
-        self.assertBeatable(False)
-
-    def test_beatable(self) -> None:
-        self.collect_all_but([])
-        self.assertBeatable(True)
-
-
-class TestIndividual(DevilSpireTestBase):
-    options = {"floor_key_mode": "individual"}
-
-    def test_dependency(self) -> None:
-        from ..items import key_name
-        tier9 = ["Gauntlet cleared (Floor -99)", "Rhamdon defeated"] + [f"Reach Floor -{n}" for n in range(91, 101)]
-        self.assertAccessDependency(tier9, [[key_name(9)]], only_check_listed=True)
-        self.assertTrue(self.can_reach_region(tier_region_name(0)))
-
-
-class TestOff(DevilSpireTestBase):
-    options = {"floor_key_mode": "off"}
-
-    def test_open(self) -> None:
-        self.assertTrue(self.can_reach_location("Robot defeated (Floor -89)"))
-        self.assertBeatable(True)
-
-
-class TestStartDepthAndExtras(DevilSpireTestBase):
-    options = {"starting_depth": 9, "trap_percentage": 100, "floor_checks": "every_floor", "death_link": True}
-
-    def test_open(self) -> None:
-        self.assertBeatable(True)
-        self.assertEqual(len(self.multiworld.get_locations(1)), 10 + 100 + 1)
+class TestTemplate(DevilSpireTestBase):
+    def test_template(self) -> None:
+        self.assertEqual(len(POOL_TEMPLATE), 110)
+        self.assertEqual(len(set(ITEM_NAME_TO_ID.values())), len(ITEM_NAME_TO_ID))
+        self.assertFalse([n for n in POOL_TEMPLATE if ITEM_TABLE[n].classification == T])
+        self.assertEqual(ITEM_NAME_TO_ID["Orb of Strength"], 7_470_000 + 500 + 100)
 
 
 class TestFloorChecksDefault(DevilSpireTestBase):
@@ -55,18 +21,17 @@ class TestFloorChecksDefault(DevilSpireTestBase):
         locs = [l for l in self.multiworld.get_locations(1) if l.address is not None]
         self.assertEqual(len(locs), 110)
         self.assertEqual(len(self.multiworld.itempool), 110)
-        self.assertEqual(len(self.get_items_by_name("Progressive Depth Key")), 9)
 
-    def test_floor_access(self) -> None:
-        self.assertTrue(self.can_reach_location("Reach Floor -1"))
-        self.assertTrue(self.can_reach_location("Reach Floor -10"))
-        self.assertFalse(self.can_reach_location("Reach Floor -11"))
-        self.assertFalse(self.can_reach_location("Reach Floor -100"))
-        self.collect(self.get_items_by_name("Progressive Depth Key")[:1])
-        self.assertTrue(self.can_reach_location("Reach Floor -20"))
-        self.assertFalse(self.can_reach_location("Reach Floor -21"))
-        self.collect(self.get_items_by_name("Progressive Depth Key")[1:])
+    def test_no_gating(self) -> None:
+        """Everything is reachable with an EMPTY inventory; no depth keys exist."""
+        self.assertFalse(self.get_items_by_name("Progressive Depth Key"))
         self.assertTrue(self.can_reach_location("Reach Floor -100"))
+        self.assertTrue(self.can_reach_location("Gauntlet cleared (Floor -99)"))
+        self.assertTrue(self.can_reach_location("Rhamdon defeated"))
+        for t in range(10):
+            self.assertTrue(self.can_reach_region(tier_region_name(t)))
+        self.assertBeatable(True)
+        self.assertFalse([i for i in self.multiworld.itempool if i.advancement])
 
     def test_single_golem_check(self) -> None:
         names = [l.name for l in self.multiworld.get_locations(1) if "Golem" in l.name]
@@ -76,12 +41,29 @@ class TestFloorChecksDefault(DevilSpireTestBase):
         self.assertIn("Reach Floor -99", [l.name for l in self.multiworld.get_locations(1)])
         self.assertIn("Gauntlet cleared (Floor -99)", [l.name for l in self.multiworld.get_locations(1)])
 
+    def test_classifications(self) -> None:
+        pool = [i.name for i in self.multiworld.itempool]
+        self.assertEqual(sorted(pool), sorted(POOL_TEMPLATE))
+        self.assertEqual(len(self.get_items_by_name("Orb of Vitality")), 6)
+
+
+class TestTraps(DevilSpireTestBase):
+    options = {"trap_percentage": 100, "floor_checks": "every_floor", "death_link": True}
+
+    def test_traps_replace_filler(self) -> None:
+        pool = self.multiworld.itempool
+        self.assertEqual(len(pool), 110)
+        self.assertEqual(sum(1 for i in pool if i.classification == T),
+                         sum(1 for n in POOL_TEMPLATE if ITEM_TABLE[n].classification == F))
+        self.assertBeatable(True)
+
 
 class TestFloorChecks5(DevilSpireTestBase):
     options = {"floor_checks": "every_5th"}
 
     def test_counts(self) -> None:
         self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 30)
+        self.assertEqual(len(self.multiworld.itempool), 30)
         names = [l.name for l in self.multiworld.get_locations(1)]
         self.assertIn("Reach Floor -1", names)
         self.assertIn("Reach Floor -6", names)
@@ -93,10 +75,10 @@ class TestFloorChecks10(DevilSpireTestBase):
 
     def test_counts(self) -> None:
         self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 20)
+        self.assertEqual(len(self.multiworld.itempool), 20)
         names = [l.name for l in self.multiworld.get_locations(1)]
         self.assertIn("Reach Floor -11", names)
         self.assertNotIn("Reach Floor -10", names)
-        self.collect_all_but([])
         self.assertBeatable(True)
 
 
@@ -117,3 +99,5 @@ class TestSlotData(DevilSpireTestBase):
         self.assertEqual(sd["death_link"], 1)
         self.assertEqual(sd["floor_checks"], 2)
         self.assertEqual(sd["base_id"], 7_470_000)
+        self.assertNotIn("floor_key_mode", sd)
+        self.assertNotIn("starting_depth", sd)

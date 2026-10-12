@@ -16,7 +16,8 @@ global.ap_dl_text = "";
 global.ap_dl_recv = 0;
 global.ap_fail = 0;
 global.ap_granted = -1;
-global.ap_keys = 0;
+global.ap_cur = 0;
+global.ap_tmp = 0;
 if (file_exists("ap_granted.txt"))
 {
     var f = file_text_open_read("ap_granted.txt");

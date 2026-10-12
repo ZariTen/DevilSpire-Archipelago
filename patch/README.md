@@ -48,11 +48,12 @@ The client may truncate/delete the file at any time.
 ### `ap_granted.txt` (game-private)
 Number of received items already granted to the CURRENT run; `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items are re-applied (index order, up to 8 per poll). Ungrantable items (inventory full/weight) are retried 5 polls then skipped (`E|skipped...`).
 
-## Item ids (relative to `base_id + 500`, matches worlds-src placeholders)
-0-9 depth keys (counted only; floor gating NOT implemented), 100 Pouch of Souls (+100 souls), 101 Red Orb (+3 random stat), 102 Yellow Orb (100 gold), 103 Blue Orb (random stone), 200+ traps (ignored for now).
+## Item ids (relative to `base_id + 500`; full table and effects in docs/item-catalog.md)
+No depth keys / gating (all floors reachable; removed 2026-10-11). 100-103 Orb of STR/INT/VIT/AGI (+3 stat), 104 Stat Point, 110 Yellow Orb (150-450 gold), 111 Gold Hoard (1000), 112 Blue Orb (random stone 0-35), 113 Pouch of Souls (+100), 120/121 Red/Blue Potion Pack (3x), 122 White Potion, 130/131/132 Spell Page Basic/Advanced/Master, 140-142 Weapon Lv25/50/75, 143-145 Armor Piece, 146-148 Accessory, 149/150 Shield Lv25/50, 151 Mystic Ring, 200 Ambush / 201 Plague / 202 Pickpocket trap.
+Everything is re-granted on each new run (index order). Traps only fire when received live (`global.ap_live[idx]`, set by `ap_poll` for items arriving after the first read of `ap_in.txt`) and are consumed. Equipment/consumables are added with `add_inventory(it,-4,0)` (no encumbrance check; retried/skipped only when the 100 slots or the 24-slot grimoire are full). **All grant effects UNTESTED at runtime.**
 
 ## Known gaps
-Depth-key floor gating, traps, "sent item" popups, bosses skipped when `global.kills == 0` (game spawns no boss then), on-screen error handling. Receive/grant effects are guesses from reading the code dump.
+Trap/equipment runtime behaviour, "sent item" popups, bosses skipped when `global.kills == 0` (game spawns no boss then), on-screen error handling. Receive/grant effects are guesses from reading the code dump.
 
 ## Launching a separate copy via a non-Steam shortcut
 Add a `steam_appid.txt` containing `1861290` next to `Devil Spire.exe`; without it the game exits immediately when started as a non-Steam shortcut (verified 2026-10-11). Force a Proton version in the shortcut's Compatibility settings.

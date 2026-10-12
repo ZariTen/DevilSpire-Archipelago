@@ -40,7 +40,7 @@ class DevilSpireWorld(World):
     """
     Devil Spire is a roguelike dungeon crawler. In this fan-made randomizer you descend 100 floors of the
     Descent, defeat the bosses guarding every tenth floor, and finally slay Rhamdon. When you die the run
-    resets, but everything you have received (including filler) is re-granted on the next run. (Unofficial; not affiliated with the developer.)
+    resets, but everything you have received (stat boosts, equipment, gold, ...) is re-granted on the next run. All floors are open from the start. (Unofficial; not affiliated with the developer.)
     """
 
     game = GAME_NAME
@@ -57,19 +57,6 @@ class DevilSpireWorld(World):
     origin_region_name = "Menu"
     topology_present = False
 
-    def _starting_keys(self) -> list[str]:
-        n = self.options.starting_depth.value
-        mode = self.options.floor_key_mode
-        if n == 0 or mode == mode.option_off:
-            return []
-        if mode == mode.option_progressive:
-            return [items.PROGRESSIVE_KEY] * n
-        return items.KEY_NAMES[:n]
-
-    def generate_early(self) -> None:
-        for name in self._starting_keys():
-            self.multiworld.push_precollected(self.create_item(name))
-
     def create_regions(self) -> None:
         regions.create_regions(self)
 
@@ -77,19 +64,19 @@ class DevilSpireWorld(World):
         rules.set_rules(self)
 
     def create_items(self) -> None:
-        mode = self.options.floor_key_mode
-        pool: list[str] = []
-        if mode == mode.option_progressive:
-            pool += [items.PROGRESSIVE_KEY] * (len(items.KEY_NAMES) - self.options.starting_depth.value)
-        elif mode == mode.option_individual:
-            pool += items.KEY_NAMES[self.options.starting_depth.value:]
-
         n_locations = len(self.multiworld.get_unfilled_locations(self.player))
+        pool = list(items.POOL_TEMPLATE)  # 110 entries = default location count
+        if n_locations < len(pool):
+            self.random.shuffle(pool)
+            pool = pool[:n_locations]  # random subset (no logic depends on items)
         while len(pool) < n_locations:
-            if self.random.randrange(100) < self.options.trap_percentage.value:
-                pool.append(self.random.choice(items.TRAP_NAMES))
-            else:
-                pool.append(self.get_filler_item_name())
+            pool.append(self.get_filler_item_name())
+        # traps replace filler entries with trap_percentage
+        pct = self.options.trap_percentage.value
+        if pct:
+            for i, name in enumerate(pool):
+                if items.ITEM_TABLE[name].classification == items.F and self.random.randrange(100) < pct:
+                    pool[i] = self.random.choice(items.TRAP_NAMES)
         self.multiworld.itempool += [self.create_item(n) for n in pool]
 
     def create_item(self, name: str) -> items.DevilSpireItem:
@@ -101,9 +88,10 @@ class DevilSpireWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         return {
-            **self.options.as_dict("death_link", "floor_key_mode", "starting_depth", "floor_checks"),
+            **self.options.as_dict("death_link", "floor_checks", "trap_percentage"),
             "goal": "descent_rhamdon",  # fixed
             "descent_unlocked": True,  # patch force-unlocks Descent
+            "gating": False,  # no depth keys: everything reachable from the start
             "persistent_items": True,  # client must re-apply ALL received items on every new Descent save
             "base_id": BASE_ID,
         }

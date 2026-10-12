@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from BaseClasses import Region
 
-from . import rules
 from .constants import NUM_TIERS
 from .items import DevilSpireItem
 from .locations import (BOSS_LOCATIONS, floor_checks_enabled, VICTORY_ITEM, VICTORY_LOCATION, DevilSpireLocation,
@@ -24,10 +23,9 @@ def create_regions(world: DevilSpireWorld) -> None:
     tiers = [Region(tier_region_name(t), p, mw) for t in range(NUM_TIERS)]
     mw.regions += [menu, *tiers]
 
-    menu.connect(tiers[0], "Start Descent")  # Descent is force-unlocked by the patch
-    for t in range(1, NUM_TIERS):
-        # Menu -> tier 0 is open; deeper tiers chain on the previous one. Key rule per tier (see rules.py).
-        tiers[t - 1].connect(tiers[t], f"Descend to tier {t}", rules.tier_rule(world, t))
+    # No gating: every tier is directly reachable from the start. Tier regions exist for readability only.
+    for t in range(NUM_TIERS):
+        menu.connect(tiers[t], f"Descend to tier {t}")
 
     locs = list(BOSS_LOCATIONS) + floor_checks_enabled(world.options.floor_checks.step)
     for d in locs:

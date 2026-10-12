@@ -8,6 +8,4 @@ Devil Spire:
   accessibility: full
   death_link: true
   floor_checks: every_floor
-  floor_key_mode: progressive
-  starting_depth: 0
   trap_percentage: 0
