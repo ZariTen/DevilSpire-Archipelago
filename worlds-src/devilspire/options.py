@@ -41,7 +41,8 @@ class FloorChecks(Choice):
     """
     Granularity of "Reach Floor -N" location checks (separate from boss kill checks).
     Every Floor: all 100 Descent floors (-1 to -100) are checks. Every 5th / Every 10th: only floors that are a
-    multiple of 5 / 10 (-100 is always included unless Off). Off: no floor checks (bosses only).
+    counted from floor -1 (every 5th: -1, -6, -11, ..., -96; every 10th: -1, -11, ..., -91; floor -100 is the goal
+    fight, not a floor check, unless every floor is on). Off: no floor checks (bosses only).
     Floors are reached by descending; floor N needs the depth keys of its 10-floor tier.
     Checks persist across runs; your received items are re-granted on every new run.
     """

@@ -13,8 +13,8 @@ cumulative across runs.
 
 ## What is a location?
 - **Floor checks** ("Reach Floor -N", on by default): every Descent floor -1 to -99, plus the final floor -100, is a
-  check. The option **Floor Checks** sets the granularity: every floor (default, 100 checks), every 5th floor (20),
-  every 10th floor (10) or off. Floor N needs the depth keys of its 10-floor tier.
+  check. The option **Floor Checks** sets the granularity: every floor (default, 100 checks), every 5th floor (20: -1, -6, -11, ...),
+  every 10th floor (10: -1, -11, ...) or off. Floor N needs the depth keys of its 10-floor tier.
 - **Boss checks** (always on, separate from floor checks): Slime (-9), Abomination (-19), Idol (-29),
   Golems (-39, the two Golems are ONE check), Dragon (-49), Snake (-59), Apparition (-69), Girl (-79),
   Robot (-89) and the floor -99 gauntlet (which also counts as the floor -99 check).

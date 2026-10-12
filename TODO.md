@@ -136,3 +136,11 @@ devilspire/
 - Slay-the-Spire-like: death resets the Descent save; ALL received AP items are re-granted on each new run (client/patch must re-apply the full received list on every new save); boss checks persist across runs; items are persistent unlocks.
 - Locations (2026-10-11): every Descent floor -1..-100 is a check ("Reach Floor -N", option `floor_checks`: every floor [default] / every 5th / every 10th / off), separate from boss checks; Golems = ONE boss check; -99 gauntlet is both. Filler/souls/orbs are re-granted on every new run like all other items.
 - Skeleton apworld: worlds-src/devilspire (placeholder IDs base 7_470_000; 10 boss locations incl. -99 gauntlet, Rhamdon event = Victory; depth keys gate 10-floor tiers).
+
+## Status 2026-10-11 (patch tooling)
+- [x] `patch/` (ApPatch.csx + gml/*.gml + apply_patch.sh + README.md): force Descent, boss/floor/goal/death emission to `ap_out.txt`, `ap_in.txt` polling (items by index, DeathLink), per-run full item re-grant, `ap_config.ini`. Applies to game-copy/data.win -> data_patched.win; loads and re-dumps cleanly; diff = 8 edited entries + 11 new scripts. **Runtime UNTESTED** (game never run).
+- [x] apworld floor checks now count from floor -1 (every 5th = -1,-6,...; every 10th = -1,-11,...); tests updated, 42 pass.
+- [ ] Test patched game under Proton (start run, check ap_out.txt/ap_granted.txt, boss, goal, death).
+- [ ] Python client (CommonContext) writing ap_in.txt/ap_config.ini and reading ap_out.txt.
+- [ ] Depth-key floor gating in game, trap items, real item/location tables, "received" popups with sender.
+- [ ] Verify get_item/generate_stone/attribute inline effects; verify obj_god persists across rooms.

@@ -82,8 +82,10 @@ class TestFloorChecks5(DevilSpireTestBase):
 
     def test_counts(self) -> None:
         self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 30)
-        self.assertIn("Reach Floor -100", [l.name for l in self.multiworld.get_locations(1)])
-        self.assertNotIn("Reach Floor -1", [l.name for l in self.multiworld.get_locations(1)])
+        names = [l.name for l in self.multiworld.get_locations(1)]
+        self.assertIn("Reach Floor -1", names)
+        self.assertIn("Reach Floor -6", names)
+        self.assertNotIn("Reach Floor -5", names)
 
 
 class TestFloorChecks10(DevilSpireTestBase):
@@ -91,6 +93,9 @@ class TestFloorChecks10(DevilSpireTestBase):
 
     def test_counts(self) -> None:
         self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 20)
+        names = [l.name for l in self.multiworld.get_locations(1)]
+        self.assertIn("Reach Floor -11", names)
+        self.assertNotIn("Reach Floor -10", names)
         self.collect_all_but([])
         self.assertBeatable(True)
 

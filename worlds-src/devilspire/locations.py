@@ -46,10 +46,10 @@ FLOOR_LOCATIONS: list[LocationData] = [
 
 
 def floor_checks_enabled(step: int) -> list[LocationData]:
-    """step: 0 = none, else every `step`-th floor (1, 5, 10)."""
+    """step: 0 = none, else every `step`-th floor counted from floor -1 (step 5: -1, -6, -11, ...; step 10: -1, -11, ...)."""
     if step <= 0:
         return []
-    return [d for d in FLOOR_LOCATIONS if -d.floor % step == 0]
+    return [d for d in FLOOR_LOCATIONS if (-d.floor - 1) % step == 0]
 
 VICTORY_LOCATION = "Rhamdon defeated"  # event location (no id), holds the "Victory" event item
 VICTORY_ITEM = "Victory"
