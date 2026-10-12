@@ -1,0 +1,13 @@
+name: Zari
+game: Devil Spire
+description: Devil Spire test slot
+requires:
+  version: 0.6.8
+Devil Spire:
+  progression_balancing: 50
+  accessibility: full
+  death_link: true
+  floor_checks: every_floor
+  floor_key_mode: progressive
+  starting_depth: 0
+  trap_percentage: 0
