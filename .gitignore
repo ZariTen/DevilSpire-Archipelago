@@ -10,3 +10,7 @@ game-copy/
 __pycache__/
 *.pyc
 .venv/
+release/
+patch/patcher/cmd/patcher/delta.bin
+*.orig
+*.ap-tmp

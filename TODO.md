@@ -97,7 +97,7 @@ devilspire/
 
 ## Phase 5 - Packaging / distribution
 - [ ] `devilspire.apworld` (Build APWorlds) with archipelago.json (game, world_version, minimum_ap_version = current stable AP at time of release [U], authors).
-- [ ] Patcher: a standalone script/CLI (`apply_patch.py`) that takes the user's own data.win, verifies hash, shells to UndertaleModCli (or bundles a binary patch/xdelta of changes only) [U: pick one; prefer script so no game bytes are redistributed].
+- [x] Patcher: single self-contained Go executable per platform (embedded binary delta, hash check, backup, restore); see patch/README.md and patch/build_release.sh. Releases via GitHub Releases only (no delta/binaries in git).
 - [ ] Optionally implement as AP `APPatch`/`APContainer` subclass (worlds/Files.py) so generate_output produces a per-slot patch file [U: confirm API].
 - [ ] Setup guide for Windows, Linux native, and Steam Proton/NixOS (flake snippet).
 - [ ] README with credits, license, how to report bugs; GitHub releases with apworld + patch + client.
@@ -174,3 +174,10 @@ devilspire/
 - [x] Difficulty screen: Extreme and Nightmare force-unlocked (`global.extreme/nightmare = 1` in obj_setup_Alarm_0): no "UNLOCK 500 S / 9999 S" labels or soul prices; mode screen has no other prices (mode button is the inert "Archipelago" one). The demo-ending text (obj_dungeoncreator) is only created when `global.demo` (= 0 in this build), so it is unreachable; left untouched.
 - [x] Tests: world 38 pass, client unit 16 pass, e2e 14/14 (fixed outdated ap_config assertion), Generate.py sample OK. Rebuilt apworld -> custom_worlds, rebuilt+installed patched data.win (backup data_patched.win.bak = previous build). **Runtime UNTESTED.**
 - Later (not started, by request): difficulty option, boss/goal testing.
+
+## Status 2026-10-12 (player patcher + docs)
+- Done: `patch/patcher` (Go), `patch/build_release.sh`, `patch/EXPECTED_ORIGINAL_SHA256`, README.md, docs/PLAYER_GUIDE.md, docs/HOST_GUIDE.md. release/ is git-ignored (publish via GitHub Releases). Verified on copies (Linux) and under wine64 (Windows .exe); runtime of the patched game is still UNTESTED.
+- [ ] LICENSE: not chosen yet (placeholder note in README.md; user decides). Also decide whether publishing the delta/binary derived from data.win is acceptable (ask the developer?).
+- [ ] Confirm the supported build: sha256 44df3801...c9b4 is the Steam build of 2026-10-11 (Steam build id unknown); itch/GOG builds may differ -> patcher refuses them.
+- [ ] Windows .exe is untested on real Windows (SmartScreen/AV warnings likely: unsigned); consider code signing, GitHub Actions to build releases.
+- [ ] Set up GitHub Release workflow (apworld + patcher + SHA256SUMS); bump `world_version` and rebuild together.

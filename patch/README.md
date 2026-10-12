@@ -1,6 +1,15 @@
 # Devil Spire Archipelago patch
 
 Fan-made, unofficial. Patches a **copy** of your own `data.win` (never the Steam install, never committed/distributed).
+
+## Player-facing patcher (releases)
+Players do not run UndertaleModCli. `patch/build_release.sh` turns the output of `apply_patch.sh` into one self-contained executable per platform:
+- `patch/patcher/delta` - tiny copy/add binary delta (stdlib only: zlib + suffix array for matching). `mkdelta` creates it from pristine -> patched `data.win` (self-checks), the patcher embeds it (`go:embed`, temp file `cmd/patcher/delta.bin`, git-ignored and removed after the build).
+- `patch/patcher/cmd/patcher` - the player tool: `patch` (default) / `status` / `restore` / `version`. Verifies sha256 of data.win (`patch/EXPECTED_ORIGINAL_SHA256` = Steam build in game-copy), creates `data.win.orig` with O_EXCL (never overwrites), applies the delta to `data.win.ap-tmp`, verifies the result hash, fsyncs, atomically renames over `data.win`. `restore` renames `data.win.orig` over `data.win` after hashing it. Exit codes: 0 ok, 1 usage, 2 no data.win, 3 unsupported hash, 4 already patched/backup conflict, 5 I/O or permission, 6 backup missing/invalid.
+- Build: `patch/build_release.sh [pristine] [patched] [--rebuild]` (needs Go; uses `nix shell nixpkgs#go`). Outputs to `release/` (git-ignored): `devilspire_ap_patcher` (linux/amd64), `devilspire_ap_patcher.exe` (windows/amd64), `SHA256SUMS`, copy of `build/devilspire.apworld`. Pure Go cross-compile, `CGO_ENABLED=0`.
+- Publish via **GitHub Releases only**. The delta and binaries are derived from game data: never commit them (`release/`, `delta.bin`, `*.win` are in .gitignore). Whether publishing is OK is a licensing decision for the maintainer.
+- Changing the patch (ApPatch.csx / GML) changes the patched hash: just rerun the build script. The pristine hash only changes if the game is updated.
+- Tested: Linux binary on copies (patch, byte-identical to the apply_patch.sh output, restore, double patch, wrong hash, missing/bogus backup, read-only dir) and the .exe under wine64 11.0 (status/patch/double/restore).
 STATUS: patch builds and the result loads/re-dumps in UndertaleModCli; **runtime behavior is UNTESTED** (game not run yet).
 
 ## Apply
