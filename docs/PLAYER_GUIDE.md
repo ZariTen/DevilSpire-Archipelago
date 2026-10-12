@@ -56,7 +56,7 @@ If you join a **different multiworld**, the client moves your old Archipelago ch
 - **"not the supported Steam version":** your `data.win` was changed or isn't the Steam version. Use Steam's *Verify integrity of game files*, then `/auto_patch`.
 - **"different multiworld connected" in the game:** quit and restart the game, then choose *New Game*.
 - **"UNPATCHED Devil Spire is being played":** close the game, run `/auto_patch`, start it again.
-- **Which mod version do I have?** The title screen shows it in the top-left corner, e.g. `Archipelago v0.1.0 (6d49c01)`. `/status` shows the same text. If they differ, run `/auto_patch`.
+- **Which mod version do I have?** The title screen shows it in the top-left corner, e.g. `Archipelago v0.1.0 (64a9604)`. `/status` shows the same text. If they differ, run `/auto_patch`.
 - **Items don't arrive:** check the client is connected (`/status`). Then open the camp chest (interact twice).
 - **Save folder not found:** start the game once, then check `/status`. Set it by hand with `/savedir <path>`.
 - **Permission error:** close the game. On Windows, the client may need to run as administrator.

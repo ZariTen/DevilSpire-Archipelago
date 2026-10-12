@@ -100,6 +100,13 @@ group.QueueAppend(Data.Code.ByName("gml_Object_obj_title_Draw_64"),
     "draw_text(16, 12, \"" + modLabel + "\");\n" +
     "draw_set_alpha(ap_a);\ndraw_set_colour(ap_c);\ndraw_set_halign(fa_center);\ndraw_set_valign(fa_middle);\ndraw_set_font(fnt_large);");
 
+// (m) "Archipelago" subtitle under the title logo (main page only, once the burn-in reveal is complete):
+// fnt_large, logo orange #FFBF7F, centred at (960, 628) between the logo (ends y=588) and the first button (y=744)
+Edit("gml_Object_obj_logo_Draw_64", @"(draw_sprite_part_ext\(spr_title, [^;]*\);)",
+     "$1\nif (appear == 114)\n{\ndraw_set_font(fnt_large);\ndraw_set_halign(fa_center);\ndraw_set_valign(fa_middle);\n" +
+     "draw_set_colour(make_colour_rgb(255, 191, 127));\ndraw_text(960, 628, \"Archipelago\");\ndraw_set_colour(c_white);\n}",
+     "Archipelago subtitle under the logo");
+
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");
 
