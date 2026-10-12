@@ -59,14 +59,14 @@ devilspire/
   test/__init__.py, test_access.py, test_options.py
   data/ (patch script, GML snippets)  # no game assets
 ```
-- [ ] Implement items/locations tables from phase 1 CSVs (single source of truth shared with the patch generator).
-- [ ] World class: game name, item_name_to_id, location_name_to_id, create_regions/items/rules, create_item, filler via get_filler_item_name, completion_condition, item_name_groups.
-- [ ] Events for logic (bosses, key doors) as id=None items on id=None locations; goal via victory event.
-- [ ] Options file with docstrings (rich_text_options_doc), presets optional.
-- [ ] fill_slot_data: only options the client/patch needs (death_link, goal, etc.); use LocationScouts for item info.
-- [ ] Docs: game info page, setup guide, WebWorld Tutorial entry.
-- [ ] Tests: WorldTestBase, assertAccessDependency per gated area; run AP's `python -m unittest` for the world; also generation smoke tests with various option combos (all options, minimal).
-- [ ] Build `.apworld` with Launcher "Build APWorlds" and test loading by dropping into a clean AP install's worlds folder.
+- [~] Implement items/locations tables (PLACEHOLDER skeleton done in worlds-src/devilspire; real data pending RE) from phase 1 CSVs (single source of truth shared with the patch generator).
+- [x] World class: game name, item_name_to_id, location_name_to_id, create_regions/items/rules, create_item, filler via get_filler_item_name, completion_condition, item_name_groups.
+- [x] Events for logic (bosses, key doors) as id=None items on id=None locations; goal via victory event.
+- [x] Options file with docstrings (rich_text_options_doc), presets optional.
+- [x] fill_slot_data: only options the client/patch needs (death_link, goal, etc.); use LocationScouts for item info.
+- [x] Docs: game info page, setup guide, WebWorld Tutorial entry.
+- [x] Tests: WorldTestBase (4 test classes pass; run: symlink into AP worlds/ + pytest), assertAccessDependency per gated area; run AP's `python -m unittest` for the world; also generation smoke tests with various option combos (all options, minimal).
+- [~] Build `.apworld` -- scripts/build_apworld.sh zips to build/devilspire.apworld; Launcher "Build APWorlds" not yet tried with Launcher "Build APWorlds" and test loading by dropping into a clean AP install's worlds folder.
 
 ## Phase 4 - In-game integration / client
 
@@ -130,3 +130,7 @@ devilspire/
 - Goal: beat Descent (100 floors); Descent is locked by default, so unlock it from the start.
 - Fan-made, unofficial community project.
 - DeathLink: yes.
+
+## Roguelike-loop design (2026-10-11)
+- Slay-the-Spire-like: death resets the Descent save; ALL received AP items are re-granted on each new run (client/patch must re-apply the full received list on every new save); boss checks persist across runs; items are persistent unlocks.
+- Skeleton apworld: worlds-src/devilspire (placeholder IDs base 7_470_000; 10 boss locations incl. -99 gauntlet, Rhamdon event = Victory; depth keys gate 10-floor tiers).
