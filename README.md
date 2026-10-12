@@ -42,4 +42,4 @@ More detail: [docs/HOST_GUIDE.md](docs/HOST_GUIDE.md).
 Developer notes: [patch/README.md](patch/README.md), [TODO.md](TODO.md).
 
 ## License
-**Not chosen yet** (placeholder - the maintainer will add a `LICENSE` file). Until then all rights are reserved by the author. Devil Spire and its assets belong to their respective owners.
+Code in this repository is released under the [MIT License](LICENSE). Devil Spire and its assets belong to their respective owners and are not included.
