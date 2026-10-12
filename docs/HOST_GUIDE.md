@@ -26,7 +26,7 @@ Items are persistent unlocks: after a death, all received items are granted agai
 ## 5. Version compatibility
 - Archipelago: min 0.6.8 (`minimum_ap_version` in `archipelago.json`).
 - `world_version` is in `archipelago.json`/the apworld; the client reads item/location IDs from the same apworld, so mismatched apworld versions between the generating host and a player's installed apworld can cause wrong IDs. Items/locations use base ID 38,470,000.
-- The client's `/auto_patch` only supports one exact original `data.win` (sha256 `44df3801...c9b4`, see `patch/EXPECTED_ORIGINAL_SHA256`); the same patch works for every seed. The in-game patch changes only when the apworld version changes (players then run `/auto_patch` again).
+- The client's `/auto_patch` only supports one exact original `data.win` (sha256 `44df3801...c9b4`, see `patch/EXPECTED_ORIGINAL_SHA256`); the same patch works for every seed. The in-game patch changes only when the apworld version changes (players then run `/auto_patch` again; it upgrades from the backup).
 
 ## 6. Troubleshooting
 - Players can't connect: server port open? correct slot name (case sensitive)? same AP version family?

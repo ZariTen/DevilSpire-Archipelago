@@ -128,8 +128,8 @@ class ConfigTests(unittest.TestCase):
 class SaveDirTests(unittest.TestCase):
     def test_proton_autodetect_and_priority(self):
         home = Path(tempfile.mkdtemp())
-        a = home / ".local/share/Steam/steamapps/compatdata/111/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire"
-        b = home / ".local/share/Steam/steamapps/compatdata/222/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire"
+        a = home / ".local/share/Steam/steamapps/compatdata/111/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire_AP"
+        b = home / ".local/share/Steam/steamapps/compatdata/222/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire_AP"
         a.mkdir(parents=True)
         b.mkdir(parents=True)
         (a / "x").write_text("1")
@@ -142,13 +142,25 @@ class SaveDirTests(unittest.TestCase):
         self.assertEqual(fp.find_save_dir(str(a), env={"DEVILSPIRE_SAVE_DIR": str(override)}, home=home), a)
         self.assertIsNone(fp.find_save_dir(str(home / "nope"), env={}, home=home))
 
+    def test_other_library_and_original_ignored(self):
+        home = Path(tempfile.mkdtemp())
+        lib = home / "lib"
+        sa = home / ".local/share/Steam/steamapps"
+        sa.mkdir(parents=True)
+        (sa / "libraryfolders.vdf").write_text(f'"libraryfolders" {{ "1" {{ "path" "{lib}" }} }}')
+        roam = lib / "steamapps/compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming"
+        (roam / "Devil_Spire").mkdir(parents=True)  # original game's saves: never used
+        self.assertIsNone(fp.find_save_dir(env={}, home=home, platform="linux"))
+        (roam / "Devil_Spire_AP").mkdir()
+        self.assertEqual(fp.find_save_dir(env={}, home=home, platform="linux"), roam / "Devil_Spire_AP")
+
     def test_none_and_windows(self):
         home = Path(tempfile.mkdtemp())
         self.assertIsNone(fp.find_save_dir(env={}, home=home, platform="linux"))
         appdata = home / "AppData" / "Roaming"
-        (appdata / "Devil_Spire").mkdir(parents=True)
+        (appdata / "Devil_Spire_AP").mkdir(parents=True)
         self.assertEqual(fp.find_save_dir(env={"APPDATA": str(appdata)}, home=home, platform="win32"),
-                         appdata / "Devil_Spire")
+                         appdata / "Devil_Spire_AP")
 
 
 if __name__ == "__main__":

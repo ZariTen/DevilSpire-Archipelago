@@ -10,16 +10,16 @@ You need your **own copy of Devil Spire on Steam**. No game files are included. 
 You need [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases) 0.6.8 or newer and Devil Spire installed through Steam.
 
 1. **Install the apworld:** download `devilspire.apworld` from [Releases](../../releases) and double-click it (or copy it into Archipelago's `custom_worlds` folder).
-2. **Make the patched copy (once):** open the Archipelago Launcher, start **Devil Spire Client**, and type `/auto_patch`.
-   It finds Devil Spire in your Steam libraries (or use `/auto_patch <game folder>`), copies the game into Archipelago's `DevilSpire` folder and patches the copy. Your Steam install is not changed.
-3. **Add the copy to Steam:** *Games* > *Add a Non-Steam Game* > *Browse*, pick `Devil Spire.exe` in the folder the client printed.
-   - Linux: right-click the new entry > *Properties* > *Compatibility* > force a Proton version.
-   - Windows: you can also just run that `Devil Spire.exe` directly.
-4. **Connect first:** in the Devil Spire Client, connect (server address, slot name, password) **before** starting the game.
-5. **Play:** start the patched copy, choose *New Game*. Open the chest next to the bonfire in the camp to get your items.
+2. **Patch the game (once):** open the Archipelago Launcher, start **Devil Spire Client**, and type `/auto_patch`.
+   It finds Devil Spire in your Steam libraries (or use `/auto_patch <game folder>`), keeps a backup of the original `data.win` as `data.win.orig`, and patches the game.
+3. **Connect first:** in the Devil Spire Client, connect (server address, slot name, password) **before** starting the game.
+4. **Play:** start Devil Spire from Steam as usual, choose *New Game*. Open the chest next to the bonfire in the camp to get your items.
+
+The patched game keeps its saves in a separate `Devil_Spire_AP` folder, so your normal Devil Spire saves are never touched.
 
 ## Uninstall
-Delete the `DevilSpire` folder inside your Archipelago folder, the non-Steam shortcut, and `devilspire.apworld`. The Steam game was never modified.
+- Type `/restore` in the Devil Spire Client (puts the original `data.win` back), **or** in Steam: right-click *Devil Spire* > *Properties* > *Installed Files* > *Verify integrity of game files*.
+- Delete `devilspire.apworld`. Your Archipelago saves stay in `Devil_Spire_AP` until you delete them.
 
 ## Hosts
 1. The host installs `devilspire.apworld` (needed to generate the game). Use Archipelago 0.6.8 or newer. Players of other games in the same multiworld do not need it.

@@ -18,7 +18,7 @@ CONFIG_FILE = "ap_config.ini"
 STATE_FILE = "ap_client_state.json"  # client-private: remembers which seed/slot the save dir last belonged to
 
 ENV_SAVE_DIR = "DEVILSPIRE_SAVE_DIR"
-SAVE_DIR_NAME = "Devil_Spire"
+SAVE_DIR_NAME = "Devil_Spire_AP"  # patched game's own save folder (GEN8 Name, set by ApPatch.csx)
 FLOOR_STEP_BY_OPTION = {0: 1, 1: 5, 2: 10, 3: 0}  # slot_data floor_checks -> ap_config floor_check_step
 
 
@@ -36,10 +36,12 @@ def candidate_save_dirs(env: Optional[Mapping[str, str]] = None, home: Optional[
         out.append(Path(env["APPDATA"]) / SAVE_DIR_NAME)
     if platform.startswith("win"):
         out.append(home / "AppData" / "Roaming" / SAVE_DIR_NAME)
-    steam_roots = [home / ".local/share/Steam", home / ".steam/steam", home / ".steam/root",
-                   home / ".var/app/com.valvesoftware.Steam/.local/share/Steam"]
+    try:
+        from .auto_patch import steam_libraries
+    except ImportError:
+        from auto_patch import steam_libraries  # type: ignore
     seen = set()
-    for root in steam_roots:
+    for root in steam_libraries(env, home, platform):  # all libraries: Proton prefixes live in the game's library
         pattern = str(root / "steamapps/compatdata/*/pfx/drive_c/users/*/AppData/Roaming" / SAVE_DIR_NAME)
         for m in sorted(glob.glob(pattern)):
             real = os.path.realpath(m)

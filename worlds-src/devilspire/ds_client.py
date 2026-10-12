@@ -30,21 +30,32 @@ POLL_SECONDS = 0.5
 
 
 class DevilSpireCommandProcessor(ClientCommandProcessor):
-    def _cmd_auto_patch(self, *game_dir: str) -> bool:
-        """Copy the game into Archipelago's DevilSpire folder and patch the copy. Optional: the game folder
-        (default: found in your Steam libraries). Your Steam install is never modified."""
-        src = Path(" ".join(game_dir)).expanduser() if game_dir else None
+    def _patch_cmd(self, fn, args, **kw) -> bool:
+        src = Path(" ".join(args)).expanduser() if args else None
         try:
-            dest = ap_patch.auto_patch(src, log=logger.info)
+            st = fn(src, log=logger.info, **kw) if fn is not ap_patch.patch_status else fn(src)
         except ap_patch.PatchError as e:
-            logger.error(f"auto_patch failed: {e}")
+            logger.error(str(e))
             return False
         except OSError as e:
-            logger.error(f"auto_patch failed (file error): {e!r}")
+            logger.error(f"File error: {e!r} (close the game; check the folder is writable)")
             return False
-        for line in ap_patch.launch_instructions(dest):
-            logger.info(line)
+        logger.info(st.describe())
         return True
+
+    def _cmd_auto_patch(self, *args: str) -> bool:
+        """Patch Devil Spire in place for Archipelago (backup: data.win.orig). Optional: `force` (re-patch from the
+        backup) and/or the game folder (default: found in your Steam libraries)."""
+        force = bool(args) and args[0].lower() == "force"
+        return self._patch_cmd(ap_patch.auto_patch, args[1:] if force else args, force=force)
+
+    def _cmd_restore(self, *game_dir: str) -> bool:
+        """Undo the patch: put the original data.win back from data.win.orig. Optional: the game folder."""
+        return self._patch_cmd(ap_patch.restore, game_dir)
+
+    def _cmd_patch_status(self, *game_dir: str) -> bool:
+        """Show whether the game's data.win is original or patched, and whether the backup is valid."""
+        return self._patch_cmd(ap_patch.patch_status, game_dir)
 
     def _cmd_savedir(self, path: str = "") -> bool:
         """Show or set the Devil Spire save directory (where ap_out.txt / ap_in.txt live)."""

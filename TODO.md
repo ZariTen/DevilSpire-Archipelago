@@ -4,7 +4,7 @@ Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md
 **The patched game has never been run yet; everything in-game is untested.**
 
 ## Decisions
-- Patched game = a copy of your own Steam install (in Archipelago's `DevilSpire` folder) plus a bsdiff4 patch shipped in the apworld, applied by the client's `/auto_patch` (same approach as Archipelago's Undertale). Steam install never modified; no game files or patch in git.
+- Patched game = your own Steam `data.win`, patched in place by the client's `/auto_patch` with a bsdiff4 patch shipped in the apworld (backup `data.win.orig`, `/restore`, Steam verify as fallback). Separate save folder `Devil_Spire_AP` (GEN8 Name). No game files or patch in git.
 - Single game mode "Archipelago" (= Descent, 100 floors). Goal: beat the final boss (Rhamdon, floor -100).
 - Checks: boss kills + "Reach Floor -N" (option `floor_checks`, default every floor; Golems = one check; -99 gauntlet counts as both).
 - No depth-key gating: everything reachable from the start; boost item pool (110 items, see docs/item-catalog.md); traps via `trap_percentage`.
@@ -21,7 +21,8 @@ Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md
 - [x] **Single mode "Archipelago":** other modes hidden, "Descent" renamed, Extreme/Nightmare unlocked without prices.
 - [x] **Camp chest:** fixed spot next to the bonfire in the pre-tower camp; grants received items, re-arms for mid-run items.
 - [x] **No-gating boost pool:** keys and tier rules removed; new item ids and grant code.
-- [x] **Install via client:** `/auto_patch [game dir]` (Steam library detection incl. libraryfolders.vdf, hash checks, atomic copy + bsdiff4 patch, `steam_appid.txt`); patch built by `scripts/build_apworld.sh`; unit tests + real-game copy test.
+- [x] **Install via client:** `/auto_patch [force] [game dir]`, `/restore`, `/patch_status` (Steam library detection incl. libraryfolders.vdf, hash checks, verified backup, atomic replace, upgrade from older builds via `patch/KNOWN_PATCHED_SHA256`); patch built by `scripts/build_apworld.sh`; unit tests + e2e on a temp copy of the game.
+- [x] **Separate saves:** GEN8 Name `Devil_Spire` -> `Devil_Spire_AP`; client looks in all Steam libraries' Proton prefixes and %APPDATA%.
 - [x] **Docs:** README, player guide, host guide.
 - [x] **License:** MIT.
 
@@ -42,8 +43,8 @@ Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md
 - [ ] "Sent item" popups showing the sender.
 
 ## Release prep
-- [ ] Test `/auto_patch` on real Windows (Steam path/registry detection, copy under the Archipelago folder).
-- [ ] Test the patched copy as a non-Steam shortcut under Proton (new compatdata prefix: save folder detection).
+- [ ] Test `/auto_patch` / `/restore` on real Windows (Steam path/registry detection, Program Files permissions).
+- [ ] In-game: patched game really saves to `Devil_Spire_AP` (Proton and Windows) and leaves `Devil_Spire` alone; Steam Cloud behaviour.
 - [ ] Test Launcher "Build APWorlds" and loading the apworld in a clean Archipelago install.
 - [ ] Check with the Devil Spire developer (is publishing the apworld with the bsdiff4 patch OK?).
 - [ ] Decide whether to publish.

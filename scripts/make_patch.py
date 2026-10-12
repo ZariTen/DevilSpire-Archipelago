@@ -19,7 +19,12 @@ a, b = src.read_bytes(), dst.read_bytes()
 ha, hb = hashlib.sha256(a).hexdigest(), hashlib.sha256(b).hexdigest()
 if ha != expected:
     sys.exit(f"pristine {src} sha256 {ha} != expected {expected}")
-info = {"original_sha256": ha, "patched_sha256": hb}
+known_path = root / "patch/KNOWN_PATCHED_SHA256"  # every released/built patched hash (for upgrade detection)
+known = [l.strip() for l in known_path.read_text().splitlines() if l.strip()] if known_path.is_file() else []
+if hb not in known:
+    known.append(hb)
+    known_path.write_text("\n".join(known) + "\n")
+info = {"original_sha256": ha, "patched_sha256": hb, "known_patched_sha256": known}
 info_path, patch_path = out / "patch.json", out / "devilspire.bsdiff4"
 try:
     up_to_date = json.loads(info_path.read_text()) == info and patch_path.is_file()

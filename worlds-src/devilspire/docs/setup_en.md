@@ -8,8 +8,9 @@
 
 ## Patching the game
 Open the Launcher, start **Devil Spire Client** and type `/auto_patch` (or `/auto_patch <game folder>` if Steam is not found).
-It copies the game into Archipelago's `DevilSpire` folder and patches the copy; the Steam install is not changed.
-Add `Devil Spire.exe` from that folder to Steam as a non-Steam game (Linux: force a Proton version in its Compatibility settings; Windows: you can also run it directly).
+It backs up the original `data.win` as `data.win.orig` and patches the game in place; launch it from Steam as usual.
+The patched game saves to its own `Devil_Spire_AP` folder (your normal saves are untouched).
+To undo: `/restore` in the client, or Steam's *Verify integrity of game files*. `/patch_status` shows the current state.
 
 ## Generating a game
 1. Create a YAML (Launcher "Generate Template Options", or the example yaml in the repository).
@@ -17,5 +18,5 @@ Add `Devil Spire.exe` from that folder to Steam as a non-Steam game (Linux: forc
 
 ## Playing
 1. Open the Launcher and start **Devil Spire Client**; connect to the server.
-2. Only then start the patched copy, choose New Game, and open the chest next to the camp bonfire to receive items.
+2. Only then start the game from Steam, choose New Game, and open the chest next to the camp bonfire to receive items.
 Each new run re-grants all received items. Full guide: docs/PLAYER_GUIDE.md in the repository.

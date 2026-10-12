@@ -3,9 +3,15 @@
 Fan-made, unofficial. Patches a **copy** of your own `data.win` (never the Steam install, never committed/distributed).
 
 ## Player install (`/auto_patch` in the client)
-Players do not run UndertaleModCli. The apworld ships `data/devilspire.bsdiff4` + `data/patch.json` (original/patched sha256), built by `scripts/build_apworld.sh` (-> `scripts/make_patch.py`, bsdiff4 from pristine `game-copy/data.win` to `game-copy/data_patched.win`, self-checked; the outputs are git-ignored). bsdiff4 is an Archipelago core requirement.
-`/auto_patch [game dir]` (`worlds-src/devilspire/auto_patch.py`): finds the game in Steam libraries (default roots + `libraryfolders.vdf`; Windows also the registry) unless a dir is given, checks the original sha256, copies the whole folder to `<Archipelago user dir>/DevilSpire.ap-tmp`, patches the copy's `data.win` in memory, verifies the patched sha256, writes `steam_appid.txt` (1861290; needed when started as a non-Steam shortcut) and `ap_patch_info.json`, then swaps the temp dir in (previous copy kept until the swap succeeds). Re-running replaces the copy. The source folder is only read.
+Players do not run UndertaleModCli. The apworld ships `data/devilspire.bsdiff4` + `data/patch.json` (original sha256, current patched sha256, `known_patched_sha256` = all builds listed in `patch/KNOWN_PATCHED_SHA256`), built by `scripts/build_apworld.sh` (-> `scripts/make_patch.py`: bsdiff4 from pristine `game-copy/data.win` to `game-copy/data_patched.win`, self-checked, appends the new hash to KNOWN_PATCHED_SHA256; patch outputs are git-ignored). bsdiff4 is an Archipelago core requirement.
+Client commands (`worlds-src/devilspire/auto_patch.py`), game folder found in Steam libraries (default roots + `libraryfolders.vdf`; Windows also the registry) unless given:
+- `/auto_patch [force] [dir]`: original -> backup `data.win.orig` (only written when missing; an existing invalid file is moved to `data.win.orig.invalid`, a valid one is never overwritten), patch in memory, verify, write `data.win.ap-tmp`, fsync, atomic rename, verify, write `ap_patch_info.json`. Current patch -> no-op (`force` re-patches from backup). Older known patch -> re-patch from the valid backup. Unknown hash -> refused, nothing changed.
+- `/restore [dir]`: backup verified -> atomically put back as data.win -> verify -> only then delete backup + `ap_patch_info.json`. Missing/invalid backup -> error pointing to Steam "Verify integrity of game files".
+- `/patch_status [dir]`.
 Changing the patch (ApPatch.csx / GML): rebuild `game-copy/data_patched.win` with `apply_patch.sh`, then `scripts/build_apworld.sh`.
+
+## Separate save folder
+GEN8 has `UseAppDataSaveLocation`, so the GMS1 runner saves to `%APPDATA%\<GEN8 Name>` (FileName "Devil Spire", Name "Devil_Spire", DisplayName "Devil Spire"; the folder matches **Name**). ApPatch.csx sets Name to `Devil_Spire_AP`, so the patched game never touches the normal `Devil_Spire` saves. Runtime **UNTESTED** (confirmed in the patched data.win's GEN8 only).
 STATUS: patch builds and the result loads/re-dumps in UndertaleModCli; **runtime behavior is UNTESTED** (game not run yet).
 
 ## Apply
@@ -29,7 +35,7 @@ The script refuses to run on an already patched file. `patch/gml/*.gml` are the 
 - `interact` (obj_chest case, opened state): `if (ap_chest) { ap_chest_open(); exit; }`.
 - `obj_dungeoncreator_Step_0` (`dungeon == 0.5` branch, right after `create_village(1)`): `ap_chest_spawn()` (camp chest; no longer on floor -1).
 
-## Files (all in the game's save dir; under Proton `.../compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire/`)
+## Files (all in the patched game's save dir; under Proton `.../compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire_AP/`)
 Text, one record per line, fields separated by `|`.
 
 ### `ap_config.ini` (client -> game, read once at game start)

@@ -91,4 +91,11 @@ Edit("gml_Object_obj_dungeoncreator_Step_0", @"create_village\(1\);", "create_vi
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");
 
 group.Import();
+
+// (k) separate save folder: with UseAppDataSaveLocation the GMS1 runner saves to %APPDATA%\<GEN8 Name>
+// (Proton: compatdata/<id>/pfx/drive_c/users/steamuser/AppData/Roaming/<Name>). Original Name is "Devil_Spire";
+// the patched game uses "Devil_Spire_AP" so it never reads or writes the normal saves.
+if (Data.GeneralInfo.Name.Content != "Devil_Spire")
+    throw new Exception("unexpected GEN8 Name " + Data.GeneralInfo.Name.Content);
+Data.GeneralInfo.Name = Data.Strings.MakeString("Devil_Spire_AP");
 Console.WriteLine("AP patch applied.");
