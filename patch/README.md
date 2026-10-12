@@ -53,3 +53,6 @@ Number of received items already granted to the CURRENT run; `-1` = no AP run ac
 
 ## Known gaps
 Depth-key floor gating, traps, "sent item" popups, bosses skipped when `global.kills == 0` (game spawns no boss then), on-screen error handling. Receive/grant effects are guesses from reading the code dump.
+
+## Launching a separate copy via a non-Steam shortcut
+Add a `steam_appid.txt` containing `1861290` next to `Devil Spire.exe`; without it the game exits immediately when started as a non-Steam shortcut (verified 2026-10-11). Force a Proton version in the shortcut's Compatibility settings.
