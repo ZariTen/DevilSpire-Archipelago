@@ -32,6 +32,19 @@ POLL_SECONDS = 0.5
 HEALTH_SECONDS = 10.0
 
 
+_mod_label_cache: typing.List[typing.Optional[str]] = []
+
+
+def expected_mod_label() -> typing.Optional[str]:
+    """Title-screen label of the patch shipped in this apworld (data/patch.json "mod_label")."""
+    if not _mod_label_cache:
+        try:
+            _mod_label_cache.append(ap_patch.load_patch()[1].get("mod_label"))
+        except Exception:  # patch data missing: no label check
+            _mod_label_cache.append(None)
+    return _mod_label_cache[0]
+
+
 def remembered_game_dir() -> typing.Optional[Path]:
     try:
         d = Utils.persistent_load().get("devilspire", {}).get("game_dir")
@@ -81,6 +94,8 @@ class DevilSpireCommandProcessor(ClientCommandProcessor):
             logger.info(ap_patch.patch_status(remembered_game_dir()).describe())
         except ap_patch.PatchError as e:
             logger.info(str(e))
+        logger.info(f"mod version: this client {expected_mod_label() or 'unknown'}; "
+                    f"running game {c.game_label or 'not seen yet (start the game)'}")
         logger.info(f"save dir: {c.save_dir}; checks found: {len(c.found_locations)}; "
                     f"items: {len(c.in_writer.items) if c.in_writer else 0}; "
                     f"server-checked: {len(c.checked_locations)}; goal: {c.finished_game}; slot: {c.slot_id}")
@@ -120,6 +135,7 @@ class DevilSpireContext(CommonContext):
         self.slot_id: typing.Optional[str] = None
         self.item_order: list = []                        # stable (item, location, player) order of ap_in.txt
         self.game_protocol: typing.Optional[int] = None   # from the newest S|<n> line
+        self.game_label: typing.Optional[str] = None      # S|<n>|<mod label> (title-screen version text)
         self.health = health.HealthMonitor(logger.warning)
         self.datawin = health.DataWinCheck(self._patch_status)
         self.orig_watch = health.OriginalSaveWatch()
@@ -219,7 +235,8 @@ class DevilSpireContext(CommonContext):
         """Blocking (hashes data.win only when it changed); run in a thread."""
         game_dir = remembered_game_dir() or ap_patch.find_game_dir()
         self.health.report("datawin", self.datawin.check(game_dir))
-        self.health.report("protocol", health.protocol_warning(self.game_protocol, PATCH_PROTOCOL))
+        self.health.report("protocol", health.protocol_warning(self.game_protocol, PATCH_PROTOCOL,
+                                                                     self.game_label, expected_mod_label()))
         self.health.report("unpatched", self.orig_watch.check(self.save_dir))
         self.health.report("cloud", health.cloud_warning(self.save_dir))
 
@@ -286,8 +303,11 @@ class DevilSpireContext(CommonContext):
             if not replay and self.death_link and self.connected_to_slot():
                 asyncio.create_task(self.send_death(f"{self.auth} {ev.text}".strip()))
         elif ev.kind == "S":
-            v = ev.text.split("|", 1)[0].strip()
+            parts = ev.text.split("|")
+            v = parts[0].strip()
             self.game_protocol = int(v) if v.isdigit() else None
+            lab = parts[1].strip() if len(parts) > 1 else ""
+            self.game_label = lab if lab.startswith("Archipelago v") else None
             if not replay:
                 self.next_health = 0.0
         elif ev.kind == "E":

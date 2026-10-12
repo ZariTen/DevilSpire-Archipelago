@@ -47,7 +47,12 @@ class DataWinCheck:
         return f"Devil Spire's data.win in {game_dir} {why}. Run /auto_patch."
 
 
-def protocol_warning(version: Optional[int], expected: int) -> Optional[str]:
+def protocol_warning(version: Optional[int], expected: int, label: Optional[str] = None,
+                     expected_label: Optional[str] = None) -> Optional[str]:
+    """Warns when the running game's S|<protocol>|<mod label> line does not match this apworld."""
+    if label and expected_label and label != expected_label and (version is None or version == expected):
+        return (f"The running game is {label}, this client is {expected_label}: "
+                "close the game and run /auto_patch, then start it again.")
     if version is None or version == expected:
         return None
     return (f"The running game reports patch protocol {version}, this client expects {expected}: "

@@ -132,12 +132,14 @@ class Status:
     state: str            # "original" | "patched" | "outdated" | "unknown" | "missing"
     data_sha: Optional[str]
     backup: str           # "valid" | "missing" | "invalid"
+    mod_label: Optional[str] = None  # title-screen label of this apworld's patch, e.g. "Archipelago v0.1.0 (6d49c01)"
 
     def describe(self) -> str:
         msg = {"original": "original (not patched)", "patched": "patched (current Archipelago version)",
                "outdated": "patched with an OLDER Archipelago version", "missing": "data.win missing",
                "unknown": "not the supported version"}[self.state]
-        return f"{self.game_dir}: {msg}; backup {BACKUP}: {self.backup}"
+        label = f"; this apworld's patch: {self.mod_label}" if self.mod_label else ""
+        return f"{self.game_dir}: {msg}; backup {BACKUP}: {self.backup}{label}"
 
 
 def _resolve_dir(game_dir: Optional[Path]) -> Path:
@@ -167,7 +169,7 @@ def get_status(game_dir: Path, info: dict) -> Status:
     else:
         state = "unknown"
     backup = "missing" if not bak.is_file() else ("valid" if sha256_file(bak) == info["original_sha256"] else "invalid")
-    return Status(game_dir, state, sha, backup)
+    return Status(game_dir, state, sha, backup, info.get("mod_label"))
 
 
 def _atomic_write(path: Path, data: bytes) -> None:

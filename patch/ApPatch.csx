@@ -8,6 +8,10 @@ using System.Text.RegularExpressions;
 using UndertaleModLib.Compiler;
 using UndertaleModLib.Models;
 
+// mod label ("Archipelago v<world_version> (<patch source id>)"), set by apply_patch.sh; never hand-edited
+string modLabel = Environment.GetEnvironmentVariable("DS_AP_MOD_LABEL") ?? "";
+if (!Regex.IsMatch(modLabel, @"^Archipelago v[0-9A-Za-z.\-]+ \([0-9a-f]{7}\)$"))
+    throw new Exception("DS_AP_MOD_LABEL missing or malformed (run patch/apply_patch.sh): '" + modLabel + "'");
 string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
@@ -21,7 +25,7 @@ group.AutoCreateAssets = true;
 group.ThrowOnNoOpFindReplace = true;
 
 foreach (string n in newScripts)
-    group.QueueReplace("gml_Script_" + n, File.ReadAllText(Path.Combine(gmlDir, n + ".gml")));
+    group.QueueReplace("gml_Script_" + n, File.ReadAllText(Path.Combine(gmlDir, n + ".gml")).Replace("@AP_MOD_LABEL@", modLabel));
 
 void Edit(string codeName, string pattern, string replacement, string what)
 {
@@ -86,6 +90,15 @@ Edit("gml_Script_interact", @"else if \(open == 90\)(\s*)\{(\s*)if \(argument0 =
      "else if (open == 90)$1{\nif (ap_chest)\n{\nap_chest_open();\nexit;\n}$2if (argument0 == 0 || other.monster)", "AP chest open");
 // spawn it in the pre-tower camp (village, dungeon 0.5) next to the bonfire, right after create_village(1)
 Edit("gml_Object_obj_dungeoncreator_Step_0", @"create_village\(1\);", "create_village(1);\nap_chest_spawn();", "AP chest spawn (camp)");
+
+// (l) mod label: small, faint text in the top-left corner of the title screen (nothing else is drawn there).
+// GMS1 has no font/align getters: colour+alpha are restored, align/font are left as this event normally ends
+// (fnt_large, centered); buttons set their own font/align.
+group.QueueAppend(Data.Code.ByName("gml_Object_obj_title_Draw_64"),
+    "var ap_c = draw_get_colour();\nvar ap_a = draw_get_alpha();\n" +
+    "draw_set_font(fnt_text);\ndraw_set_halign(fa_left);\ndraw_set_valign(fa_top);\ndraw_set_colour(c_white);\ndraw_set_alpha(0.45);\n" +
+    "draw_text(16, 12, \"" + modLabel + "\");\n" +
+    "draw_set_alpha(ap_a);\ndraw_set_colour(ap_c);\ndraw_set_halign(fa_center);\ndraw_set_valign(fa_middle);\ndraw_set_font(fnt_large);");
 
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");

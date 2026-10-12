@@ -10,6 +10,9 @@ from pathlib import Path
 
 import bsdiff4
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from mod_label import mod_label  # noqa: E402
+
 root = Path(__file__).resolve().parent.parent
 src = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "game-copy/data.win"
 dst = Path(sys.argv[2]) if len(sys.argv) > 2 else root / "game-copy/data_patched.win"
@@ -24,7 +27,10 @@ known = [l.strip() for l in known_path.read_text().splitlines() if l.strip()] if
 if hb not in known:
     known.append(hb)
     known_path.write_text("\n".join(known) + "\n")
-info = {"original_sha256": ha, "patched_sha256": hb, "known_patched_sha256": known}
+label = mod_label()
+if label.encode() not in b:
+    sys.exit(f"patched {dst} does not contain the mod label {label!r}: rebuild it with patch/apply_patch.sh")
+info = {"original_sha256": ha, "patched_sha256": hb, "known_patched_sha256": known, "mod_label": label}
 info_path, patch_path = out / "patch.json", out / "devilspire.bsdiff4"
 try:
     up_to_date = json.loads(info_path.read_text()) == info and patch_path.is_file()
@@ -37,4 +43,4 @@ if not up_to_date:
     out.mkdir(parents=True, exist_ok=True)
     patch_path.write_bytes(patch)
     info_path.write_text(json.dumps(info, indent=1) + "\n")
-print(f"patch {patch_path} ({patch_path.stat().st_size} bytes), {ha[:8]} -> {hb[:8]}")
+print(f"patch {patch_path} ({patch_path.stat().st_size} bytes), {ha[:8]} -> {hb[:8]}, {label}")

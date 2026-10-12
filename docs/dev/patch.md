@@ -7,6 +7,10 @@
   (runs `UndertaleModCli load data.win -s ApPatch.csx -o out.win -f </dev/null`; NixOS: `nix shell nixpkgs#undertalemodcli`).
 - `scripts/build_apworld.sh` makes `data/devilspire.bsdiff4` + `data/patch.json` (via `scripts/make_patch.py`) and zips `build/devilspire.apworld`.
   The patch files are git-ignored. Each new patched hash is added to `patch/KNOWN_PATCHED_SHA256`.
+- Mod label (top-left of the title screen, also sent as `S|<protocol>|<label>`): `Archipelago v<world_version> (<id>)`.
+  `<id>` = 7 hex of a sha256 over `ApPatch.csx`, `gml/*.gml` and `EXPECTED_ORIGINAL_SHA256` (`scripts/mod_label.py`).
+  `apply_patch.sh` passes it in `DS_AP_MOD_LABEL`; `make_patch.py` checks it is in the patched file and stores it in
+  `patch.json`. Same sources give the same label and the same patched file (no commit hash, so builds stay reproducible).
 - After a GML change: bump `PATCH_PROTOCOL` in `constants.py` and the `S|<n>` line in `ap_init.gml`.
 
 ## Install (`auto_patch.py`)
@@ -38,7 +42,7 @@ slot_id=<seed>:<team>:<slot>
 
 `ap_out.txt` (game -> client, append only):
 - `L|<location id>|<slot_id>` check. Boss: `base_id + (N-9)/10`. Floor -N: `base_id + 100 + N-1`.
-- `G|1|<slot_id>` goal. `D|<text>` death (DeathLink). `S|<protocol>|..` game started.
+- `G|1|<slot_id>` goal. `D|<text>` death (DeathLink). `S|<protocol>|<mod label>` game started (the client warns on a mismatch).
 - `N|..` new run, `X|..` info, `E|..` error.
 - The client rescans the whole file on every connect (the server ignores duplicates).
   Lines tagged with another `slot_id` are ignored. Old DeathLink lines are not re-sent.

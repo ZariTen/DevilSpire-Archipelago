@@ -204,6 +204,13 @@ try:
     game.quit(); game.start()
     check("warning clears after the patched game restarts (S|3)",
           wait_for(lambda: read(zc.log).count("patch protocol") == 1 and zc.checked() is not None))
+    game.emit("S|3|Archipelago v0.0.0 (0000000)")
+    check("other mod version in the running game is warned",
+          wait_for(lambda: "running game is Archipelago v0.0.0 (0000000)" in read(zc.log)))
+    check("/status shows both mod versions", wait_for(lambda: zc.status() and re.search(
+        r"mod version: this client Archipelago v\S+ \([0-9a-f]{7}\); running game Archipelago v0.0.0", read(zc.log))),
+        read(zc.log)[-400:])
+    game.quit(); game.start()
 
     # 5. switch to another multiworld while the game is still running
     srvB = start_server(mdB, portB, tmp / "serverB.log")

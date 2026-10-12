@@ -19,6 +19,7 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(fp.parse_out_line("D|Died on floor 12").text, "Died on floor 12")
         self.assertEqual(fp.parse_out_line("X|death caused by DeathLink").kind, "X")
         self.assertEqual(fp.parse_out_line("S|1|patch started").kind, "S")
+        self.assertEqual(fp.parse_out_line("S|3|Archipelago v0.1.0 (6d49c01)").text, "3|Archipelago v0.1.0 (6d49c01)")
 
     def test_garbage(self):
         for bad in ["", "   ", "L|", "L|abc", "L38470100", "G|0", "Z|1", "L|-5", "\x00\x00", "|"]:
