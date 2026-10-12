@@ -22,7 +22,7 @@ The script refuses to run on an already patched file. `patch/gml/*.gml` are the 
 - `obj_god_Step_1`: `ap_poll()` every step (does work every `poll_frames` steps; reads `ap_in.txt`, tracks the item list and DeathLink; **no longer grants items**).
 - `obj_chest_Create_0`: `ap_chest = 0;` + branch to `ap_chest_init()` when `global.ap_chest_spawn` is set (Archipelago chest, no vanilla loot roll/key).
 - `interact` (obj_chest case, opened state): `if (ap_chest) { ap_chest_open(); exit; }`.
-- `obj_dungeoncreator_Step_0` (end of normal floor generation): `ap_chest_spawn()`.
+- `obj_dungeoncreator_Step_0` (`dungeon == 0.5` branch, right after `create_village(1)`): `ap_chest_spawn()` (camp chest; no longer on floor -1).
 
 ## Files (all in the game's save dir; under Proton `.../compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire/`)
 Text, one record per line, fields separated by `|`.
@@ -71,7 +71,12 @@ Only Descent (internal `global.mode == 1`) is selectable and it is shown as **Ar
 - `mode_difficulty_floor` (HUD pause menu, char creation "Mode:", gameover, ending): "Descent" -> "Archipelago" (e.g. "Normal Archipelago 1x"). Mode description text on title: "Archipelago#Floors: 99...".
 - Not changed: ini/save names, `global.mode` checks, `unlockable()` (never reached), dead code strings like "< Descent >" remain in the string table but are unreachable. Runtime **UNTESTED**.
 
-## Starting chest (test version, 2026-10-11)
+## Starting chest (moved to the camp bonfire 2026-10-12; the floor -1 text below is superseded where it conflicts)
+- **Location**: the pre-tower camp = the "village" (`dungeon == 0.5`, `global.level == 0.5`), built by `create_village(1)` from `obj_dungeoncreator` Step. Layout (fixed): `obj_bonfire` (0,0) [the fireplace], player arrival (0,212), tower door `obj_entrance` (0,-149), merchant (0,-320). Descent flow: new character -> level 0.5 (camp) -> `next_floor` -> floor -1. (First-ever character does the tutorial level 0 first, which goes straight to -1 and skips the camp.) `create_darkroom` (0.4) is the orb-crystal room (Soul mode), not used.
+- `ap_chest_spawn()` runs right after `create_village(1)`: needs `global.mode == 1`, `global.level == 0.5`, `ap_granted >= 0` (not after death until a new character resets it). It creates the chest at the bonfire x/y plus the first free offset of a FIXED list (40,16), (-40,16), (40,-16), (-40,-16), (0,44), (56,0), ... checked with `place_free` and not on bonfire/entrance/tombstone/shade (strict pass also needs 10px free around; relaxed second pass). Expected spot: (40,16). Lid faces the arrival point. If none is free: no chest + `E|no free position...` in ap_out.txt. The chest is always present in the camp (even with nothing pending: "nothing new"); `ap_poll` re-arms it when items arrive.
+- Floors -1.. no longer get a chest (random spawn removed); items arriving mid-run wait until the next camp visit (after death + new character).
+
+### Older description (floor -1 version, superseded)
 - Items are no longer auto-granted. At the end of floor generation `ap_chest_spawn()` creates an `obj_chest` (marked `ap_chest=1`, arena-chest textures `tex_chest*3` so it looks different, placeholder loot = 1 gold object for the floating visual, never picked up) on a random free spot 26-38 px from the player's spawn (0,0), found with `place_free` (+ not on stairs/trap/player, + 10px margin on the strict pass; relaxed second pass). If no spot: no chest, `E|no free position...` in ap_out.txt.
 - Spawns on Descent floor -1 always, and on any later floor when received items are still pending (also after Continue). Not when `ap_granted == -1` (no active run, e.g. dead/legacy save).
 - Use it like a normal chest: interact once to open (lid animation), interact again -> `ap_chest_open()` grants ALL pending items (souls once only, traps only if received live), plays the treasure sound and shows `Archipelago: received N items` (+ per-item messages stay off). Chest then stays open and empty.

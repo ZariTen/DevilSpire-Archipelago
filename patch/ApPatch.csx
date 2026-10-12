@@ -79,9 +79,8 @@ group.QueuePrepend(Data.Code.ByName("gml_Object_obj_chest_Create_0"),
 // using an OPENED Archipelago chest grants the pending items instead of the (placeholder) item
 Edit("gml_Script_interact", @"else if \(open == 90\)(\s*)\{(\s*)if \(argument0 == 0 \|\| other\.monster\)",
      "else if (open == 90)$1{\nif (ap_chest)\n{\nap_chest_open();\nexit;\n}$2if (argument0 == 0 || other.monster)", "AP chest open");
-// spawn it at the end of normal floor generation
-Edit("gml_Object_obj_dungeoncreator_Step_0", @"if \(global\.murderer && !instance_exists\(obj_ending\)\)",
-     "ap_chest_spawn();\nif (global.murderer && !instance_exists(obj_ending))", "AP chest spawn");
+// spawn it in the pre-tower camp (village, dungeon 0.5) next to the bonfire, right after create_village(1)
+Edit("gml_Object_obj_dungeoncreator_Step_0", @"create_village\(1\);", "create_village(1);\nap_chest_spawn();", "AP chest spawn (camp)");
 
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");

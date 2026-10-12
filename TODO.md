@@ -160,6 +160,10 @@ devilspire/
 - [ ] Test in game: each grant effect, inventory clutter / encumbrance with equipment re-grants, grimoire-full handling, trap effects, stat/level interaction of re-granted orbs.
 - [ ] Decide equipment re-grant volume and tier levels; consider "sent item" popups with sender names.
 
+## Status 2026-10-12 (camp chest)
+- [x] Starting chest moved from random floor -1 spot to a fixed spot next to the bonfire (0,0) in the pre-tower camp (create_village, dungeon 0.5; offset (40,16) + fallbacks). Rebuilt, re-dumped, installed. **Runtime UNTESTED.**
+- [ ] Test: chest visible/reachable at bonfire (not inside decor), opens, re-arm; after death+new character; Continue from camp save; first-ever character (tutorial skips camp).
+
 ## Status 2026-10-11 (starting chest + souls once)
 - [x] Souls (Pouch) granted once per slot (`ap_souls_granted.txt`, reset on slot_id change written by the client). Auto grant removed; items granted when opening the Archipelago chest (spawned next to the spawn point of floor -1 / floors with pending items). `patch/make_test_ap_in.sh` for offline testing. Rebuilt from pristine, loads and re-dumps; installed. **Runtime UNTESTED.**
 - [ ] Test: chest position/collision, open+grant, re-arm for mid-run items, souls once across deaths, slot reset, trap behaviour, item messages.
