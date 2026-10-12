@@ -56,3 +56,10 @@ Depth-key floor gating, traps, "sent item" popups, bosses skipped when `global.k
 
 ## Launching a separate copy via a non-Steam shortcut
 Add a `steam_appid.txt` containing `1861290` next to `Devil Spire.exe`; without it the game exits immediately when started as a non-Steam shortcut (verified 2026-10-11). Force a Proton version in the shortcut's Compatibility settings.
+
+## Single game mode "Archipelago" (2026-10-11)
+Only Descent (internal `global.mode == 1`) is selectable and it is shown as **Archipelago**. Original modes: 0 Ascent, 1 Descent, 2 Chaos, 3 Arena, 4 Immortal, 5 Soul (+ difficulties Easy/Normal/Hard/Extreme/Nightmare, separate on the same screen).
+- `obj_setup_Alarm_0`: default `global.mode = 1`. `obj_title_Step_0`: forces `global.mode = 1` on the mode-select screen. The screen is kept (it also holds difficulty/speed; difficulty kept unchanged, Extreme/Nightmare still show their UNLOCK prices): `buttonize_title` shows one greyed, inert "Archipelago" button (action 0, `nulled`), so the other modes cannot be selected or bought.
+- Continue list only shows/considers `descent_character.ini` (other saves hidden, files untouched); labels "Archipelago (entrance|flr. N)".
+- `mode_difficulty_floor` (HUD pause menu, char creation "Mode:", gameover, ending): "Descent" -> "Archipelago" (e.g. "Normal Archipelago 1x"). Mode description text on title: "Archipelago#Floors: 99...".
+- Not changed: ini/save names, `global.mode` checks, `unlockable()` (never reached), dead code strings like "< Descent >" remain in the string table but are unreachable. Runtime **UNTESTED**.

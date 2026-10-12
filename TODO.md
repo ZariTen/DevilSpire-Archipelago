@@ -149,3 +149,7 @@ devilspire/
 - [x] Orbs: Red Orb was already applied directly by `ap_grant_item` (+3 random stat, now also with the game's >=40 stat achievements); Yellow Orb = gold item (the game's yellow orb also gives a gold item, gold is an inventory currency stack); Blue Orb = random Stone item (stones must be applied to equipment, so kept as inventory item; range fixed to all 24 stones, was 0-5). Patched data.win rebuilt from pristine, loads and re-dumps; installed to ~/Games/DevilSpire-AP (backup data_patched.win.bak). **Runtime UNTESTED.**
 - [x] Client: `worlds-src/devilspire/ds_client.py` + `file_protocol.py`, launcher component "Devil Spire Client", `client/DevilSpireClient.py`, README, 16 unit tests + local e2e (server + 2 clients + simulated ap_out, 15/15 pass). apworld slot_data already had death_link/floor_checks/base_id (test added; 46 tests pass). Verified against AP 0.6.8.
 - [ ] Try the client with the real game; Launcher "Build APWorlds" + load test of the apworld containing ds_client.
+
+## Status 2026-10-11 (single mode "Archipelago")
+- [x] Mode select reduced to one inert "Archipelago" button (= Descent, mode 1); other modes/saves hidden; "Descent" renamed in all player-visible text (HUD mode name, continue labels, mode description). Rebuilt from pristine and installed to ~/Games/DevilSpire-AP (backup data_patched.win.bak = previous build). **Runtime UNTESTED.**
+- [ ] Verify in game: title -> New Game -> Confirm goes to char creation with mode 1; Continue shows the Archipelago save; no way to reach other modes (gamepad too).

@@ -50,6 +50,28 @@ Edit("gml_Object_obj_player_Step_0", @"death = 1;(\s*)if \(global\.mode != 4\)",
 // (e) new run => re-apply all received items
 Edit("gml_Object_obj_charcreation_Alarm_0", @"save_game\(mode\);(\s*)audio_stop_all\(\);(\s*)room = rom_dungeon;",
      "ap_new_run(mode);\nsave_game(mode);$1audio_stop_all();$2room = rom_dungeon;", "new run hook");
+// ---- Single game mode: "Archipelago" (= internal Descent, global.mode == 1) ----
+// (f) mode starts as Descent; the title Step forces it every step on the mode-select screen
+Edit("gml_Object_obj_setup_Alarm_0", @"global\.mode = 0;", "global.mode = 1;", "default mode = Descent");
+Edit("gml_Object_obj_title_Step_0", @"menu_cursor\(0\);", "menu_cursor(0);\nif (screen == 1)\n{\n    global.mode = 1;\n}", "force mode 1 on mode select");
+// (g) mode button: fixed text, no arrows, inert (action 0 matches no case) and greyed out
+Edit("gml_Script_buttonize_title", @"else(\s*)\{(\s*)var modus;", "else$1{\nglobal.mode = 1;$2var modus;", "force mode in buttonize");
+Edit("gml_Script_buttonize_title", @"text = modus;(\s*)action = 1;(\s*)master = 36;(\s*)leftnright = 1;",
+     "text = \"Archipelago\";$1action = 0;$2master = 36;$3nulled = 1;", "single inert Archipelago mode button");
+// (h) Continue screen: only the Descent (Archipelago) save is listed
+Edit("gml_Script_buttonize_title", @"!file_exists\(""ascent_character\.ini""\) && !file_exists\(""descent_character\.ini""\) && !file_exists\(""chaos_character\.ini""\) && !file_exists\(""arena_character\.ini""\) && !file_exists\(""soul_character\.ini""\) && !file_exists\(""immortal_character\.ini""\)",
+     "!file_exists(\"descent_character.ini\")", "Continue only checks Descent save");
+Edit("gml_Script_buttonize_title", @"var as = file_exists\(""ascent_character\.ini""\);", "var as = 0;", "hide ascent save");
+Edit("gml_Script_buttonize_title", @"var ch = file_exists\(""chaos_character\.ini""\);", "var ch = 0;", "hide chaos save");
+Edit("gml_Script_buttonize_title", @"var ar = file_exists\(""arena_character\.ini""\);", "var ar = 0;", "hide arena save");
+Edit("gml_Script_buttonize_title", @"var so = file_exists\(""soul_character\.ini""\);", "var so = 0;", "hide soul save");
+Edit("gml_Script_buttonize_title", @"var im = file_exists\(""immortal_character\.ini""\);", "var im = 0;", "hide immortal save");
+// (i) player-visible renames Descent -> Archipelago
+Edit("gml_Script_buttonize_title", @"""Descent \(entrance\)""", "\"Archipelago (entrance)\"", "rename continue label");
+Edit("gml_Script_buttonize_title", @"""Descent \(flr\. """, "\"Archipelago (flr. \"", "rename continue label 2");
+Edit("gml_Script_mode_difficulty_floor", @"modus = ""Descent"";", "modus = \"Archipelago\";", "HUD/gameover/ending mode name");
+Edit("gml_Object_obj_title_Draw_64", @"""Climb Down#Floors: 99#Dungeons: 10#Ending T""", "\"Archipelago#Floors: 99#Dungeons: 10#Ending T\"", "mode description");
+
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");
 
