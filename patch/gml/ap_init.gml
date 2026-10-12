@@ -84,4 +84,4 @@ if (cfgslot != "" && gslot != "" && gslot != cfgslot)
     ap_emit("X|slot changed, run inactive");
 }
 ap_save_granted();
-ap_emit("S|1|patch started");
+ap_emit("S|3|patch started"); // S|<patch protocol version>: the client warns when it does not match

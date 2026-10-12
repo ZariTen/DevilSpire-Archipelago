@@ -55,7 +55,8 @@ class FakeGame:
         if cfg and gslot and gslot != cfg:
             self.granted = -1
         self.save_granted()
-        self.emit("S|1|patch started")
+        self.dl_init, self.dl_seq, self.room, self.level, self.alive, self.deaths = False, 0, "title", 0, True, []
+        self.emit("S|3|patch started")
 
     def quit(self):
         self.running = False
@@ -74,12 +75,28 @@ class FakeGame:
         if self.stale:
             return
         txt = self._read("ap_in.txt") or ""
+        maxd = 0
         for line in txt.split("\n"):
             if line.startswith("I|") and line.count("|") >= 4:
                 f = line.split("|")
                 if _digits(f[1]) and _digits(f[2]) and int(f[1]) == self.n:
                     self.items.append(int(f[2]))
                     self.n += 1
+            elif line.startswith("D|"):
+                f = line.split("|")
+                if _digits(f[1]):
+                    maxd = max(maxd, int(_digits(f[1])))
+        if not self.dl_init:
+            self.dl_init, self.dl_seq = True, maxd
+        elif maxd > self.dl_seq:
+            self.dl_seq = maxd
+            in_run = self.room == "dungeon" and self.level < 0 and self.granted >= 0 and self.alive
+            if in_run:
+                self.alive = False
+                self.deaths.append(maxd)
+                self.die()
+            else:
+                self.emit("X|deathlink ignored (no active run)")
 
     def new_run(self):
         self.granted, self.char_items = 0, []
@@ -90,7 +107,7 @@ class FakeGame:
         if self.stale or self.granted < 0:
             return 0
         cnt = 0
-        while self.granted < self.n:
+        while self.granted < self.n and cnt < 100:   # batch limit as in ap_grant_pending.gml
             self.char_items.append(self.items[self.granted])
             self.granted += 1
             cnt += 1
@@ -100,6 +117,9 @@ class FakeGame:
 
     def check(self, loc):
         self.emit(f"L|{loc}")
+
+    def goto(self, room, level):
+        self.room, self.level = room, level
 
     def die(self):
         self.granted = -1

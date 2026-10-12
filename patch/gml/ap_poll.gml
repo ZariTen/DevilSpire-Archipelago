@@ -26,12 +26,21 @@ if (!global.ap_stale && file_exists("ap_in.txt"))
             if (kind == "I")
             {
                 var si = string_digits(ap_field(line, 1));
-                var sid = string_digits(ap_field(line, 2));
-                // ignore truncated lines: a complete item line has 5 fields (I|idx|id|name|sender)
-                if (string_length(si) > 0 && string_length(sid) > 0 && string_count("|", line) >= 4)
+                var idx = -1;
+                if (string_length(si) > 0)
                 {
-                    var idx = real(si);
-                    if (idx >= global.ap_n && idx == global.ap_n)
+                    idx = real(si);
+                }
+                // only the next new index is parsed further (cheap with hundreds of items); a complete item line
+                // has 5 fields (I|idx|id|name|sender), truncated lines are ignored
+                var sid = "";
+                if (idx == global.ap_n && string_count("|", line) >= 4)
+                {
+                    sid = string_digits(ap_field(line, 2));
+                }
+                if (string_length(sid) > 0)
+                {
+                    if (idx == global.ap_n)
                     {
                         global.ap_item_id[idx] = real(sid);
                         global.ap_item_name[idx] = ap_field(line, 3);
@@ -71,10 +80,27 @@ if (!global.ap_stale && file_exists("ap_in.txt"))
         else if (maxd > global.ap_dl_seq)
         {
             global.ap_dl_seq = maxd;
-            if (global.ap_deathlink)
+            // only kill during an active run inside the tower; never queued (title, character creation, camp,
+            // tutorial, dead or no run => ignored)
+            var inrun = 0;
+            if (global.mode == 1 && room == rom_dungeon && global.level < 0 && global.ap_granted >= 0 && !global.ap_stale)
+            {
+                if (instance_exists(obj_player))
+                {
+                    if (obj_player.hp > 0 && obj_player.death == 0)
+                    {
+                        inrun = 1;
+                    }
+                }
+            }
+            if (global.ap_deathlink && inrun)
             {
                 global.ap_dl_pending = 1;
                 global.ap_dl_text = dtext;
+            }
+            else if (global.ap_deathlink)
+            {
+                ap_emit("X|deathlink ignored (no active run)");
             }
         }
     }

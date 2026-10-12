@@ -163,6 +163,16 @@ class IdentityTests(unittest.TestCase):
         (d / "ap_souls_granted.txt").write_text("3\nseed:0:1\n")  # tagged: real state, keep
         self.assertFalse(fp.repair_souls_file(d))
 
+    def test_stable_item_order(self):
+        a, b, c, s = (1, 10, 2), (2, 11, 2), (3, 12, 3), (4, -2, 1)
+        o = fp.stable_item_order([], [a, b, s, s])
+        self.assertEqual(o, [list(a), list(b), list(s), list(s)])
+        # server lost b (crash before autosave), then it comes back after c: indexes of a, b, s stay
+        o = fp.stable_item_order(o, [a, s, s, c])
+        o = fp.stable_item_order(o, [a, s, s, c, b])
+        self.assertEqual(o, [list(a), list(b), list(s), list(s), list(c)])
+        self.assertEqual(fp.stable_item_order(o, [s, s, s]), o + [list(s)])  # third starting item
+
     def test_slot_id(self):
         self.assertEqual(fp.make_slot_id("123", 0, 2), "123:0:2")
         self.assertEqual(fp.make_slot_id("a|b", 0, 1), "a/b:0:1")

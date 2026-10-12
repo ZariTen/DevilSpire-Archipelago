@@ -103,6 +103,20 @@ class InPlaceTests(unittest.TestCase):
             ap.restore(self.game, self.info, **QUIET)
         self.assertEqual((self.game / ap.BACKUP).read_bytes(), b"corrupt")
 
+    def test_restore_refuses_after_game_update(self):
+        self.patch_()
+        (self.game / "data.win").write_bytes(b"new game version from steam")
+        with self.assertRaisesRegex(ap.PatchError, "game update"):
+            ap.restore(self.game, self.info, **QUIET)
+        self.assertEqual((self.game / "data.win").read_bytes(), b"new game version from steam")
+        with self.assertRaisesRegex(ap.PatchError, "updated apworld"):
+            self.patch_()
+
+    def test_accented_game_dir(self):
+        game = make_game(Path(self.t.name) / "Jogos Ção" / "Devil Spire")
+        self.assertEqual(ap.auto_patch(game, self.patch, self.info, **QUIET).state, "patched")
+        self.assertEqual(ap.restore(game, self.info, **QUIET).state, "original")
+
     def test_never_overwrites_bad_backup(self):
         (self.game / ap.BACKUP).write_bytes(b"someone's file")
         self.patch_()

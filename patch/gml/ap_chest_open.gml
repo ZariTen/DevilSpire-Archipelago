@@ -40,7 +40,15 @@ with (instance_create(0, 0, obj_message))
         text = "Archipelago: received " + string(global.ap_cnt) + " items";
     }
 }
-if (!done)
+if (done && global.ap_granted < global.ap_n)
+{
+    done = 0; // batch limit reached: keep the chest filled
+    with (instance_create(0, 0, obj_message))
+    {
+        text = "Archipelago: more items waiting, open again";
+    }
+}
+else if (!done)
 {
     with (instance_create(0, 0, obj_message))
     {

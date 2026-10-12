@@ -8,8 +8,10 @@ if (global.ap_granted < 0)
 }
 var ok = 1;
 var changed = 0;
-while (global.ap_granted < global.ap_n)
+var budget = 100; // at most 100 items per chest open (no frame freeze / message flood with huge bursts)
+while (global.ap_granted < global.ap_n && budget > 0)
 {
+    budget -= 1;
     global.ap_cur = global.ap_granted;
     if (ap_grant_item(global.ap_item_id[global.ap_granted]))
     {

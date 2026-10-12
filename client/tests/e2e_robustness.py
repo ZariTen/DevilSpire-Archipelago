@@ -104,6 +104,16 @@ class Client:
         self.p.wait()
 
 
+def open_all(g):
+    """open the chest until nothing more comes (the game grants at most 100 items per open)"""
+    total = 0
+    while True:
+        c = g.open_chest()
+        if not c:
+            return total
+        total += c
+
+
 try:
     mdA = generate("A", ["Zari", "Buddy"])
     mdB = generate("B", ["Zari"])
@@ -138,10 +148,16 @@ try:
         f.writelines(f"L|{BASE + i}\n" for i in list(range(10)) + list(range(100, 200)))
     n_items = wait_for(lambda: len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]) > 5
                        and len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]))
-    time.sleep(2)
-    n_items = len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")])
+    def n_in():
+        return len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")])
+    last, stable_since = -1, time.time()
+    while time.time() - stable_since < 4:   # wait until the item list stopped growing
+        if n_in() != last:
+            last, stable_since = n_in(), time.time()
+        time.sleep(0.3)
+    n_items = n_in()
     game.poll()
-    got = game.open_chest()
+    got = open_all(game)
     check("items received and granted once", got == n_items and game.char_items == game.items, (got, n_items))
 
     # 2. client closed, checks made offline, client restarted
@@ -152,7 +168,9 @@ try:
     check("offline checks while the client was closed are sent after restart", wait_for(lambda: zc.checked() == 4),
           zc.status())
     game.poll()
-    check("client restart (full ap_in rewrite) grants nothing again", game.open_chest() == 0)
+    open_all(game)  # items of the checks just sent may be new; nothing may come twice
+    check("client restart (full ap_in rewrite) grants nothing twice",
+          game.char_items == game.items and len(game.items) == game.n, (len(game.char_items), game.n))
 
     # 3. server restart while client and game run
     srvA.kill(); srvA.wait()
@@ -163,10 +181,29 @@ try:
           zc.status())
 
     # 4. game restart (Continue) and new run
+    snap_items = list(game.items)
     game.quit(); game.start(); game.poll()
-    check("game restart mid-run: nothing re-granted", game.open_chest() == 0 and game.granted == n_items)
+    check("ap_in indexes stable across server crash/restart and reconnects", game.items[:len(snap_items)] == snap_items)
+    open_all(game)
+    check("game restart mid-run: nothing re-granted", game.char_items == game.items and game.granted == game.n,
+          (len(game.char_items), game.n, game.granted, game.char_items == game.items))
     game.die(); game.new_run(); game.poll()
-    check("new run re-grants every item exactly once", game.open_chest() == n_items and game.char_items == game.items)
+    check("new run re-grants every item exactly once", open_all(game) == game.n and game.char_items == game.items)
+
+    # 4b. goal reached while the client is closed -> sent on restart; old patch protocol warned
+    zc.kill()
+    game.emit("G|1")
+    with open(zd / "ap_out.txt", "a") as f:
+        f.write("S|1|patch started\n")
+    zc = Client("Zari", zd, portA, tmp / "zari2b.log")
+    check("goal made offline is sent after restart",
+          wait_for(lambda: re.search(r"server-checked: \d+; goal: True", read(zc.log)) if zc.status() else None),
+          read(zc.log)[-300:])
+    check("server registered the goal", wait_for(lambda: "goal" in read(tmp / "serverA.log").lower()))
+    check("old patch protocol in ap_out is warned", wait_for(lambda: "patch protocol 1" in read(zc.log)))
+    game.quit(); game.start()
+    check("warning clears after the patched game restarts (S|3)",
+          wait_for(lambda: read(zc.log).count("patch protocol") == 1 and zc.checked() is not None))
 
     # 5. switch to another multiworld while the game is still running
     srvB = start_server(mdB, portB, tmp / "serverB.log")
@@ -188,10 +225,10 @@ try:
     check("stale game emits no checks; seed A tagged line is not sent to B", zc.checked() == 0, zc.status())
     game.quit(); game.start(); game.poll()
     check("after restart the old run is inactive (no items from B into A's run)",
-          game.granted == -1 and game.open_chest() == 0)
+          game.granted == -1 and open_all(game) == 0)
     game.new_run(); game.poll()
     nb = len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")])
-    check("new run on seed B gets B's items", game.open_chest() == nb)
+    check("new run on seed B gets B's items", open_all(game) == nb)
     game.check(BASE + 100)
     check("seed B checks are sent", wait_for(lambda: zc.checked() == 1), zc.status())
 

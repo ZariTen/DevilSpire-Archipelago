@@ -199,7 +199,9 @@ def auto_patch(game_dir: Optional[Path] = None, patch: Optional[bytes] = None, i
         raise PatchError(f"no data.win in {game_dir}")
     if st.state == "unknown":
         raise PatchError(f"unsupported data.win (sha256 {st.data_sha}, expected {info['original_sha256']}). "
-                         f"Nothing was changed. {STEAM_VERIFY_HINT} Other game versions are not supported.")
+                         "Nothing was changed. If Devil Spire was just updated on Steam, this apworld does not support "
+                         "the new version yet: wait for an updated apworld (your normal game works as usual). "
+                         f"Otherwise: {STEAM_VERIFY_HINT} Other game versions/stores are not supported.")
     if st.state == "patched" and not force:
         log("Already patched with this version. Nothing to do (use /auto_patch force to re-patch from the backup).")
         return st
@@ -248,6 +250,12 @@ def restore(game_dir: Optional[Path] = None, info: Optional[dict] = None,
             bak.unlink()
         (game_dir / MARKER_FILE).unlink(missing_ok=True)
         return get_status(game_dir, info)
+    if st.state in ("unknown", "missing"):
+        # neither original nor one of our builds: most likely a game update replaced data.win; putting the old
+        # backup back would downgrade/break the game
+        raise PatchError(f"cannot restore: data.win is not a file this apworld made (sha256 {st.data_sha}); "
+                         f"probably a game update. Nothing was changed. {STEAM_VERIFY_HINT} "
+                         f"You can then delete {BACKUP} and {MARKER_FILE}.")
     if st.backup != "valid":
         raise PatchError(f"cannot restore: backup {BACKUP} is {st.backup}. {STEAM_VERIFY_HINT}")
     _atomic_write(win, bak.read_bytes())

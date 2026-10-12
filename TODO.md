@@ -37,6 +37,8 @@ The patched game runs (real Steam install under Proton): boot, Archipelago mode 
 - [ ] First-ever character (tutorial skips the camp): how does the player get the chest?
 - [ ] Client with the real game: save-folder detection, reconnect, items not duplicated on reload / Continue.
 - [ ] Client robustness in-game: client started after the game (config picked up live), seed switch while running (stale message, backup), chest save at camp then quit + Continue.
+- [ ] Edge cases in-game: DeathLink at title/camp ignored; 100-item chest batches; health warnings (unpatched game, Steam update) with the real install; non-ASCII Windows user name.
+- [x] Edge cases (sim/unit): unpatched/outdated data.win + protocol warnings, unpatched-game activity, Steam Cloud notice, /restore refuses after a game update, new character re-grants once, 500-item burst in batches, DeathLink without run ignored, offline goal resent, stable item indexes across server crash, UTF-8 paths.
 - [x] Client robustness (sim): offline checks, client/server restarts, item doubling, seed switch: `client/tests/e2e_robustness.py` + FakeGame.
 
 ## After a full run

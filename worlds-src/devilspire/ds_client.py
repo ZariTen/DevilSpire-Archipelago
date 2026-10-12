@@ -15,11 +15,13 @@ from pathlib import Path
 try:  # inside the apworld package
     from . import auto_patch as ap_patch
     from . import file_protocol as fp
-    from .constants import GAME_NAME
+    from . import health
+    from .constants import GAME_NAME, PATCH_PROTOCOL
 except ImportError:  # run standalone (client/DevilSpireClient.py puts this dir on sys.path)
     import auto_patch as ap_patch  # type: ignore
     import file_protocol as fp  # type: ignore
-    from constants import GAME_NAME  # type: ignore
+    import health  # type: ignore
+    from constants import GAME_NAME, PATCH_PROTOCOL  # type: ignore
 
 import Utils
 from CommonClient import ClientCommandProcessor, CommonContext, get_base_parser, gui_enabled, handle_url_arg, \
@@ -27,6 +29,22 @@ from CommonClient import ClientCommandProcessor, CommonContext, get_base_parser,
 from NetUtils import ClientStatus
 
 POLL_SECONDS = 0.5
+HEALTH_SECONDS = 10.0
+
+
+def remembered_game_dir() -> typing.Optional[Path]:
+    try:
+        d = Utils.persistent_load().get("devilspire", {}).get("game_dir")
+        return Path(d) if d and Path(d).is_dir() else None
+    except Exception:
+        return None
+
+
+def remember_game_dir(d: Path) -> None:
+    try:
+        Utils.persistent_store("devilspire", "game_dir", str(d))
+    except Exception:
+        pass
 
 
 class DevilSpireCommandProcessor(ClientCommandProcessor):
@@ -34,6 +52,8 @@ class DevilSpireCommandProcessor(ClientCommandProcessor):
         src = Path(" ".join(args)).expanduser() if args else None
         try:
             st = fn(src, log=logger.info, **kw) if fn is not ap_patch.patch_status else fn(src)
+            remember_game_dir(st.game_dir)
+            self.ctx.next_health = 0.0  # re-check now
         except ap_patch.PatchError as e:
             logger.error(str(e))
             return False
@@ -97,6 +117,12 @@ class DevilSpireContext(CommonContext):
         self.session_ready = False               # Connected processed, catch-up read done
         self.items_synced = False                # got ReceivedItems since the last Connected (else ap_in is stale)
         self.slot_id: typing.Optional[str] = None
+        self.item_order: list = []                        # stable (item, location, player) order of ap_in.txt
+        self.game_protocol: typing.Optional[int] = None   # from the newest S|<n> line
+        self.health = health.HealthMonitor(logger.warning)
+        self.datawin = health.DataWinCheck(self._patch_status)
+        self.orig_watch = health.OriginalSaveWatch()
+        self.next_health = 0.0
         self._warned_dir = False
         self.set_save_dir(fp.find_save_dir(save_dir))
 
@@ -165,8 +191,10 @@ class DevilSpireContext(CommonContext):
         elif not old:
             if fp.repair_souls_file(self.save_dir):
                 logger.info("Reset ap_souls_granted.txt (no items were received before the first connection).")
+        state = fp.load_state(self.save_dir) if old == identity else {}
+        self.item_order = state.get("items", []) if old == identity else []
         if old != identity:
-            fp.store_state(self.save_dir, {"identity": identity})
+            fp.store_state(self.save_dir, {"identity": identity, "items": self.item_order})
         self.write_config()
         # catch-up: rescan the WHOLE ap_out.txt on every (re)connect, so checks made while the client was closed or
         # disconnected are sent (the server ignores duplicates). DeathLink lines are historic here: not re-sent.
@@ -177,6 +205,22 @@ class DevilSpireContext(CommonContext):
         if self.items_synced:
             self.refresh_items(force=True)
         asyncio.create_task(self.flush_locations())
+
+    @staticmethod
+    def _patch_status(game_dir: Path):
+        try:
+            return ap_patch.patch_status(game_dir)
+        except Exception as e:
+            logger.debug(f"patch status failed: {e!r}")
+            return None
+
+    def run_health_checks(self) -> None:
+        """Blocking (hashes data.win only when it changed); run in a thread."""
+        game_dir = remembered_game_dir() or ap_patch.find_game_dir()
+        self.health.report("datawin", self.datawin.check(game_dir))
+        self.health.report("protocol", health.protocol_warning(self.game_protocol, PATCH_PROTOCOL))
+        self.health.report("unpatched", self.orig_watch.check(self.save_dir))
+        self.health.report("cloud", health.cloud_warning(self.save_dir))
 
     def write_config(self) -> None:
         try:
@@ -196,14 +240,25 @@ class DevilSpireContext(CommonContext):
         # never write a list that is not the server's current full list for THIS slot (e.g. right after Connected)
         if self.in_writer is None or self.slot is None or not self.items_synced or not self.session_ready:
             return
-        items = []
-        for it in self.items_received:
+        order = fp.stable_item_order(self.item_order, [(it.item, it.location, it.player) for it in self.items_received])
+        if order != self.item_order:
+            self.item_order = order
             try:
-                name = self.item_names.lookup_in_game(it.item, self.game)
+                st = fp.load_state(self.save_dir)
+                st["items"] = order
+                fp.store_state(self.save_dir, st)
+            except OSError as e:
+                logger.error(f"Could not store item order: {e!r}")
+        if len(self.item_order) > len(self.items_received):
+            logger.debug("server list has fewer items than already delivered; keeping indexes stable")
+        items = []
+        for item, _loc, player in self.item_order:
+            try:
+                name = self.item_names.lookup_in_game(item, self.game)
             except Exception:
-                name = f"Item {it.item}"
-            sender = self.player_names.get(it.player, f"Player {it.player}")
-            items.append((it.item, name, sender))
+                name = f"Item {item}"
+            sender = self.player_names.get(player, f"Player {player}")
+            items.append((item, name, sender))
         self.in_writer.items = items
         self.write_in(force)
 
@@ -229,6 +284,11 @@ class DevilSpireContext(CommonContext):
         elif ev.kind == "D":
             if not replay and self.death_link and self.connected_to_slot():
                 asyncio.create_task(self.send_death(f"{self.auth} {ev.text}".strip()))
+        elif ev.kind == "S":
+            v = ev.text.split("|", 1)[0].strip()
+            self.game_protocol = int(v) if v.isdigit() else None
+            if not replay:
+                self.next_health = 0.0
         elif ev.kind == "E":
             logger.warning(f"[game] {ev.text}")
 
@@ -265,6 +325,10 @@ class DevilSpireContext(CommonContext):
                     await self.flush_locations()
                     self.write_config()   # no-op unless missing/changed (e.g. a failed write on Windows)
                     self.write_in()       # no-op unless the last write failed or content changed
+                now = asyncio.get_running_loop().time()
+                if now >= self.next_health:
+                    self.next_health = now + HEALTH_SECONDS
+                    await asyncio.to_thread(self.run_health_checks)
             except Exception:
                 logger.exception("file watcher error")
             await asyncio.sleep(POLL_SECONDS)

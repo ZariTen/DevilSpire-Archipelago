@@ -33,6 +33,16 @@ The patched game uses its **own** save folder `Devil_Spire_AP` (the normal game 
 - Linux with Proton: `<Steam library>/steamapps/compatdata/1861290/pfx/drive_c/users/steamuser/AppData/Roaming/Devil_Spire_AP`.
 The Archipelago files (`ap_in.txt`, `ap_out.txt`, `ap_config.ini`, ...) live in the same folder. The client finds it automatically (all Steam libraries); `/savedir` shows or overrides it.
 
+### Starting over within the same multiworld
+If you die, delete your character, or simply start a **New Game**, every item you received so far is granted again (once) at the camp chest. Checks you already found stay found. Large batches are handed out 100 items per chest opening ("more items waiting, open again").
+
+### Warnings the client may show
+- "data.win ... is NOT patched / older patch / unknown version": run `/auto_patch` (an unknown version usually means a game update: wait for an updated apworld).
+- "The UNPATCHED Devil Spire is being played": the normal game is running (it saves to `Devil_Spire`). Close it, `/auto_patch`, start again.
+- "patch protocol ...": the running game has an older patch; close it, `/auto_patch`, start again.
+- "Steam Cloud manages ...": fine, but do not play the same seed on two PCs at once.
+DeathLink only kills you during a run inside the tower; deaths that arrive on the title screen, in character creation or at the camp are ignored (not saved for later).
+
 ### Playing another multiworld
 When you connect to a different multiworld (or slot), the client moves your Archipelago character and files to `Devil_Spire_AP/ap_backup/<date>_<old slot>/` (nothing is deleted) and starts clean: choose **New Game**. If the game was running at that moment it shows "different multiworld connected": quit and restart it. Reconnecting to the same multiworld never resets anything.
 
@@ -49,6 +59,8 @@ Steam may replace the patched `data.win` when you verify files or when the game 
 - **"already patched but data.win.orig is missing/invalid":** the backup is gone, so it cannot re-patch or restore. Verify files in Steam (restores the original), then run `/auto_patch` again.
 - **"Devil Spire not found in any Steam library":** pass the game folder: `/auto_patch <folder>`.
 - **Permission / file errors:** close the game first. Make sure the game folder is writable (Windows: Steam in `Program Files` may need the client run as administrator).
+- **`/restore` says "probably a game update":** Steam replaced `data.win` with a new version; nothing was changed. Use *Verify integrity of game files*, then delete `data.win.orig` and `ap_patch_info.json`.
+- **Non-ASCII user name (e.g. `C:\Users\José`):** the client handles it; whether this old GameMaker version can write its save folder there is untested. If your normal Devil Spire saves work, the Archipelago files should too (same mechanism).
 - **Game does not start after patching:** `/restore` (or verify files in Steam), check that the game starts, then `/auto_patch` again. If it only fails when patched, report it with your Windows/Proton version.
 - **Client can't find the save folder:** start the game once (and create a character) so the folder exists, then use `/savedir` in the client to see what it uses. To force a path: `/savedir C:\Users\You\AppData\Roaming\Devil_Spire_AP` (any path works), or start the client with `--savedir PATH`, or set the environment variable `DEVILSPIRE_SAVE_DIR`. On Linux look for the folder with `find ~ -type d -name Devil_Spire_AP 2>/dev/null`.
 - **Items don't arrive:** is the client connected? open the camp chest (twice); check `/apstatus`.

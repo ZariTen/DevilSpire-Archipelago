@@ -10,6 +10,10 @@ Client commands (`worlds-src/devilspire/auto_patch.py`), game folder found in St
 - `/patch_status [dir]`.
 Changing the patch (ApPatch.csx / GML): rebuild `game-copy/data_patched.win` with `apply_patch.sh`, then `scripts/build_apworld.sh`.
 
+## Client health checks (every 10 s, `health.py`)
+data.win of the Steam install (game dir remembered from `/auto_patch` via Archipelago's persistent store, else found in Steam libraries; re-hashed only when mtime/size change) is not the current build; the newest `S|<protocol>` line differs from `PATCH_PROTOCOL`; files in the original `Devil_Spire` folder change while the client runs (= unpatched game played); `steam_autocloud.vdf` in `Devil_Spire_AP`. Each warning is logged once per change.
+Non-ASCII save paths: client side tested (accented/CJK dirs). GMS1's runner uses the same relative-file mechanism for the game's own saves, so if vanilla saves work, AP files work; GMS1 itself with non-ASCII `%APPDATA%` is untested here.
+
 ## Separate save folder
 GEN8 has `UseAppDataSaveLocation`, so the GMS1 runner saves to `%APPDATA%\<GEN8 Name>` (FileName "Devil Spire", Name "Devil_Spire", DisplayName "Devil Spire"; the folder matches **Name**). ApPatch.csx sets Name to `Devil_Spire_AP`, so the patched game never touches the normal `Devil_Spire` saves. Runtime **UNTESTED** (confirmed in the patched data.win's GEN8 only).
 STATUS: patch builds and the result loads/re-dumps in UndertaleModCli; **runtime behavior is UNTESTED** (game not run yet).
@@ -53,18 +57,19 @@ Client mapping from slot_data `floor_checks`: 0->1, 1->5, 2->10, 3->0.
 - `L|<location id>|<slot_id>` boss cleared (`base_id + (N-9)/10`, floors -9..-99) or floor reached (`base_id + 100 + N-1`)
 - `G|1|<slot_id>` goal: Rhamdon defeated (L/G carry the slot id the game belonged to; empty before the first connection)
 - `D|<cause>` player died (only when death_link=1 and the death was not caused by an incoming DeathLink)
-- `X|<text>` informational (death caused by DeathLink); `N|1|..` new Descent run started; `S|1|..` patch started; `E|..` error
+- `X|<text>` informational (death caused by DeathLink, DeathLink ignored without active run, slot adopted/changed); `N|1|..` new Descent run started; `S|<protocol>|..` patch started (protocol 3 = this build; the client warns on mismatch, `PATCH_PROTOCOL` in constants.py); `E|..` error
 The client rescans the WHOLE file on every (re)connect (the server ignores duplicate checks), so checks made while the client was closed or disconnected are never lost; while connected it tails by byte offset (reset when the file shrinks or is replaced). DeathLink lines found in a rescan are historic and not re-sent. L/G lines tagged with another slot id are ignored. The client may move the file away (seed switch).
 
 ### `ap_in.txt` (client -> game; client rewrites the WHOLE file atomically: write tmp, rename)
 - `I|<index>|<item id>|<item name>|<sender>`  full received-items list, indexes 0,1,2,... contiguous, in AP order. Game stores them by index and ignores indexes it already has.
-- `D|<seq>|<text>`  DeathLink events; `seq` strictly increasing. On the first poll after start the game adopts the max seq (old events are not replayed); a higher seq later kills the player (when alive in the dungeon, Descent only).
+- `D|<seq>|<text>`  DeathLink events; `seq` strictly increasing. On the first poll after start the game adopts the max seq (old events are not replayed); a higher seq kills the player only during an active run inside the tower (Descent, `rom_dungeon`, level < 0, `ap_granted >= 0`, alive); otherwise it is ignored, never queued (`X|deathlink ignored`).
+- Indexes are stable: the client keeps the (item, location, player) order in `ap_client_state.json` and only appends, so a server that lost items (crash before autosave) and re-sends them in another order cannot shift indexes.
 
 ### `ap_souls_granted.txt` (game-private)
 Line 1: highest received-item index whose **Pouch of Souls** was already granted (-1 = none); line 2: `slot_id`. Souls live in the vault (persist across deaths), so each Pouch (by received index) is granted only ONCE; re-applying the list on a new run skips it silently. Reset: automatically when `ap_config.ini` has a `slot_id` that differs from line 2, and by the client on a seed switch (file moved to the backup). Builds before 37b2dda4 parsed "-1" as 1; the client resets an untagged file to -1 on the first connection. Gold, orbs, etc. keep re-granting each run.
 
 ### `ap_granted.txt` (game-private)
-Line 1: number of received items already granted to the CURRENT run (line 2: slot id of that run; a different configured slot at start => -1); `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items become pending again. They are applied ONLY when the player opens the Archipelago chest (below), in index order. Ungrantable items (inventory/grimoire full) stop the batch (message "open again"); retried on 5 chest opens, then skipped (`E|skipped...`). After granting in the camp the chest also calls `save_souls(); save_game(mode)`, so quitting at the camp and choosing Continue neither loses nor re-grants items (the game itself only saves on floor change). Game restart mid-run: `ap_granted` persists, `ap_in` indexes are re-read from 0, only indexes >= ap_granted are pending.
+Line 1: number of received items already granted to the CURRENT run (line 2: slot id of that run; a different configured slot at start => -1); `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items become pending again. They are applied ONLY when the player opens the Archipelago chest (below), in index order. At most 100 items are granted per chest open ("more items waiting, open again"). Ungrantable items (inventory/grimoire full) stop the batch (message "open again"); retried on 5 chest opens, then skipped (`E|skipped...`). After granting in the camp the chest also calls `save_souls(); save_game(mode)`, so quitting at the camp and choosing Continue neither loses nor re-grants items (the game itself only saves on floor change). Game restart mid-run: `ap_granted` persists, `ap_in` indexes are re-read from 0, only indexes >= ap_granted are pending.
 
 ### Multiworld identity
 `slot_id` = `<seed name>:<team>:<slot>` (client: `make_slot_id`), stored in `ap_client_state.json` (client) and `ap_config.ini`, `ap_granted.txt`, `ap_souls_granted.txt` (game).

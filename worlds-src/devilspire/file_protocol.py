@@ -302,6 +302,23 @@ def load_state(save_dir: Path) -> dict:
         return {}
 
 
+def stable_item_order(known: Sequence[Sequence[int]], received: Iterable[Sequence[int]]) -> list[list[int]]:
+    """Keep ap_in.txt indexes stable: the game stores items BY INDEX and remembers how many it granted, so an index
+    must never change meaning. `known` = previous order of (item, location, player) keys, `received` = the server's
+    current list. Known keys keep their index (also if the server temporarily lost them, e.g. after a crash before
+    its autosave: they were already granted), new keys are appended in server order. Multiset-aware."""
+    from collections import Counter
+    order = [list(k) for k in known]
+    have = Counter(tuple(k) for k in order)
+    for k in received:
+        t = tuple(int(x) for x in k)
+        if have[t] > 0:
+            have[t] -= 1
+        else:
+            order.append(list(t))
+    return order
+
+
 def store_state(save_dir: Path, state: dict) -> None:
     import json
     atomic_write_text(Path(save_dir) / STATE_FILE, json.dumps(state))
