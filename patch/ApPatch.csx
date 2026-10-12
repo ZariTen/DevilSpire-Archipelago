@@ -38,6 +38,11 @@ void Edit(string codeName, string pattern, string replacement, string what)
 Edit("gml_Object_obj_setup_Alarm_0", @"global\.descent = ini_read_real\(""Unlockables"", ""Descent"", 0\);",
      "global.descent = 1;", "force Descent unlocked");
 Edit("gml_Object_obj_setup_Alarm_0", @"load_souls\(\);", "load_souls();\nap_init();", "ap_init at startup");
+// (a2) all difficulties selectable for free (no UNLOCK prices / locks on the mode screen)
+Edit("gml_Object_obj_setup_Alarm_0", @"global\.extreme = ini_read_real\(""Unlockables"", ""Extreme"", 0\);",
+     "global.extreme = 1;", "force Extreme unlocked");
+Edit("gml_Object_obj_setup_Alarm_0", @"global\.nightmare = ini_read_real\(""Unlockables"", ""Nightmare"", 0\);",
+     "global.nightmare = 1;", "force Nightmare unlocked");
 // (b) boss floor cleared / floor reached
 Edit("gml_Object_obj_enemy_Step_0", @"if \(aux\)(\s*)\{(\s*if \(global\.mode == 4\))",
      "if (aux)$1{\nap_boss_cleared();$2", "boss-floor clear hook");

@@ -4,7 +4,7 @@ Design (user decision): Slay-the-Spire style. **No gating**: all floors/bosses a
 always completable without outside items. Received items are power boosts that persist across deaths and are
 **re-applied on every new run** (patch: `ap_granted` is reset by `ap_new_run`; consumables/gold/souls/equipment are
 handed out again each run - accepted behaviour; stat boosts stack as the list is replayed onto a fresh character).
-Item id = `base_id (7470000) + 500 + code`. Verified = read from the pristine code dump (CodeEntries); **no runtime test yet**.
+Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine code dump (CodeEntries); **no runtime test yet**.
 
 ## How the game creates/gives items (VERIFIED from code)
 - `generate_*` scripts create an item *instance* at (0,0) and return it; `get_item(inst)` (run as obj_player) adds it:
@@ -35,9 +35,9 @@ Recommendation: **Pool** = in the default pool, **Opt** = only as trap via optio
 |---|---|---|---|---|---|
 | Orb of Strength/Intelligence/Vitality/Agility | +3 to that stat (+derived stats, same as boss red orb) | direct stat edit on obj_player (code copied from `interact`/obj_orb) | Strong (stacks per run; 18 orbs = +54 stats vs ~+30 from a full vanilla run's red orbs). Classified useful | Pool (4/4/6/4) | V code, G runtime |
 | Stat Point | +1 unspent point to spend | `global.statpoints += 1` | Low | Pool (4) | V |
-| Yellow Orb | 150-450 gold item | `generate_gold(irandom_range(150,450))` + `add_inventory` | Low (re-granted every run) | Pool (14) | V |
+| Yellow Orb (Gold) | 150-450 gold item | `generate_gold(irandom_range(150,450))` + `add_inventory` | Low (re-granted every run) | Pool (14) | V |
 | Gold Hoard | 1000 gold | `generate_gold(1000)` | Low-med: shops/merchant scale | Pool (4) | V |
-| Blue Orb | random stone (0-35) | `generate_stone(irandom(35))` | Low (player must apply to gear; may inventory-clutter) | Pool (10) | V |
+| Blue Orb (Stone) | random stone (0-35) | `generate_stone(irandom(35))` | Low (player must apply to gear; may inventory-clutter) | Pool (10) | V |
 | Pouch of Souls | +100 souls | `global.souls += 100; save_souls()` | Low; re-grant farms souls each run (meta currency for unlocks) | Pool (8) | V |
 | Red Potion Pack | 3x full HP potion | `generate_potion(0)`, count 3, weight 0.75 | Low-med (stacks, 3 per item per run) | Pool (8) | V |
 | Blue Potion Pack | 3x full MP | `generate_potion(25)`, count 3 | Low | Pool (4) | V |
@@ -59,7 +59,7 @@ Recommendation: **Pool** = in the default pool, **Opt** = only as trap via optio
 
 ## Final pool (default 110 = locations with floor checks "every floor")
 Useful: Orb of Strength 4, Intelligence 4, Vitality 6, Agility 4, Stat Point 4, Spell Page (Master) 2, Weapon Lv50 3, Lv75 2, Armor Lv50 3, Lv75 3, Accessory Lv50 2, Lv75 1, Shield Lv50 2 (= 40).
-Filler (70): Yellow Orb 14, Gold Hoard 4, Blue Orb 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Spell Page Basic 4 / Advanced 3, Weapon Lv25 3, Armor Lv25 3, Accessory Lv25 2, Shield Lv25 1, Mystic Ring 3.
+Filler (70): Yellow Orb (Gold) 14, Gold Hoard 4, Blue Orb (Stone) 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Spell Page Basic 4 / Advanced 3, Weapon Lv25 3, Armor Lv25 3, Accessory Lv25 2, Shield Lv25 1, Mystic Ring 3.
 Traps: none by default; `trap_percentage` converts that % of fillers into Ambush/Plague/Pickpocket.
 No progression items. With fewer locations (floor checks every 5th/10th/off: 30/20/10) a random subset of the 110-item template is used.
 

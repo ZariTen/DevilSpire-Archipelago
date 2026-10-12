@@ -1,4 +1,4 @@
-"""Locations. Names/IDs are PLACEHOLDER pending reverse-engineering (see docs/locations-bosses.md in repo root).
+"""Locations. Names verified against the code dump (docs/locations-bosses.md); boss names = the game's object names (the game shows no boss names).
 
 Boss kill checks persist across runs (Slay-the-Spire-like loop): once sent, a boss check stays checked in the
 client/AP server even though the Descent save is wiped on death.

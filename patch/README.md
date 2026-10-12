@@ -32,7 +32,7 @@ Text, one record per line, fields separated by `|`.
 [ap]
 death_link=1            ; 0/1
 floor_check_step=1      ; 1 every floor, 5 every 5th, 10 every 10th, 0 off  (floor N counts if (N-1) mod step == 0)
-base_id=7470000         ; apworld BASE_ID (placeholder)
+base_id=38470000         ; apworld BASE_ID 
 poll_frames=30          ; optional, default 30
 ```
 Client mapping from slot_data `floor_checks`: 0->1, 1->5, 2->10, 3->0.
@@ -55,7 +55,7 @@ Line 1: highest received-item index whose **Pouch of Souls** was already granted
 Number of received items already granted to the CURRENT run; `-1` = no AP run active (set on death, or unknown/legacy save). A new character (`ap_new_run`) sets it to 0, so ALL received items become pending again. They are applied ONLY when the player opens the Archipelago chest (below), in index order. Ungrantable items (inventory/grimoire full) stop the batch (message "open again"); retried on 5 chest opens, then skipped (`E|skipped...`).
 
 ## Item ids (relative to `base_id + 500`; full table and effects in docs/item-catalog.md)
-No depth keys / gating (all floors reachable; removed 2026-10-11). 100-103 Orb of STR/INT/VIT/AGI (+3 stat), 104 Stat Point, 110 Yellow Orb (150-450 gold), 111 Gold Hoard (1000), 112 Blue Orb (random stone 0-35), 113 Pouch of Souls (+100), 120/121 Red/Blue Potion Pack (3x), 122 White Potion, 130/131/132 Spell Page Basic/Advanced/Master, 140-142 Weapon Lv25/50/75, 143-145 Armor Piece, 146-148 Accessory, 149/150 Shield Lv25/50, 151 Mystic Ring, 200 Ambush / 201 Plague / 202 Pickpocket trap.
+No depth keys / gating (all floors reachable; removed 2026-10-11). 100-103 Orb of STR/INT/VIT/AGI (+3 stat), 104 Stat Point, 110 Yellow Orb (Gold) (150-450 gold), 111 Gold Hoard (1000), 112 Blue Orb (Stone) (random stone 0-35), 113 Pouch of Souls (+100), 120/121 Red/Blue Potion Pack (3x), 122 White Potion, 130/131/132 Spell Page Basic/Advanced/Master, 140-142 Weapon Lv25/50/75, 143-145 Armor Piece, 146-148 Accessory, 149/150 Shield Lv25/50, 151 Mystic Ring, 200 Ambush / 201 Plague / 202 Pickpocket trap.
 Everything is re-granted on each new run (index order). Traps only fire when received live (`global.ap_live[idx]`, set by `ap_poll` for items arriving after the first read of `ap_in.txt`) and are consumed. Equipment/consumables are added with `add_inventory(it,-4,0)` (no encumbrance check; retried/skipped only when the 100 slots or the 24-slot grimoire are full). **All grant effects UNTESTED at runtime.**
 
 ## Known gaps
@@ -87,5 +87,5 @@ Only Descent (internal `global.mode == 1`) is selectable and it is shown as **Ar
 2. Start the game from the AP copy, New Game -> create a character -> you start in the tutorial/village; descend to floor -1.
 3. Find the differently-tinted chest next to the stairs where you spawned; open it (interact twice). Expect `Archipelago: received 20 items`, stats/gold/potions/gear in inventory, +100 souls once (the second pouch is skipped), no trap (traps only fire when received while playing).
 4. Die, create a new character: chest again grants everything except souls (check `ap_souls_granted.txt` = 7).
-5. Mid-run: append a line `I|20|7470600|Orb of Strength|Tester` (id = 7470500 + code; 7470600 = Orb of Strength; the file index must continue 0..N contiguously) to `ap_in.txt` while playing; within ~1 s the chest re-arms (or appears next floor) and the new item is granted on opening; as a live item, an Ambush trap line (7470700) fires on opening.
+5. Mid-run: append a line `I|20|38470600|Orb of Strength|Tester` (id = 38470500 + code; 38470600 = Orb of Strength; the file index must continue 0..N contiguously) to `ap_in.txt` while playing; within ~1 s the chest re-arms (or appears next floor) and the new item is granted on opening; as a live item, an Ambush trap line (38470700) fires on opening.
 Risky/untested: all of the above at runtime, chest placement collisions (place_free assumption), re-arm via `item = generate_gold(1)`, `exit` in Create_0 prepend, messages overlapping.

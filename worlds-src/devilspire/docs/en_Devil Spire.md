@@ -1,6 +1,6 @@
 # Devil Spire (fan-made Archipelago integration)
 
-*Unofficial, fan-made, not affiliated with the game's developer. Everything marked PLACEHOLDER is provisional.*
+*Unofficial, fan-made, not affiliated with the game's developer.*
 
 ## What does randomization do?
 Only the **Descent** mode (100 floors) is involved. It is unlocked from the start by the patch.
@@ -28,7 +28,7 @@ Defeat **Rhamdon** on floor -100.
 ## What items can be received?
 (Full details in the repo's `docs/item-catalog.md`; runtime effects are untested.)
 - **Stat boosts (useful)**: Orb of Strength/Intelligence/Vitality/Agility (+3 to that stat), Stat Point (+1 unspent point).
-- **Gold / stones / souls (filler)**: Yellow Orb (150-450 gold), Gold Hoard (1000 gold), Blue Orb (random Stone), Pouch of Souls (+100 souls).
+- **Gold / stones / souls (filler)**: Yellow Orb (Gold) (150-450 gold), Gold Hoard (1000 gold), Blue Orb (Stone) (random Stone), Pouch of Souls (+100 souls).
 - **Consumables (filler)**: Red Potion Pack (3 full-HP potions), Blue Potion Pack (3 full-MP), White Potion (full heal + cure).
 - **Spell pages**: Basic / Advanced (filler), Master (useful): a random spell of that tier you do not know yet.
 - **Equipment**: Weapon, Armor Piece, Accessory, Shield at level 25 (filler) / 50 / 75 (useful), and Mystic Rings (random ring).
@@ -42,4 +42,4 @@ Traps fire once, when received while playing.
 Optional. Dying sends a DeathLink; receiving one kills your character (new run, items re-granted).
 
 ## Item ID block
-Base ID 7,470,000 (PLACEHOLDER); layout documented in `constants.py`.
+Base ID 38,470,000; layout documented in `constants.py`.

@@ -34,9 +34,9 @@ _ITEMS: list[tuple[str, int, ItemClassification, int, str]] = [
     ("Orb of Agility", 103, U, 4, "Stat Boosts"),
     ("Stat Point", 104, U, 4, "Stat Boosts"),  # +1 unspent point (level-up currency, spent in the character sheet)
     # gold / stones / souls
-    ("Yellow Orb", 110, F, 14, "Gold"),  # 150-450 gold (like the boss yellow orb)
+    ("Yellow Orb (Gold)", 110, F, 14, "Gold"),  # 150-450 gold (like the boss yellow orb)
     ("Gold Hoard", 111, F, 4, "Gold"),  # 1000 gold
-    ("Blue Orb", 112, F, 10, "Stones"),  # random Stone item (36 kinds), apply to equipment manually
+    ("Blue Orb (Stone)", 112, F, 10, "Stones"),  # random Stone item (36 kinds), apply to equipment manually
     ("Pouch of Souls", 113, F, 8, "Souls"),  # +100 souls (meta currency)
     # consumables
     ("Red Potion Pack", 120, F, 8, "Consumables"),  # 3x Red Potion (full HP)

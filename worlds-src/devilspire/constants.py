@@ -1,4 +1,4 @@
-"""Shared constants. BASE_ID is still a PLACEHOLDER (check for clashes before any public release).
+"""Shared constants. BASE_ID = 38_470_000 (fixed; changing it breaks all existing yamls/seeds).
 
 ID plan (reserved block: BASE_ID .. BASE_ID + 999):
     +0   .. +99   boss / goal-adjacent locations  (boss kills)
@@ -10,7 +10,7 @@ ID plan (reserved block: BASE_ID .. BASE_ID + 999):
 """
 
 GAME_NAME = "Devil Spire"
-BASE_ID = 7_470_000  # PLACEHOLDER - verify no clash with other worlds before any public release
+BASE_ID = 38_470_000  # fixed final base ID (distinctive range, 38,470,000..38,470,999); do not change
 
 LOCATION_OFFSET = 0
 FLOOR_OFFSET = 100

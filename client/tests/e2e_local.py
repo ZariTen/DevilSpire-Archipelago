@@ -84,13 +84,13 @@ try:
     time.sleep(3)
     zd, bd = tmp / "zari_save", tmp / "buddy_save"
     zd.mkdir(); bd.mkdir()
-    BASE = 7_470_000
+    BASE = 38_470_000
     # stale data from a "previous seed" must be wiped
     (zd / "ap_out.txt").write_text(f"L|{BASE + 1}\nG|1\n")
     zc = start_client("Zari", zd, tmp / "zari.log")
     bc = start_client("Buddy", bd, tmp / "buddy.log")
     cfg = wait_for(lambda: read(zd / "ap_config.ini"))
-    check("ap_config.ini written", cfg == f"[ap]\ndeath_link=1\nfloor_check_step=5\nbase_id={BASE}\n", repr(cfg))
+    check("ap_config.ini written", cfg.startswith(f"[ap]\ndeath_link=1\nfloor_check_step=5\nbase_id={BASE}\n") and "slot_id=" in cfg, repr(cfg))
     check("stale ap_out.txt cleared on first connect to a new seed", wait_for(lambda: read(zd / "ap_out.txt") == ""))
     check("empty ap_in.txt written", wait_for(lambda: (zd / "ap_in.txt").exists()))
     time.sleep(1)

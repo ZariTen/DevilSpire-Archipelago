@@ -29,5 +29,5 @@ In the client: `/savedir [path]` shows/sets it, `/apstatus` shows counters.
 ## Tests
 - `python -m unittest discover client/tests` – protocol logic, no AP/server needed (16 tests).
 - `python client/tests/e2e_local.py --ap-root <AP checkout> --python <venv python>` – generates a 2-player seed, runs a local MultiServer and two real clients with simulated `ap_out.txt` (15 checks: config, checks, item delivery, DeathLink, goal, truncation, reconnect). Needs `SKIP_REQUIREMENTS_UPDATE=1`-style headless venv (script sets it).
-- apworld: symlink `worlds-src/devilspire` to `<AP>/worlds/devilspire`, `pytest worlds/devilspire` (46 pass).
+- apworld: symlink `worlds-src/devilspire` to `<AP>/worlds/devilspire`, `pytest worlds/devilspire` (38 pass).
 Runtime with the real game is UNTESTED.

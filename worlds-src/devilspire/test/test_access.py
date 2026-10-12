@@ -13,7 +13,7 @@ class TestTemplate(DevilSpireTestBase):
         self.assertEqual(len(POOL_TEMPLATE), 110)
         self.assertEqual(len(set(ITEM_NAME_TO_ID.values())), len(ITEM_NAME_TO_ID))
         self.assertFalse([n for n in POOL_TEMPLATE if ITEM_TABLE[n].classification == T])
-        self.assertEqual(ITEM_NAME_TO_ID["Orb of Strength"], 7_470_000 + 500 + 100)
+        self.assertEqual(ITEM_NAME_TO_ID["Orb of Strength"], 38_470_000 + 500 + 100)
 
 
 class TestFloorChecksDefault(DevilSpireTestBase):
@@ -98,6 +98,6 @@ class TestSlotData(DevilSpireTestBase):
         sd = self.world.fill_slot_data()
         self.assertEqual(sd["death_link"], 1)
         self.assertEqual(sd["floor_checks"], 2)
-        self.assertEqual(sd["base_id"], 7_470_000)
+        self.assertEqual(sd["base_id"], 38_470_000)
         self.assertNotIn("floor_key_mode", sd)
         self.assertNotIn("starting_depth", sd)

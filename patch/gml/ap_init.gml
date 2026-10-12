@@ -3,7 +3,7 @@ global.ap_ready = 1;
 ini_open("ap_config.ini");
 global.ap_deathlink = ini_read_real("ap", "death_link", 0);
 global.ap_floor_step = ini_read_real("ap", "floor_check_step", 1);
-global.ap_base = ini_read_real("ap", "base_id", 7470000);
+global.ap_base = ini_read_real("ap", "base_id", 38470000);
 global.ap_poll_frames = ini_read_real("ap", "poll_frames", 30);
 var cfgslot = ini_read_string("ap", "slot_id", "");
 ini_close();

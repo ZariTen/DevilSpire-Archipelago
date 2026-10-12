@@ -60,7 +60,7 @@ devilspire/
   data/ (patch script, GML snippets)  # no game assets
 ```
 - [x] Floor checks (100 floors, granularity option), golems as single check, filler re-grant documented.
-- [~] Implement items/locations tables (PLACEHOLDER skeleton done in worlds-src/devilspire; real data pending RE) from phase 1 CSVs (single source of truth shared with the patch generator).
+- [~] Implement items/locations tables (finalized 2026-10-12, see Status step 5) from phase 1 CSVs (single source of truth shared with the patch generator).
 - [x] World class: game name, item_name_to_id, location_name_to_id, create_regions/items/rules, create_item, filler via get_filler_item_name, completion_condition, item_name_groups.
 - [x] Events for logic (bosses, key doors) as id=None items on id=None locations; goal via victory event.
 - [x] Options file with docstrings (rich_text_options_doc), presets optional.
@@ -167,3 +167,10 @@ devilspire/
 ## Status 2026-10-11 (starting chest + souls once)
 - [x] Souls (Pouch) granted once per slot (`ap_souls_granted.txt`, reset on slot_id change written by the client). Auto grant removed; items granted when opening the Archipelago chest (spawned next to the spawn point of floor -1 / floors with pending items). `patch/make_test_ap_in.sh` for offline testing. Rebuilt from pristine, loads and re-dumps; installed. **Runtime UNTESTED.**
 - [ ] Test: chest position/collision, open+grant, re-arm for mid-run items, souls once across deaths, slot reset, trap behaviour, item messages.
+
+## Status 2026-10-12 (step 5: finalize + clean up)
+- [x] Final base ID **38,470,000** (block 38,470,000..38,470,999; locations +0..+99 bosses, +100..+199 floors; items +500+code). Applied in constants, tests, client tests, docs, patch default (`ap_init`). The GML id math is relative to `ap_base` (sent by the client from slot_data), so nothing else hardcodes it. **Old yamls/seeds/generated games are incompatible: regenerate.**
+- [x] Item names: "Yellow Orb" -> "Yellow Orb (Gold)", "Blue Orb" -> "Blue Orb (Stone)"; rest kept. Location names verified (the game shows no boss names; used object names Slime/Abomination/Idol/Golem(s)/Dragon/Snake/Apparition/Girl/Robot, Rhamdon = goal). world_version 0.1.0.
+- [x] Difficulty screen: Extreme and Nightmare force-unlocked (`global.extreme/nightmare = 1` in obj_setup_Alarm_0): no "UNLOCK 500 S / 9999 S" labels or soul prices; mode screen has no other prices (mode button is the inert "Archipelago" one). The demo-ending text (obj_dungeoncreator) is only created when `global.demo` (= 0 in this build), so it is unreachable; left untouched.
+- [x] Tests: world 38 pass, client unit 16 pass, e2e 14/14 (fixed outdated ap_config assertion), Generate.py sample OK. Rebuilt apworld -> custom_worlds, rebuilt+installed patched data.win (backup data_patched.win.bak = previous build). **Runtime UNTESTED.**
+- Later (not started, by request): difficulty option, boss/goal testing.
