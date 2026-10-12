@@ -2,7 +2,7 @@
 
 ## 1. Requirements
 - Archipelago **0.6.8 or newer** (host and every player of this game).
-- `devilspire.apworld` from the GitHub Releases page. Current apworld `world_version`: **0.1.0**. Use the same release for host and players (patcher + apworld + client are versioned together); tell your players the version.
+- `devilspire.apworld` from the GitHub Releases page. Current apworld `world_version`: **0.1.0**. Use the same release for host and players (the apworld contains the world, the client and the game patch); tell your players the version.
 
 ## 2. Install the world
 - Double-click `devilspire.apworld` (Archipelago must be installed), **or** copy it into the `custom_worlds` folder of your Archipelago install, **or** (source install) put the `devilspire` folder in `worlds/`. Restart the Launcher.
@@ -26,11 +26,11 @@ Items are persistent unlocks: after a death, all received items are granted agai
 ## 5. Version compatibility
 - Archipelago: min 0.6.8 (`minimum_ap_version` in `archipelago.json`).
 - `world_version` is in `archipelago.json`/the apworld; the client reads item/location IDs from the same apworld, so mismatched apworld versions between the generating host and a player's installed apworld can cause wrong IDs. Items/locations use base ID 38,470,000.
-- The patcher only supports one exact original `data.win` (sha256 `44df3801...c9b4`, see `patch/EXPECTED_ORIGINAL_SHA256`); the same patcher works for every seed. The in-game patch changes only when the project version changes.
+- The client's `/auto_patch` only supports one exact original `data.win` (sha256 `44df3801...c9b4`, see `patch/EXPECTED_ORIGINAL_SHA256`); the same patch works for every seed. The in-game patch changes only when the apworld version changes (players then run `/auto_patch` again).
 
 ## 6. Troubleshooting
 - Players can't connect: server port open? correct slot name (case sensitive)? same AP version family?
 - "Game not found / unknown game Devil Spire" in Generate: the apworld isn't installed on the generating machine, or the file name is not `devilspire.apworld`.
 - Generation errors: run Generate from the Launcher and read the log; try `floor_checks: off` to rule out the big location set.
-- Player's patcher says hash mismatch: see [PLAYER_GUIDE.md](PLAYER_GUIDE.md) section 8.
+- Player's `/auto_patch` says hash mismatch: see [PLAYER_GUIDE.md](PLAYER_GUIDE.md) section 8.
 - Player's client can't find the save folder: see [PLAYER_GUIDE.md](PLAYER_GUIDE.md) (`/savedir`, `--savedir`).

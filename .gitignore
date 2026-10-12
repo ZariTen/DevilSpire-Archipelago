@@ -11,6 +11,6 @@ __pycache__/
 *.pyc
 .venv/
 release/
-patch/patcher/cmd/patcher/delta.bin
+worlds-src/devilspire/data/
 *.orig
 *.ap-tmp

@@ -13,9 +13,11 @@ import typing
 from pathlib import Path
 
 try:  # inside the apworld package
+    from . import auto_patch as ap_patch
     from . import file_protocol as fp
     from .constants import GAME_NAME
 except ImportError:  # run standalone (client/DevilSpireClient.py puts this dir on sys.path)
+    import auto_patch as ap_patch  # type: ignore
     import file_protocol as fp  # type: ignore
     from constants import GAME_NAME  # type: ignore
 
@@ -28,6 +30,22 @@ POLL_SECONDS = 0.5
 
 
 class DevilSpireCommandProcessor(ClientCommandProcessor):
+    def _cmd_auto_patch(self, *game_dir: str) -> bool:
+        """Copy the game into Archipelago's DevilSpire folder and patch the copy. Optional: the game folder
+        (default: found in your Steam libraries). Your Steam install is never modified."""
+        src = Path(" ".join(game_dir)).expanduser() if game_dir else None
+        try:
+            dest = ap_patch.auto_patch(src, log=logger.info)
+        except ap_patch.PatchError as e:
+            logger.error(f"auto_patch failed: {e}")
+            return False
+        except OSError as e:
+            logger.error(f"auto_patch failed (file error): {e!r}")
+            return False
+        for line in ap_patch.launch_instructions(dest):
+            logger.info(line)
+        return True
+
     def _cmd_savedir(self, path: str = "") -> bool:
         """Show or set the Devil Spire save directory (where ap_out.txt / ap_in.txt live)."""
         if path:

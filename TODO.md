@@ -4,7 +4,7 @@ Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md
 **The patched game has never been run yet; everything in-game is untested.**
 
 ## Decisions
-- Patched game = your own `data.win` plus a delta; never distribute game files (GitHub Releases only, no delta/binaries in git).
+- Patched game = a copy of your own Steam install (in Archipelago's `DevilSpire` folder) plus a bsdiff4 patch shipped in the apworld, applied by the client's `/auto_patch` (same approach as Archipelago's Undertale). Steam install never modified; no game files or patch in git.
 - Single game mode "Archipelago" (= Descent, 100 floors). Goal: beat the final boss (Rhamdon, floor -100).
 - Checks: boss kills + "Reach Floor -N" (option `floor_checks`, default every floor; Golems = one check; -99 gauntlet counts as both).
 - No depth-key gating: everything reachable from the start; boost item pool (110 items, see docs/item-catalog.md); traps via `trap_percentage`.
@@ -21,7 +21,7 @@ Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md
 - [x] **Single mode "Archipelago":** other modes hidden, "Descent" renamed, Extreme/Nightmare unlocked without prices.
 - [x] **Camp chest:** fixed spot next to the bonfire in the pre-tower camp; grants received items, re-arms for mid-run items.
 - [x] **No-gating boost pool:** keys and tier rules removed; new item ids and grant code.
-- [x] **Patcher / release tooling:** Go patcher (hash check, `data.win.orig` backup, `status`/`restore`), `patch/build_release.sh`, SHA256SUMS; tested on Linux and under wine64.
+- [x] **Install via client:** `/auto_patch [game dir]` (Steam library detection incl. libraryfolders.vdf, hash checks, atomic copy + bsdiff4 patch, `steam_appid.txt`); patch built by `scripts/build_apworld.sh`; unit tests + real-game copy test.
 - [x] **Docs:** README, player guide, host guide.
 - [x] **License:** MIT.
 
@@ -42,12 +42,13 @@ Fan-made, unofficial. Protocol, file formats and patch details: [patch/README.md
 - [ ] "Sent item" popups showing the sender.
 
 ## Release prep
-- [ ] Test the Windows .exe on real Windows (unsigned: SmartScreen/AV warnings likely; consider signing).
+- [ ] Test `/auto_patch` on real Windows (Steam path/registry detection, copy under the Archipelago folder).
+- [ ] Test the patched copy as a non-Steam shortcut under Proton (new compatdata prefix: save folder detection).
 - [ ] Test Launcher "Build APWorlds" and loading the apworld in a clean Archipelago install.
-- [ ] Check with the Devil Spire developer (is publishing the delta/patcher OK?).
+- [ ] Check with the Devil Spire developer (is publishing the apworld with the bsdiff4 patch OK?).
 - [ ] Decide whether to publish.
 - [ ] Other game builds: supported build is only the Steam build of 2026-10-11 (sha256 44df3801...c9b4); itch/GOG may differ and are refused.
-- [ ] GitHub Release workflow (apworld + patcher + SHA256SUMS); bump `world_version` and rebuild together.
+- [ ] GitHub Release workflow (apworld only); bump `world_version` when the patch changes.
 
 ## Later / optional
 - [ ] Faster transport (local TCP socket instead of files) if latency matters.
