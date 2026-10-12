@@ -23,10 +23,10 @@ You need [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases) 0.
 - Delete `devilspire.apworld`.
 
 ## Hosts
-1. Everyone (host and players) installs `devilspire.apworld`; use Archipelago 0.6.8 or newer.
+1. The host installs `devilspire.apworld` (needed to generate the game). Use Archipelago 0.6.8 or newer. Players of other games in the same multiworld do not need it.
 2. Copy [examples/DevilSpire.yaml](examples/DevilSpire.yaml), set `name:`, and put one file per player in Archipelago's `Players` folder.
 3. Click *Generate* in the Launcher, then host the `.zip` it makes.
-4. Tell players the release version to use (this one: 0.1.0).
+4. Tell the Devil Spire players which release version to use (this one: 0.1.0). They need the patcher and the apworld (for the client).
 
 Details: [docs/HOST_GUIDE.md](docs/HOST_GUIDE.md).
 
