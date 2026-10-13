@@ -1,6 +1,7 @@
 // ap_new_run(mode): called when a new character is created. A new Descent run re-applies ALL received items.
 if (argument0 == 1)
 {
+    ap_slot_check(ap_read_config()); // a new seed connected during the last run: adopt it before this run starts
     global.ap_granted = 0;
     global.ap_fail = 0;
     ds_list_clear(global.ap_drops);

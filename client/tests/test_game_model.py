@@ -235,6 +235,49 @@ class CheckTests(unittest.TestCase):
         self.assertTrue(self.g.locked_ap_chest())               # old per-band line: reset, no crash
 
 
+class SlotSwitchTests(unittest.TestCase):
+    def setUp(self):
+        self.d = Path(tempfile.mkdtemp())
+        setup(self.d, 3)
+        self.g = FakeGame(self.d)
+
+    def switch(self, slot):
+        (self.d / "ap_config.ini").write_text(f"[ap]\nslot_id={slot}\n")
+        self.g.poll()
+
+    def test_title_switch_adopts_live(self):
+        self.g.start(); self.g.poll()
+        self.switch("seed2:0:1")
+        self.assertFalse(self.g.stale)
+        self.assertEqual(self.g.slot_id, "seed2:0:1")
+        self.g.new_run(); self.g.poll()
+        self.assertEqual(self.g.collect_all(), 3)
+        self.g.check(38470101)
+        self.assertTrue((self.d / "ap_out.txt").read_text().rstrip().endswith("|seed2:0:1"))
+
+    def test_tower_switch_stale_until_run_left(self):
+        self.g.start(); self.g.new_run(); self.g.poll(); self.g.collect_all(); self.g.goto("dungeon", -4)
+        self.switch("seed2:0:1")
+        self.assertTrue(self.g.stale)
+        self.assertEqual(self.g.granted, -1)
+        self.g.check(38470101)
+        self.assertNotIn("38470101", (self.d / "ap_out.txt").read_text())   # nothing from A's run goes to B
+        self.g.die(); self.g.goto("title", 0); self.g.poll()
+        self.assertFalse(self.g.stale)
+        self.assertEqual(self.g.slot_id, "seed2:0:1")
+        self.assertEqual(self.g.collect_all(), 0)                           # old run stays inactive
+
+    def test_new_game_right_after_death_adopts_first(self):
+        self.g.start(); self.g.new_run(); self.g.poll(); self.g.goto("dungeon", -4)
+        self.switch("seed2:0:1")
+        self.g.die(); self.g.goto("charcreation", 0)
+        self.g.new_run()                                                    # before any poll
+        self.assertFalse(self.g.stale)
+        self.assertEqual(self.g.granted, 0)
+        self.g.poll()
+        self.assertEqual(self.g.collect_all(), 3)
+
+
 class Utf8PathTests(unittest.TestCase):
     def test_accented_paths(self):
         root = Path(tempfile.mkdtemp()) / "Zé Ação Ñ 日本"

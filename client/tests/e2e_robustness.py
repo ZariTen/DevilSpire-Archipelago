@@ -230,7 +230,8 @@ try:
         read(zc.log)[-400:])
     game.quit(); game.start()
 
-    # 5. switch to another multiworld while the game is still running
+    # 5. switch to another multiworld while a run of seed A is in the tower
+    game.new_run(); game.goto("dungeon", -2)
     srvB = start_server(mdB, portB, tmp / "serverB.log")
     zc.kill()
     zc = Client("Zari", zd, portB, tmp / "zari3.log")
@@ -242,26 +243,43 @@ try:
     check("new slot id differs", sid_b and sid_b != sid_a, (sid_a, sid_b))
     check("server B starts with 0 checks (nothing from seed A sent)", zc.checked() == 0)
     game.poll()
-    check("running game turns stale (run inactive)", game.stale and game.granted == -1)
+    check("run of seed A in the tower turns stale (run inactive)", game.stale and game.granted == -1)
     game.check(BASE + 150)
     with open(zd / "ap_out.txt", "a") as f:   # a line the old session tagged with seed A
         f.write(f"L|{BASE + 151}|{sid_a}\n")
     time.sleep(2)
     check("stale game emits no checks; seed A tagged line is not sent to B", zc.checked() == 0, zc.status())
-    game.quit(); game.start(); game.poll()
-    check("after restart the old run is inactive (no items from B into A's run)",
-          game.granted == -1 and open_all(game) == 0)
+    game.die(); game.goto("title", 0); game.poll()
+    check("run ended: seed B adopted live without a restart (A's run stays inactive)",
+          not game.stale and game.slot_id == sid_b and game.granted == -1 and open_all(game) == 0)
     game.new_run(); game.poll()
     nb = len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")])
-    check("new run on seed B gets B's items", open_all(game) == nb)
+    check("new run on seed B gets B's items", open_all(game) == nb and same(game))
     game.check(BASE + 100)
     check("seed B checks are sent", wait_for(lambda: zc.checked() == 1), zc.status())
 
+    # 5b. new seed connected while the game sits on the title: New Game works at once and sends checks
+    mdC = generate("C", ["Zari"])
+    portC = portB + 1
+    srvC = start_server(mdC, portC, tmp / "serverC.log")
+    game.goto("title", 0)
+    zc.kill()
+    zc = Client("Zari", zd, portC, tmp / "zari5.log")
+    sid_c = wait_for(lambda: zc.status()[1] if zc.status()[1] not in (None, sid_a, sid_b) else None)
+    game.poll()
+    check("title: new seed adopted live (not stale)", sid_c and not game.stale and game.slot_id == sid_c,
+          (game.stale, game.slot_id, sid_c))
+    game.new_run(); game.poll()
+    nc = len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")])
+    check("title switch: New Game gets C's items", open_all(game) == nc and same(game))
+    game.check(BASE + 102)
+    check("title switch: checks are sent to seed C", wait_for(lambda: zc.checked() == 1), zc.status())
+
     # 6. same-seed reconnect: no reset
     zc.kill()
-    zc = Client("Zari", zd, portB, tmp / "zari4.log")
+    zc = Client("Zari", zd, portC, tmp / "zari4.log")
     wait_for(lambda: zc.checked() == 1)
-    check("same-seed reconnect does not create another backup", len(list((zd / "ap_backup").glob("*"))) == 1)
+    check("same-seed reconnect does not create another backup", len(list((zd / "ap_backup").glob("*"))) == 2)
 
     def own_errors(txt):
         return [l for l in txt.splitlines() if ("ds_client" in l or "file_protocol" in l) and

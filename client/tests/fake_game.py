@@ -160,18 +160,10 @@ class FakeGame:
     def poll(self):
         if not self.running:
             return
-        cfg = self._config()
+        self.slot_check()
         hb = self._read("ap_heartbeat.txt")
         if hb and hb != self.hb_val:      # changed since the game started (a leftover file doesn't count)
             self.hb_val, self.hb_seen = hb, True
-        if cfg and cfg != self.slot_id and not self.stale:
-            if self.slot_id == "":
-                self.slot_id = cfg
-                self.save_checks()
-                self.write_granted()   # committed state only
-            else:
-                self.stale, self.granted = True, -1
-                self.save_granted()
         if self.stale:
             return
         txt = self._read("ap_in.txt") or ""
@@ -198,7 +190,29 @@ class FakeGame:
             else:
                 self.emit("X|deathlink ignored (no active run)")
 
+    def slot_check(self):
+        """ap_slot_check: "" -> X adopt; X -> Y in the tower: stale until the run is left; else adopt Y live"""
+        cfg = self._config()
+        if not cfg or cfg == self.slot_id:
+            return
+        if self.slot_id == "":
+            self.slot_id = cfg
+            self.save_checks()
+            self.write_granted()   # committed state only
+            return
+        if self.room == "dungeon" and self.level < 0:
+            if not self.stale:
+                self.stale, self.granted, self.drops = True, -1, []
+                self.save_granted()
+            return
+        self.stale, self.slot_id, self.granted, self.drops = False, cfg, -1, []
+        self.n, self.items, self.dl_init = 0, [], False
+        self.load_checks(cfg)
+        self.save_checks()
+        self.save_granted()
+
     def new_run(self):
+        self.slot_check()
         self.granted, self.char_items, self.drops, self.ground = 0, [], [], []
         self.save_granted()
         self.emit("N|1|new descent run")

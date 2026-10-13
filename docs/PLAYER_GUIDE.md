@@ -60,7 +60,7 @@ If you join a **different multiworld**, the client moves your old Archipelago ch
 ## Problems
 - **"not patched" warning:** Steam's file check or a reinstall put the original back. Run `/auto_patch`.
 - **"not the supported Steam version":** your `data.win` was changed or isn't the Steam version. Use Steam's *Verify integrity of game files*, then `/auto_patch`.
-- **"different multiworld connected" in the game:** quit and restart the game, then choose *New Game*.
+- **"New seed connected - finish/quit the run to switch":** the client joined another seed during a run. That run sends nothing. Die or quit to the title; the game switches by itself, then choose *New Game*.
 - **"UNPATCHED Devil Spire is being played":** close the game, run `/auto_patch`, start it again.
 - **Which mod version do I have?** The title screen shows it in the top-left corner, e.g. `Archipelago v0.1.0 (64a9604)`. `/status` shows the same text. If they differ, run `/auto_patch`.
 - **Items don't arrive:** check the client is connected (`/status`). Items come while you are in the camp or the tower (not in menus).

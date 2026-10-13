@@ -133,6 +133,7 @@ group.QueueAppend(Data.Code.ByName("gml_Object_obj_title_Draw_64"),
     "draw_text(16, 12, \"" + modLabel + "\");\n" +
     "if (variable_global_exists(\"ap_connected\"))\n{\nif (global.ap_connected)\n{\ndraw_text(16, 40, \"Connected: \" + global.ap_hb_name);\n}\nelse\n{\n" +
     "draw_set_alpha(0.95);\ndraw_set_colour(make_colour_rgb(255, 128, 48));\ndraw_text(16, 40, \"Client not connected\");\n}\n}\n" +
+    "if (variable_global_exists(\"ap_stale\"))\n{\nif (global.ap_stale)\n{\ndraw_set_alpha(0.95);\ndraw_set_colour(make_colour_rgb(255, 128, 48));\ndraw_text(16, 68, \"New seed connected - finish/quit the run to switch\");\n}\n}\n" +
     "draw_set_alpha(ap_a);\ndraw_set_colour(ap_c);\ndraw_set_halign(fa_center);\ndraw_set_valign(fa_middle);\ndraw_set_font(fnt_large);");
 
 // (m) "Archipelago" subtitle under the title logo (main page only, once the burn-in reveal is complete):
