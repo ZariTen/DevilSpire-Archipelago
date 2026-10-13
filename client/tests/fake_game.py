@@ -188,6 +188,8 @@ class FakeGame:
         return total
 
     def next_floor(self, level):
+        if self.level == 0.5 and self.granted >= 0:
+            self.drops = []   # ap_leave_room: untaken camp ground items are forfeited for this run
         self.room, self.level, self.ground = "dungeon", level, []
         self.save_granted()
 

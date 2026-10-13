@@ -75,8 +75,11 @@ class GameModelTests(unittest.TestCase):
         self.assertNotIn(38470640, self.g.char_items)
         self.g.pick_up(1); self.g.next_floor(-1)            # entering the tower saves
         self.g.quit(); self.g.start(); self.g.poll(); self.g.goto("dungeon", -1); self.g.grant_tick()
-        self.assertEqual(self.g.ground, [3])                # untaken pack follows to the floor; sword kept once
+        self.assertEqual(self.g.ground, [])                 # untaken camp pack forfeited for this run; sword kept once
         self.assertEqual(self.g.owned()[38470640], 1)
+        self.assertNotIn(38470620, self.g.char_items)
+        self.g.die(); self.g.new_run(); self.g.goto("dungeon", 0.5); self.g.grant_tick()
+        self.assertEqual(sorted(self.g.ground), [1, 3])     # next run: re-granted as usual
 
     def test_mid_run_items(self):
         w = setup(self.d, 2)

@@ -16,7 +16,7 @@ The patched game runs on the real Steam install (Proton). Boot, Archipelago mode
 - [ ] Boss checks (each boss, Golems, -99 gauntlet) and the goal on floor -100.
 - [ ] Item effects, traps and DeathLink.
 - [ ] Camp items: ground spread is tidy and reachable (not in decor); 100+ items; Continue doesn't double or lose items.
-- [ ] Mid-run items: equipment drops at your feet; untaken items follow to the next floor.
+- [ ] Mid-run items: equipment drops at your feet; untaken items follow to the next floor. Camp leftovers are dropped on entering the tower.
 - [ ] First-ever character (the tutorial skips the camp).
 - [ ] Client with the real game: reconnect, no duplicate items, seed switch, health warnings.
 - [ ] Non-ASCII Windows user name.

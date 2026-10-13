@@ -32,7 +32,8 @@
   Camp: grid (20 px) around the arrival point (0,212); tower: grid (16 px) around the player. Spot must be free for the
   player's mask and not on decor/shades/bonfire/entrance/tombstones; else at the anchor. Max 60 on the ground.
   `obj_droppeditem` gets `ap_idx` (Create); its Destroy (= picked up) calls `ap_drop_taken`. Leaving the room does not fire
-  Destroy, so untaken items spawn again in the next room. The item is rolled again on each spawn.
+  Destroy, so untaken mid-run items spawn again on the next floor. Leaving the camp (`ap_leave_room`, prepended to
+  `next_floor`) forfeits untaken camp items for this run. The item is rolled again on each spawn.
 - Commit: `ap_granted.txt` is only written next to the character save (`next_floor`, camp after granting, new run,
   death). Quit + Continue rolls back both together: nothing lost, nothing doubled. Mid-floor progress is lost like vanilla.
 

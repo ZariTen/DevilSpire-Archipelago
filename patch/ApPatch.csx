@@ -15,7 +15,7 @@ if (!Regex.IsMatch(modLabel, @"^Archipelago v[0-9A-Za-z.\-]+ \([0-9a-f]{7}\)$"))
 string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
-    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted" };
+    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
@@ -102,6 +102,9 @@ Edit("gml_Object_obj_logo_Draw_64", @"(draw_sprite_part_ext\(spr_title, [^;]*\);
      "$1\nif (appear == 114)\n{\ndraw_set_font(fnt_large);\ndraw_set_halign(fa_center);\ndraw_set_valign(fa_middle);\n" +
      "draw_set_colour(make_colour_rgb(255, 191, 127));\ndraw_text(960, 628, \"Archipelago\");\ndraw_set_colour(c_white);\n}",
      "Archipelago subtitle under the logo");
+
+// leaving the camp forfeits untaken camp ground items (before next_floor changes global.level)
+group.QueuePrepend(Data.Code.ByName("gml_Script_next_floor"), "ap_leave_room();");
 
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");

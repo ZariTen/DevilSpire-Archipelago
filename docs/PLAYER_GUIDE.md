@@ -27,7 +27,8 @@ It keeps a backup of the original file (`data.win.orig`).
 Good to know:
 - **Dying** starts a new run. You get all your items back at the camp.
 - Items that arrive during a run come at once. Equipment, rings and potions drop at your feet.
-- Items you leave on the ground come back on the next floor (or at the camp after Continue). They are not lost and not doubled.
+- Items you leave on the camp ground stay behind when you enter the tower. You get them again next run.
+- Items that drop in the tower and that you leave behind come back on the next floor. Nothing is doubled.
 - At most 60 items lie on the ground at once. Pick some up and the rest appear.
 - **DeathLink** (if on) only kills you inside the tower, never at the camp or in menus.
 - Checks you make while the client is closed are sent when it reconnects.
