@@ -26,13 +26,13 @@ class HealthTests(unittest.TestCase):
         self.assertIsNone(chk.check(None))
 
     def test_protocol(self):
-        self.assertIsNone(health.protocol_warning(7, 7))
-        self.assertIsNone(health.protocol_warning(None, 7))
-        self.assertIn("/auto_patch", health.protocol_warning(1, 7))
+        self.assertIsNone(health.protocol_warning(8, 8))
+        self.assertIsNone(health.protocol_warning(None, 8))
+        self.assertIn("/auto_patch", health.protocol_warning(1, 8))
         a, b = "Archipelago v0.1.0 (aaaaaaa)", "Archipelago v0.1.0 (bbbbbbb)"
-        self.assertIsNone(health.protocol_warning(7, 7, a, a))
-        self.assertIsNone(health.protocol_warning(7, 7, None, a))  # older build without label: data.win check covers it
-        self.assertIn(a, health.protocol_warning(7, 7, a, b))
+        self.assertIsNone(health.protocol_warning(8, 8, a, a))
+        self.assertIsNone(health.protocol_warning(8, 8, None, a))  # older build without label: data.win check covers it
+        self.assertIn(a, health.protocol_warning(8, 8, a, b))
 
     def test_unpatched_activity_and_cloud(self):
         roam = Path(tempfile.mkdtemp())

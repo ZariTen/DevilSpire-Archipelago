@@ -92,7 +92,7 @@ class DevilSpireWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         return {
-            **self.options.as_dict("death_link", "floor_checks", "chest_checks", "trap_percentage"),
+            **self.options.as_dict("death_link", "floor_checks", "trap_percentage"),
             "goal": "descent_rhamdon",  # fixed
             "descent_unlocked": True,  # patch force-unlocks Descent
             "gating": False,  # no depth keys: everything reachable from the start

@@ -6,7 +6,7 @@ from BaseClasses import Region
 
 from .constants import NUM_TIERS
 from .items import DevilSpireItem
-from .locations import (BOSS_LOCATIONS, floor_checks_enabled, chest_checks_enabled, SHOP_LOCATIONS, VICTORY_ITEM, VICTORY_LOCATION, DevilSpireLocation,
+from .locations import (BOSS_LOCATIONS, floor_checks_enabled, LOCKED_LOCATIONS, SHOP_LOCATIONS, VICTORY_ITEM, VICTORY_LOCATION, DevilSpireLocation,
                         LOCATION_NAME_TO_ID)
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ def create_regions(world: DevilSpireWorld) -> None:
         menu.connect(tiers[t], f"Descend to tier {t}")
 
     locs = (list(BOSS_LOCATIONS) + floor_checks_enabled(world.options.floor_checks.step)
-            + chest_checks_enabled(world.options.chest_checks.value) + list(SHOP_LOCATIONS))
+            + list(LOCKED_LOCATIONS) + list(SHOP_LOCATIONS))
     for d in locs:
         tiers[d.tier].locations.append(
             DevilSpireLocation(p, d.name, LOCATION_NAME_TO_ID[d.name], tiers[d.tier]))

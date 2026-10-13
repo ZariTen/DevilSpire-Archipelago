@@ -3,7 +3,7 @@
 
 Usage: python client/tests/e2e_local.py --ap-root ~/.cache/ap-src [--python ~/.cache/ap-venv/bin/python]
 Needs an AP checkout whose worlds/devilspire links to worlds-src/devilspire and a venv with AP's requirements.
-Generates a 2-player seed (Zari, Buddy; both DeathLink on, floor_checks every_5th, chest_checks 0 -> 10 bosses + 20 floors + 18 shops = 48), then checks:
+Generates a 2-player seed (Zari, Buddy; both DeathLink on, floor_checks every_5th, -> 10 bosses + 20 floors + 80 locked chests + 18 shops = 128), then checks:
 config written, location checks, item delivery into the other player's ap_in.txt, DeathLink, goal, reconnect resync.
 """
 import argparse
@@ -30,7 +30,7 @@ tmp = Path(tempfile.mkdtemp(prefix="ds-e2e-"))
 (tmp / "players").mkdir()
 for n in ("Zari", "Buddy"):
     (tmp / "players" / f"{n}.yaml").write_text(
-        f"name: {n}\ngame: Devil Spire\nDevil Spire:\n  death_link: true\n  floor_checks: every_5th\n  chest_checks: 0\n")
+        f"name: {n}\ngame: Devil Spire\nDevil Spire:\n  death_link: true\n  floor_checks: every_5th\n")
 RUN = tmp / "run.py"
 RUN.write_text("import sys, runpy\nsys.path.insert(0, '.')\nimport ModuleUpdate\nModuleUpdate.update_ran = True\n"
                "s = sys.argv[1]; sys.argv = sys.argv[1:]\nrunpy.run_path(s, run_name='__main__')\n")
@@ -91,7 +91,7 @@ try:
     zc = start_client("Zari", zd, tmp / "zari.log")
     bc = start_client("Buddy", bd, tmp / "buddy.log")
     cfg = wait_for(lambda: read(zd / "ap_config.ini"))
-    check("ap_config.ini written", cfg.startswith(f"[ap]\ndeath_link=1\nfloor_check_step=5\nchest_checks=0\nbase_id={BASE}\n") and "slot_id=" in cfg, repr(cfg))
+    check("ap_config.ini written", cfg.startswith(f"[ap]\ndeath_link=1\nfloor_check_step=5\nbase_id={BASE}\n") and "slot_id=" in cfg, repr(cfg))
     # fresh slot, 0 items: the server sends no ReceivedItems; the client must still count as synced
     check("fresh slot with 0 items: empty ap_in.txt + heartbeat written",
           wait_for(lambda: (zd / "ap_in.txt").exists() and read(zd / "ap_heartbeat.txt") and
@@ -114,17 +114,18 @@ try:
           all(l.split("|")[1] == str(i) and len(l.split("|")) == 5 for i, l in enumerate(lines_z)) and
           all(l.split("|")[1] == str(i) and len(l.split("|")) == 5 for i, l in enumerate(lines_b)))
     # Buddy completes everything he has -> Zari must receive all items placed in Buddy's locations
-    bloc = [BASE + i for i in range(10)] + [BASE + 100 + 5 * i for i in range(20)] + [BASE + 250 + i for i in range(18)]
+    LOCKED = [BASE + 300 + n for n in range(1, 99) if n % 10 not in (0, 9)]
+    bloc = [BASE + i for i in range(10)] + [BASE + 100 + 5 * i for i in range(20)] + [BASE + 250 + i for i in range(18)] + LOCKED
     with open(bd / "ap_out.txt", "a") as f:
         for loc in bloc:
             f.write(f"L|{loc}\n")
-    zloc = [BASE + i for i in range(10)] + [BASE + 100 + 5 * i for i in range(20)] + [BASE + 250 + i for i in range(18)]
+    zloc = [BASE + i for i in range(10)] + [BASE + 100 + 5 * i for i in range(20)] + [BASE + 250 + i for i in range(18)] + LOCKED
     with open(zd / "ap_out.txt", "a") as f:
         for loc in zloc:
             f.write(f"L|{loc}\n")
-    n_z = wait_for(lambda: len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]) == 48 and 48)
-    n_b = wait_for(lambda: len([l for l in read(bd / "ap_in.txt").splitlines() if l.startswith("I|")]) == 48 and 48)
-    check("after all 96 locations checked each slot receives its 48 items", n_z == 48 and n_b == 48,
+    n_z = wait_for(lambda: len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]) == 128 and 128)
+    n_b = wait_for(lambda: len([l for l in read(bd / "ap_in.txt").splitlines() if l.startswith("I|")]) == 128 and 128)
+    check("after all 256 locations checked each slot receives its 128 items", n_z == 128 and n_b == 128,
           f"z={len(read(zd/'ap_in.txt').splitlines())} b={len(read(bd/'ap_in.txt').splitlines())}")
     zi = [l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]
     hb1 = wait_for(lambda: read(zd / "ap_heartbeat.txt"))
@@ -157,8 +158,8 @@ try:
     zc.kill(); zc.wait()
     (zd / "ap_in.txt").unlink()
     zc = start_client("Zari", zd, tmp / "zari2.log")
-    again = wait_for(lambda: len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]) == 48 and 1)
-    check("reconnect rewrites FULL ap_in.txt (48 items)", again)
+    again = wait_for(lambda: len([l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]) == 128 and 1)
+    check("reconnect rewrites FULL ap_in.txt (128 items)", again)
     time.sleep(2)
     log2 = read(tmp / "zari2.log")
     check("reconnect: same seed not treated as new seed", "belonged to another multiworld" not in log2)

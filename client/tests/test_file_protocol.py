@@ -129,8 +129,8 @@ class ConfigTests(unittest.TestCase):
             t = fp.render_config({"death_link": 1, "floor_checks": opt, "base_id": 38470000})
             self.assertIn(f"floor_check_step={step}", t)
         t = fp.render_config({"death_link": 0, "floor_checks": 0, "base_id": 38470000})
-        self.assertEqual(t, "[ap]\ndeath_link=0\nfloor_check_step=1\nchest_checks=0\nbase_id=38470000\n")
-        self.assertIn("chest_checks=3", fp.render_config({"floor_checks": 4, "chest_checks": 3, "base_id": 1}))
+        self.assertEqual(t, "[ap]\ndeath_link=0\nfloor_check_step=1\nbase_id=38470000\n")
+        self.assertIn("floor_check_step=2", fp.render_config({"floor_checks": 4, "chest_checks": 3, "base_id": 1}))
 
     def test_write_config_idempotent(self):
         d = Path(tempfile.mkdtemp())

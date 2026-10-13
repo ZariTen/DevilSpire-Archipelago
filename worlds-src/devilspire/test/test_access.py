@@ -32,14 +32,15 @@ class TestTemplate(DevilSpireTestBase):
 class TestFloorChecksDefault(DevilSpireTestBase):
     def test_counts(self) -> None:
         locs = [l for l in self.multiworld.get_locations(1) if l.address is not None]
-        # 50 floors (every 2nd) + 10 bosses + 30 chests (3 per band) + 18 shop stands
-        self.assertEqual(len(locs), 108)
-        self.assertEqual(len(self.multiworld.itempool), 108)
+        # 50 floors (every 2nd) + 10 bosses + 80 locked chests + 18 shop stands
+        self.assertEqual(len(locs), 158)
+        self.assertEqual(len(self.multiworld.itempool), 158)
         names = {l.name for l in locs}
         self.assertIn("Reach Floor -99", names)
         self.assertNotIn("Reach Floor -100", names)
-        self.assertIn("Chest (Floors -91 to -100) #3", names)
-        self.assertNotIn("Chest (Floors -1 to -10) #4", names)
+        self.assertIn("Locked Chest Floor -98", names)
+        for n in (9, 10, 99, 100):   # boss, shop, gauntlet, goal floors have none
+            self.assertNotIn(f"Locked Chest Floor -{n}", names)
         self.assertIn("Shop Floor -90 #2", names)
         self.assertNotIn("Shop Floor -100 #1", names)
 
@@ -66,10 +67,9 @@ class TestFloorChecksDefault(DevilSpireTestBase):
 
     def test_classifications(self) -> None:
         pool = [i.name for i in self.multiworld.itempool]
-        # 108 locations: the 110 template minus 2 FILLER (filler is trimmed first); all useful/progressive kept
-        missing = Counter(POOL_TEMPLATE) - Counter(pool)
-        self.assertEqual(sum(missing.values()), 2)
-        self.assertFalse([n for n in missing if ITEM_TABLE[n].classification != F])
+        # 158 locations: the full 110 template + 48 filler
+        self.assertFalse(Counter(POOL_TEMPLATE) - Counter(pool))
+        self.assertEqual(len(pool), 158)
         self.assertEqual(len(self.get_items_by_name("Orb of Vitality")), 7)
 
 
@@ -78,9 +78,9 @@ class TestTraps(DevilSpireTestBase):
 
     def test_traps_replace_filler(self) -> None:
         pool = self.multiworld.itempool
-        self.assertEqual(len(pool), 158)   # 100 floors + 10 bosses + 30 chests + 18 shops: template + 48 filler
+        self.assertEqual(len(pool), 208)   # 100 floors + 10 bosses + 80 locked chests + 18 shops
         self.assertEqual(sum(1 for i in pool if i.classification == T),
-                         158 - sum(1 for n in POOL_TEMPLATE if ITEM_TABLE[n].classification != F))
+                         208 - sum(1 for n in POOL_TEMPLATE if ITEM_TABLE[n].classification != F))
         self.assertBeatable(True)
 
 
@@ -88,8 +88,8 @@ class TestFloorChecks5(DevilSpireTestBase):
     options = {"floor_checks": "every_5th"}
 
     def test_counts(self) -> None:
-        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 78)
-        self.assertEqual(len(self.multiworld.itempool), 78)
+        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 128)
+        self.assertEqual(len(self.multiworld.itempool), 128)
         names = [l.name for l in self.multiworld.get_locations(1)]
         self.assertIn("Reach Floor -1", names)
         self.assertIn("Reach Floor -6", names)
@@ -100,8 +100,8 @@ class TestFloorChecks10(DevilSpireTestBase):
     options = {"floor_checks": "every_10th"}
 
     def test_counts(self) -> None:
-        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 68)
-        self.assertEqual(len(self.multiworld.itempool), 68)
+        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 118)
+        self.assertEqual(len(self.multiworld.itempool), 118)
         names = [l.name for l in self.multiworld.get_locations(1)]
         self.assertIn("Reach Floor -11", names)
         self.assertNotIn("Reach Floor -10", names)
@@ -112,8 +112,13 @@ class TestFloorChecksOff(DevilSpireTestBase):
     options = {"floor_checks": "off"}
 
     def test_counts(self) -> None:
-        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 58)
-        self.assertEqual(len(self.multiworld.itempool), 58)
+        self.assertEqual(len([l for l in self.multiworld.get_locations(1) if l.address]), 108)
+        pool = [i.name for i in self.multiworld.itempool]
+        self.assertEqual(len(pool), 108)
+        # 108 < 110: the template minus 2 FILLER (filler is trimmed first); all useful/progressive kept
+        missing = Counter(POOL_TEMPLATE) - Counter(pool)
+        self.assertEqual(sum(missing.values()), 2)
+        self.assertFalse([n for n in missing if ITEM_TABLE[n].classification != F])
 
 
 class TestSlotData(DevilSpireTestBase):
@@ -129,27 +134,12 @@ class TestSlotData(DevilSpireTestBase):
         self.assertNotIn("starting_depth", sd)
 
 
-class TestChestChecks(DevilSpireTestBase):
-    options = {"chest_checks": 0, "floor_checks": "off"}
-
-    def test_off(self) -> None:
-        locs = [l for l in self.multiworld.get_locations(1) if l.address]
-        self.assertEqual(len(locs), 28)   # 10 bosses + 18 shops
-        pool = [i.name for i in self.multiworld.itempool]
-        # trimmed to 28: filler first, then useful; the 27 progressive copies stay
-        self.assertEqual(sum(1 for n in pool if ITEM_TABLE[n].classification == P), 27)
-        self.assertBeatable(True)
-
-
-class TestChestChecks5(DevilSpireTestBase):
-    options = {"chest_checks": 5}
-
+class TestLockedChestIds(DevilSpireTestBase):
     def test_ids(self) -> None:
         names = {l.name: l.address for l in self.multiworld.get_locations(1) if l.address}
-        self.assertEqual(len(names), 128)
-        self.assertEqual(names["Chest (Floors -1 to -10) #1"], 38_470_200)
-        self.assertEqual(names["Chest (Floors -91 to -100) #5"], 38_470_249)
+        self.assertEqual(len([n for n in names if n.startswith("Locked Chest")]), 80)
+        self.assertEqual(names["Locked Chest Floor -1"], 38_470_301)
+        self.assertEqual(names["Locked Chest Floor -98"], 38_470_398)
         self.assertEqual(names["Shop Floor -10 #1"], 38_470_250)
         self.assertEqual(names["Shop Floor -90 #2"], 38_470_267)
-        sd = self.world.fill_slot_data()
-        self.assertEqual(sd["chest_checks"], 5)
+        self.assertNotIn("chest_checks", self.world.fill_slot_data())

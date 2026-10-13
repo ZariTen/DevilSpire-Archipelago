@@ -17,7 +17,7 @@ string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
     "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room", "ap_copies",
-    "ap_save_checks", "ap_load_checks", "ap_chest_check", "ap_shop_setup", "ap_make_apitem", "ap_shop_item", "ap_heartbeat" };
+    "ap_save_checks", "ap_load_checks", "ap_lock_setup", "ap_shop_setup", "ap_make_apitem", "ap_shop_item", "ap_heartbeat" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
@@ -145,12 +145,12 @@ Edit("gml_Object_obj_logo_Draw_64", @"(draw_sprite_part_ext\(spr_title, [^;]*\);
 // leaving the camp forfeits untaken camp ground items (before next_floor changes global.level)
 group.QueuePrepend(Data.Code.ByName("gml_Script_next_floor"), "ap_leave_room();");
 
-// (o) chest checks: each chest counts once (opened, or used when pre-opened); shop checks: 2 stands on shop floors
-group.QueuePrepend(Data.Code.ByName("gml_Object_obj_chest_Create_0"), "ap_counted = 0;");
+// (o) locked chest checks: one locked chest per eligible floor holds the Archipelago Item (ap_lock_setup, right before
+// the player is created at the end of normal floor generation); shop checks: 2 stands on shop floors
+Edit("gml_Object_obj_dungeoncreator_Step_0",
+     @"(with \(instance_create\(0, 0, obj_player\)\)\s*\{\s*mode = other\.mode;\s*dungeon = other\.dungeon;\s*level = other\.level;\s*tip = other\.tip;\s*facing = other\.image_angle \+ 180;)",
+     "ap_lock_setup();\n$1", "AP locked chest");
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_shop_Create_0"), "ap_shop = -1;");
-Edit("gml_Script_interact", @"steam_increase_stat\(""sta_chests"", 1\);", "steam_increase_stat(\"sta_chests\", 1);\nap_chest_check();", "chest check on open");
-Edit("gml_Script_interact", @"else if \(open == 90\)(\s*)\{(\s*)if \(argument0 == 0 \|\| other\.monster\)",
-     "else if (open == 90)$1{\nap_chest_check();$2if (argument0 == 0 || other.monster)", "chest check on pre-opened chest");
 Edit("gml_Object_obj_dungeoncreator_Step_0", @"instance_create\(x \+ 40, y \+ 20, obj_shop\);", "instance_create(x + 40, y + 20, obj_shop);\nap_shop_setup();", "AP shop stands");
 group.QueuePrepend(Data.Code.ByName("gml_Script_get_item"),
     "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nreturn ap_shop_item(argument0);\n}\n}\n}");

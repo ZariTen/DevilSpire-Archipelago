@@ -21,8 +21,8 @@ It keeps a backup of the original file (`data.win.orig`).
 3. Choose *New Game* and make a character. The only mode is **Archipelago**.
 4. At the camp you get your items. Stat boosts, gold, stones and spells go straight to you.
    Equipment, rings and potions lie on the ground around you. Pick up what you want.
-5. Go down the tower. Checks: every 2nd floor, bosses, the first chests you open in each 10 floors (3 by default),
-   and the **Archipelago Item** (orb icon, 150 gold) on 2 stands of the shops on floors -10, -20, ... -90.
+5. Go down the tower. Checks: every 2nd floor, bosses, one **locked chest** per floor (the key is on the floor; not on
+   boss or shop floors), and the **Archipelago Item** (orb icon, 150 gold) on 2 stands of the shops on floors -10, -20, ... -90.
    Checks you already sent don't come back, so a new run is about exploring deeper.
 6. Beat the boss on floor -100 to win.
 

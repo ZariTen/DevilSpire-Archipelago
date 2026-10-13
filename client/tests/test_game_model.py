@@ -196,20 +196,20 @@ class CheckTests(unittest.TestCase):
     def out(self):
         return [l.split("|")[1] for l in (self.d / "ap_out.txt").read_text().splitlines() if l.startswith("L|")]
 
-    def test_chests_per_band_cumulative_once_each(self):
+    def test_locked_chest_per_floor_once(self):
         self.g.start(); self.g.new_run(); self.g.poll(); self.g.goto("dungeon", -3)
-        self.assertTrue(self.g.open_chest(1))
-        self.assertFalse(self.g.open_chest(1))                 # same chest again (open, then take): once
-        self.assertFalse(self.g.open_chest(2, mimic=True))     # mimics never count
-        self.assertTrue(self.g.open_chest(3))
-        self.g.goto("dungeon", -7)                  # another floor, same band
-        self.assertTrue(self.g.open_chest(1))
-        self.assertFalse(self.g.open_chest(2))                 # band cap (3) reached
-        self.g.quit(); self.g.start(); self.g.poll(); self.g.goto("dungeon", -12)
-        self.assertTrue(self.g.open_chest(1))                  # next band; counters survive restarts
+        self.assertTrue(self.g.take_locked_ap())
+        self.assertFalse(self.g.take_locked_ap())               # once per floor
+        for n in (9, 10, 99, 100):                              # boss, shop, gauntlet, goal floors: none
+            self.g.goto("dungeon", -n)
+            self.assertFalse(self.g.locked_ap_chest())
         self.g.goto("dungeon", 0.5)
-        self.assertFalse(self.g.open_chest(9))                 # camp chests never count
-        self.assertEqual(self.out(), ["38470200", "38470201", "38470202", "38470205"])
+        self.assertFalse(self.g.locked_ap_chest())              # camp: none
+        self.g.die(); self.g.new_run(); self.g.goto("dungeon", -3)
+        self.assertFalse(self.g.locked_ap_chest())              # sent: a normal locked chest in later runs
+        self.g.quit(); self.g.start(); self.g.poll(); self.g.goto("dungeon", -98)
+        self.assertTrue(self.g.take_locked_ap())                # flags survive restarts
+        self.assertEqual(self.out(), ["38470303", "38470398"])
 
     def test_shop_slots_fixed_and_once(self):
         self.g.start(); self.g.new_run(); self.g.poll()
@@ -224,16 +224,15 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(self.g.shop_stands(), [])
         self.assertEqual(self.out(), ["38470253"])
 
-    def test_chest_checks_off_and_slot_switch_resets(self):
-        (self.d / "ap_config.ini").write_text(f"[ap]\nchest_checks=0\nslot_id={SLOT}\n")
-        self.g.start(); self.g.goto("dungeon", -1)
-        self.assertFalse(self.g.open_chest(1))
-        (self.d / "ap_checks.txt").write_text("3,0,0,0,0,0,0,0,0,0\n" + "1" * 18 + "\nother:0:9\n")
-        (self.d / "ap_config.ini").write_text(f"[ap]\nchest_checks=3\nslot_id={SLOT}\n")
-        self.g.quit(); self.g.start(); self.g.goto("dungeon", -2)
-        self.assertTrue(self.g.open_chest(1))                  # other slot's file is not trusted
+    def test_slot_switch_and_old_format_reset(self):
+        (self.d / "ap_checks.txt").write_text("1" * 99 + "\n" + "1" * 18 + "\nother:0:9\n")
+        self.g.start(); self.g.goto("dungeon", -2)
+        self.assertTrue(self.g.locked_ap_chest())               # other slot's file is not trusted
         self.g.goto("dungeon", -10)
         self.assertEqual(self.g.shop_stands(), [0, 1])
+        (self.d / "ap_checks.txt").write_text("3,0,0,0,0,0,0,0,0,0\n" + "0" * 18 + f"\n{SLOT}\n")
+        self.g.quit(); self.g.start(); self.g.goto("dungeon", -1)
+        self.assertTrue(self.g.locked_ap_chest())               # old per-band line: reset, no crash
 
 
 class Utf8PathTests(unittest.TestCase):

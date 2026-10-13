@@ -52,7 +52,7 @@ Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine c
 | Plague Trap | 1 random body + 1 random mind ailment | add to ailment timers | Mild | Opt (trap) | V |
 | Pickpocket Trap | lose half the carried gold | halve `count` of gold stacks | Mild | Opt (trap) | V |
 
-## Final pool (110-item template; default locations: 50 floors + 10 bosses + 30 chests + 18 shops = 108)
+## Final pool (110-item template; default locations: 50 floors + 10 bosses + 80 locked chests + 18 shops = 158; more than 110 = filler added, fewer = filler trimmed first)
 Progression (27, gate nothing - logic stays open): Progressive Weapon 7, Armor 7, Shield 3, Accessory 4, Spellbook 6.
 Useful (27): Orb of Strength 5, Intelligence 5, Vitality 7, Agility 5, Stat Point 5.
 Filler (56): Yellow Orb (Gold) 16, Gold Hoard 4, Blue Orb (Stone) 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Mystic Ring 3.

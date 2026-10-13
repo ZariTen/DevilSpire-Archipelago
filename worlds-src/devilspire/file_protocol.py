@@ -115,7 +115,6 @@ def render_config(slot_data: Mapping, poll_frames: Optional[int] = None, slot_id
     lines = ["[ap]",
              f"death_link={1 if slot_data.get('death_link') else 0}",
              f"floor_check_step={floor_step(slot_data.get('floor_checks', 0))}",
-             f"chest_checks={int(slot_data.get('chest_checks', 0))}",
              f"base_id={int(slot_data['base_id'])}"]
     if poll_frames:
         lines.append(f"poll_frames={int(poll_frames)}")

@@ -37,10 +37,12 @@
 - Commit: `ap_granted.txt` is only written next to the character save (`next_floor`, camp after granting, new run,
   death). Quit + Continue rolls back both together: nothing lost, nothing doubled. Mid-floor progress is lost like vanilla.
 
-## Chest and shop checks
-- Chests (`ap_chest_check`, from `interact`): when the player opens a chest, or uses one that was generated open.
-  Once per chest (`ap_counted`); mimics (`obj_skullcrab` inside) and camp chests don't count. Up to `chest_checks`
-  (ap_config, 0-5) per 10-floor band, cumulative over runs.
+## Locked chest and shop checks
+- Locked chests (`ap_lock_setup`, end of floor generation): vanilla locks ~1 in 10 chests (always with a key on the
+  floor). On floors -1..-98 except boss (N mod 10 = 9) and shop floors (N mod 10 = 0), while "Locked Chest Floor -N" is
+  unsent, one locked chest holds the Archipelago Item. If the floor has no locked chest, one chest is locked and gets a
+  key like vanilla; with no chest at all, one is placed in a room. Taking the item sends the check (`ap_shop_item`).
+  Normal chests are vanilla.
 - Shops: Descent shop floors are |floor| mod 10 == 0 without a boss (-10..-90). `ap_shop_setup` runs after the
   8 stands are created and puts an "Archipelago Item" (obj_misc type 77, `ap_make_apitem`) on up to 2 stands, one per
   unsent check, price 150. `get_item` sends the check for it (`ap_shop_item`), so buying and stealing both work.
@@ -55,7 +57,6 @@ Text files, one record per line, fields split by `|`.
 [ap]
 death_link=1
 floor_check_step=2      ; 1, 2, 5, 10, or 0 = off (floor N counts if (N-1) mod step == 0)
-chest_checks=3          ; chest checks per 10-floor band (0 = off)
 base_id=38470000
 slot_id=<seed>:<team>:<slot>
 ```
@@ -76,7 +77,7 @@ slot_id=<seed>:<team>:<slot>
 Game-private: `ap_granted.txt` (items processed for the current run, `-1` = no run; line 2 = slot_id; line 3 = ground indexes `i,j,k`),
 `ap_souls_granted.txt` (souls are granted once per slot; line 2 = slot_id),
 `ap_heartbeat.txt` (`counter|slot_id|name`, rewritten by the client every 3 s while connected and synced; the game counts it as connected if it changed in the last 10 s, and gives no items until it has changed once this session),
-`ap_checks.txt` (chest checks sent per band `c0,..,c9`; 18 shop flags; slot_id; cumulative per slot, reset by the client on a seed switch).
+`ap_checks.txt` (99 locked-chest flags, floor -1..-99; 18 shop flags; slot_id; cumulative per slot, reset by the client on a seed switch).
 
 ## Multiworld switch
 - First connection for a save folder: existing files are kept and offline checks are sent.

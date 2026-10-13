@@ -1,6 +1,6 @@
 """Python model of the patched game's file side (mirrors patch/gml: ap_init, ap_read_config, ap_slot_check, ap_poll,
 ap_emit, ap_new_run, ap_grant_pending, ap_drop_spawn, ap_drop_taken, ap_save_granted, ap_death_send,
-ap_chest_check, ap_shop_setup, ap_shop_item, ap_load_checks/ap_save_checks). Used by the e2e tests.
+ap_lock_setup, ap_shop_setup, ap_shop_item, ap_load_checks/ap_save_checks). Used by the e2e tests.
 
 Items: weightless ones are applied when processed; weighted ones (ap_item_weighted.gml) go to `drops` and lie on the
 ground (at most 60 at once) until picked up. Run state and the character are only written together (commit = save_game +
@@ -51,42 +51,40 @@ class FakeGame:
         if txt is None:
             return ""
         kv = dict(l.split("=", 1) for l in txt.splitlines() if "=" in l)
-        if _digits(kv.get("chest_checks", "")):
-            self.chest_n = int(_digits(kv["chest_checks"]))
         return kv.get("slot_id", "")
 
-    # --- chest / shop checks (ap_checks.txt: chest counts per band, 18 shop flags, slot)
+    # --- locked chest / shop checks (ap_checks.txt: 99 locked-chest flags, 18 shop flags, slot)
     def save_checks(self):
         (self.d / "ap_checks.txt").write_text(
-            f"{','.join(map(str, self.chest_cnt))}\n{''.join('1' if s else '0' for s in self.shop_sent)}\n{self.slot_id}\n")
+            f"{''.join('1' if s else '0' for s in self.lock_sent)}\n{''.join('1' if s else '0' for s in self.shop_sent)}\n{self.slot_id}\n")
 
     def load_checks(self, cfg):
-        self.chest_cnt, self.shop_sent = [0] * 10, [False] * 18
+        self.lock_sent, self.shop_sent = [False] * 99, [False] * 18
         txt = self._read("ap_checks.txt")
         if txt is None:
             return
         l = txt.splitlines() + ["", "", ""]
         if cfg and l[2] and l[2] != cfg:
             return
-        for b, t in enumerate(l[0].split(",")[:10]):
-            if _digits(t):
-                self.chest_cnt[b] = int(_digits(t))
+        if len(l[0]) == 99 and set(l[0]) <= {"0", "1"}:   # an older line 1 (chest counts per band) is reset
+            self.lock_sent = [c == "1" for c in l[0]]
         if len(l[1]) == 18 and set(l[1]) <= {"0", "1"}:
             self.shop_sent = [c == "1" for c in l[1]]
 
-    def open_chest(self, chest, mimic=False):
-        """ap_chest_check: `chest` identifies the chest on the current floor visit (counted once)."""
-        key = (self.visit, chest)
-        if key in self.counted or self.level >= 0 or self.stale or self.chest_n <= 0 or mimic:
+    def locked_ap_chest(self):
+        """ap_lock_setup: True if this floor's (forced) locked chest holds the Archipelago Item"""
+        n = -int(self.level) if self.level < 0 else 0
+        return (not self.stale and 1 <= n <= 98 and n % 10 not in (0, 9) and not self.lock_sent[n - 1])
+
+    def take_locked_ap(self):
+        """unlock the chest with the floor key and take the Archipelago Item (ap_shop_item, ap_loc 1000 + N)"""
+        if not self.locked_ap_chest():
             return False
-        self.counted.add(key)
-        band = min(9, (-int(self.level) - 1) // 10)
-        if self.chest_cnt[band] < min(self.chest_n, 5):
-            self.emit(f"L|{BASE + 200 + band * 5 + self.chest_cnt[band]}")
-            self.chest_cnt[band] += 1
-            self.save_checks()
-            return True
-        return False
+        n = -int(self.level)
+        self.emit(f"L|{BASE + 300 + n}")
+        self.lock_sent[n - 1] = True
+        self.save_checks()
+        return True
 
     def shop_stands(self):
         """ap_shop_setup: shop slots (0..17) offered as Archipelago Items on the current floor"""
@@ -130,7 +128,7 @@ class FakeGame:
     def start(self):
         self.d.mkdir(parents=True, exist_ok=True)
         self.running, self.stale, self.n, self.items = True, False, 0, []
-        self.chest_n, self.visit, self.counted = 3, 0, set()
+        self.visit = 0
         self.hb_val, self.hb_seen = self._read("ap_heartbeat.txt"), not self.require_heartbeat
         cfg = self._config()
         self.slot_id = cfg
@@ -154,7 +152,7 @@ class FakeGame:
         self.load_checks(cfg)
         self.save_checks()
         self.dl_init, self.dl_seq, self.room, self.level, self.alive, self.deaths = False, 0, "title", 0, True, []
-        self.emit("S|7|patch started")
+        self.emit("S|8|patch started")
 
     def quit(self):
         self.running = False

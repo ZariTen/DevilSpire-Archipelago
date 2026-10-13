@@ -4,7 +4,6 @@ global.ap_stale = 0;
 global.ap_slot_id = "";
 global.ap_deathlink = 0;
 global.ap_floor_step = 2;
-global.ap_chest_n = 3;
 global.ap_base = 38470000;
 global.ap_poll_frames = 30;
 var cfgslot = ap_read_config();
@@ -132,4 +131,4 @@ if (global.ap_granted < 0)
 ap_load_checks(cfgslot);
 ap_save_checks();
 ap_save_granted();
-ap_emit("S|7|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match
+ap_emit("S|8|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match
