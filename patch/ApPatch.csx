@@ -17,7 +17,7 @@ string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
     "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room", "ap_copies",
-    "ap_save_checks", "ap_load_checks", "ap_chest_check", "ap_shop_setup", "ap_make_apitem", "ap_shop_item" };
+    "ap_save_checks", "ap_load_checks", "ap_chest_check", "ap_shop_setup", "ap_make_apitem", "ap_shop_item", "ap_heartbeat" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
@@ -131,6 +131,8 @@ group.QueueAppend(Data.Code.ByName("gml_Object_obj_title_Draw_64"),
     "var ap_c = draw_get_colour();\nvar ap_a = draw_get_alpha();\n" +
     "draw_set_font(fnt_text);\ndraw_set_halign(fa_left);\ndraw_set_valign(fa_top);\ndraw_set_colour(c_white);\ndraw_set_alpha(0.45);\n" +
     "draw_text(16, 12, \"" + modLabel + "\");\n" +
+    "if (variable_global_exists(\"ap_connected\"))\n{\nif (global.ap_connected)\n{\ndraw_text(16, 40, \"Connected: \" + global.ap_hb_name);\n}\nelse\n{\n" +
+    "draw_set_alpha(0.95);\ndraw_set_colour(make_colour_rgb(255, 128, 48));\ndraw_text(16, 40, \"Client not connected\");\n}\n}\n" +
     "draw_set_alpha(ap_a);\ndraw_set_colour(ap_c);\ndraw_set_halign(fa_center);\ndraw_set_valign(fa_middle);\ndraw_set_font(fnt_large);");
 
 // (m) "Archipelago" subtitle under the title logo (main page only, once the burn-in reveal is complete):

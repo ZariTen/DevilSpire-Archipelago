@@ -64,6 +64,7 @@ If you join a **different multiworld**, the client moves your old Archipelago ch
 - **"UNPATCHED Devil Spire is being played":** close the game, run `/auto_patch`, start it again.
 - **Which mod version do I have?** The title screen shows it in the top-left corner, e.g. `Archipelago v0.1.0 (64a9604)`. `/status` shows the same text. If they differ, run `/auto_patch`.
 - **Items don't arrive:** check the client is connected (`/status`). Items come while you are in the camp or the tower (not in menus).
+- **"Client not connected" on the title screen:** start the client and connect first. You can still play, but no items are given until the client has connected once this session.
 - **Save folder not found:** start the game once, then check `/status`. Set it by hand with `/savedir <path>`.
 - **Permission error:** close the game. On Windows, the client may need to run as administrator.
 - **Non-English Windows user name** (e.g. `José`): not tested. If your normal saves work, this should too.

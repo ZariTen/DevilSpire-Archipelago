@@ -30,8 +30,9 @@ def _digits(s):
 
 
 class FakeGame:
-    def __init__(self, save_dir: Path):
+    def __init__(self, save_dir: Path, require_heartbeat: bool = False):
         self.d = Path(save_dir)
+        self.require_heartbeat = require_heartbeat   # ap_heartbeat: no item grants until the client was seen alive
         self.running = False
         self.char_items: list[int] = []   # items applied to the live character
         self.saved_char: list[int] = []   # character as last saved (Continue restores it)
@@ -130,6 +131,7 @@ class FakeGame:
         self.d.mkdir(parents=True, exist_ok=True)
         self.running, self.stale, self.n, self.items = True, False, 0, []
         self.chest_n, self.visit, self.counted = 3, 0, set()
+        self.hb_val, self.hb_seen = self._read("ap_heartbeat.txt"), not self.require_heartbeat
         cfg = self._config()
         self.slot_id = cfg
         self.granted, gslot, self.drops, self.ground = -1, "", [], []
@@ -152,7 +154,7 @@ class FakeGame:
         self.load_checks(cfg)
         self.save_checks()
         self.dl_init, self.dl_seq, self.room, self.level, self.alive, self.deaths = False, 0, "title", 0, True, []
-        self.emit("S|6|patch started")
+        self.emit("S|7|patch started")
 
     def quit(self):
         self.running = False
@@ -161,6 +163,9 @@ class FakeGame:
         if not self.running:
             return
         cfg = self._config()
+        hb = self._read("ap_heartbeat.txt")
+        if hb and hb != self.hb_val:      # changed since the game started (a leftover file doesn't count)
+            self.hb_val, self.hb_seen = hb, True
         if cfg and cfg != self.slot_id and not self.stale:
             if self.slot_id == "":
                 self.slot_id = cfg
@@ -203,7 +208,7 @@ class FakeGame:
     def grant_tick(self):
         """one ap_poll item step (player alive in the dungeon): process up to 100 items, commit at the camp,
         spawn missing ground items. Returns the number of items processed."""
-        if self.stale or self.granted < 0 or self.room != "dungeon" or not self.alive:
+        if self.stale or self.granted < 0 or self.room != "dungeon" or not self.alive or not self.hb_seen:
             return 0
         cnt = 0
         while self.granted < self.n and cnt < 100:   # batch limit as in ap_grant_pending.gml

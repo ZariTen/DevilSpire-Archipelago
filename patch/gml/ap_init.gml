@@ -22,6 +22,13 @@ global.ap_cur = 0;
 global.ap_tmp = 0;
 global.ap_cnt = 0;
 global.ap_dcnt = 0;
+global.ap_hb_init = 0;
+global.ap_hb_val = "";
+global.ap_hb_time = -1;
+global.ap_hb_name = "";
+global.ap_hb_seen = 0;
+global.ap_hb_warned = 0;
+global.ap_connected = 0;
 // weighted items of the current run still waiting on the ground (received-item indexes) and their live obj_droppeditem
 global.ap_drops = ds_list_create();
 global.ap_drop_inst = ds_map_create();
@@ -125,4 +132,4 @@ if (global.ap_granted < 0)
 ap_load_checks(cfgslot);
 ap_save_checks();
 ap_save_granted();
-ap_emit("S|6|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match
+ap_emit("S|7|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match

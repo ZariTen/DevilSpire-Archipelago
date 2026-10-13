@@ -106,7 +106,9 @@ class Client:
 
 
 def open_all(g):
-    """let the game hand out everything at the camp (weightless direct, weighted picked up from the ground)"""
+    """let the game hand out everything at the camp (weightless direct, weighted picked up from the ground).
+    Items only come once the game saw a fresh client heartbeat (ap_heartbeat.txt changed since it started)."""
+    wait_for(lambda: (g.poll(), g.hb_seen)[1], 8)
     return g.collect_all()
 
 
@@ -121,7 +123,7 @@ try:
     srvA = start_server(mdA, portA, tmp / "serverA.log")
     zd, bd = tmp / "zari", tmp / "buddy"
     bd.mkdir()
-    game = FakeGame(zd)
+    game = FakeGame(zd, require_heartbeat=True)
 
     # 1. played before the client ever connected (the real first-install situation)
     game.start()
@@ -202,9 +204,9 @@ try:
     check("server registered the goal", wait_for(lambda: "goal" in read(tmp / "serverA.log").lower()))
     check("old patch protocol in ap_out is warned", wait_for(lambda: "patch protocol 1" in read(zc.log)))
     game.quit(); game.start()
-    check("warning clears after the patched game restarts (S|6)",
+    check("warning clears after the patched game restarts (S|7)",
           wait_for(lambda: read(zc.log).count("patch protocol") == 1 and zc.checked() is not None))
-    game.emit("S|6|Archipelago v0.0.0 (0000000)")
+    game.emit("S|7|Archipelago v0.0.0 (0000000)")
     check("other mod version in the running game is warned",
           wait_for(lambda: "running game is Archipelago v0.0.0 (0000000)" in read(zc.log)))
     check("/status shows both mod versions", wait_for(lambda: zc.status() and re.search(

@@ -155,6 +155,20 @@ class GameModelTests(unittest.TestCase):
         self.assertEqual(self.g.collect_all(), 0)
 
 
+class HeartbeatTests(unittest.TestCase):
+    def test_no_grants_until_client_alive(self):
+        d = Path(tempfile.mkdtemp())
+        setup(d, 3)
+        (d / "ap_heartbeat.txt").write_text("1|old:0:1|Zari\n")      # left behind by a closed client
+        g = FakeGame(d, require_heartbeat=True)
+        g.start(); g.new_run(); g.poll(); g.goto("dungeon", 0.5)
+        self.assertEqual(g.grant_tick(), 0)
+        g.check(38470100)                                             # checks still recorded offline
+        (d / "ap_heartbeat.txt").write_text("2|seed1:0:1|Zari\n")    # client connected
+        g.poll()
+        self.assertEqual(g.grant_tick(), 3)
+
+
 class CheckTests(unittest.TestCase):
     def setUp(self):
         self.d = Path(tempfile.mkdtemp())

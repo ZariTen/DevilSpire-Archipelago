@@ -10,6 +10,7 @@ if (global.ap_tick < global.ap_poll_frames)
 }
 global.ap_tick = 0;
 ap_slot_check(ap_read_config());
+ap_heartbeat();
 if (!global.ap_stale && file_exists("ap_in.txt"))
 {
     var f = file_text_open_read("ap_in.txt");
@@ -119,6 +120,19 @@ if (!global.ap_stale && global.mode == 1 && room == rom_dungeon && instance_exis
                 text = "DeathLink: " + global.ap_dl_text;
             }
             obj_player.hp = 0;
+        }
+        else if (!global.ap_hb_seen)
+        {
+            // client not connected yet this session: ap_in.txt / ap_config.ini may still be from an older seed, so no
+            // items are handed out (checks are still recorded and sent later)
+            if (!global.ap_hb_warned)
+            {
+                global.ap_hb_warned = 1;
+                with (instance_create(0, 0, obj_message))
+                {
+                    text = "Archipelago: client not connected - items arrive once it connects";
+                }
+            }
         }
         else if (global.ap_granted >= 0 && !instance_exists(obj_dungeoncreator))
         {

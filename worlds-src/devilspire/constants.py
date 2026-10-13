@@ -22,4 +22,4 @@ ITEM_OFFSET = 500
 NUM_FLOORS = 100  # Descent floors -1 .. -100 (-100 = Rhamdon / goal floor)
 NUM_TIERS = 10  # floor tiers of 10 floors each (regions for readability only; NO gating): tier 0 = floors -1..-10, ... tier 9 = floors -91..-100
 
-PATCH_PROTOCOL = 6  # must match ap_init.gml "S|<n>|patch started"; bump together with GML changes
+PATCH_PROTOCOL = 7  # must match ap_init.gml "S|<n>|patch started"; bump together with GML changes

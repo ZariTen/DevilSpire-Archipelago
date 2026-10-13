@@ -123,6 +123,9 @@ try:
     check("after all 96 locations checked each slot receives its 48 items", n_z == 48 and n_b == 48,
           f"z={len(read(zd/'ap_in.txt').splitlines())} b={len(read(bd/'ap_in.txt').splitlines())}")
     zi = [l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")]
+    hb1 = wait_for(lambda: read(zd / "ap_heartbeat.txt"))
+    check("heartbeat written with slot + name", hb1.rstrip().endswith("|Zari") and "|" in hb1, repr(hb1))
+    check("heartbeat keeps changing", wait_for(lambda: read(zd / "ap_heartbeat.txt") not in ("", hb1), 8))
     check("item names resolved (no numeric fallback)", all(not l.split("|")[3].startswith("Item ") for l in zi), zi[:2])
     check("sender names resolved", {l.split("|")[4] for l in zi} <= {"Zari", "Buddy"})
     # DeathLink: Zari dies -> Buddy's ap_in gets D line, Zari's does not

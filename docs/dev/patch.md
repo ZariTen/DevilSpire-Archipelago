@@ -75,6 +75,7 @@ slot_id=<seed>:<team>:<slot>
 
 Game-private: `ap_granted.txt` (items processed for the current run, `-1` = no run; line 2 = slot_id; line 3 = ground indexes `i,j,k`),
 `ap_souls_granted.txt` (souls are granted once per slot; line 2 = slot_id),
+`ap_heartbeat.txt` (`counter|slot_id|name`, rewritten by the client every 3 s while connected and synced; the game counts it as connected if it changed in the last 10 s, and gives no items until it has changed once this session),
 `ap_checks.txt` (chest checks sent per band `c0,..,c9`; 18 shop flags; slot_id; cumulative per slot, reset by the client on a seed switch).
 
 ## Multiworld switch

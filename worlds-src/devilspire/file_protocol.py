@@ -102,6 +102,15 @@ def floor_step(floor_checks: int) -> int:
     return FLOOR_STEP_BY_OPTION.get(int(floor_checks), 1)
 
 
+HEARTBEAT_FILE = "ap_heartbeat.txt"
+
+
+def write_heartbeat(save_dir: Path, counter: int, slot_id: str, name: str) -> None:
+    """Liveness for the game (title "Client not connected" warning; no item grants before it): rewritten every few
+    seconds while connected with the server's item list. The game treats it as stale ~10 s after the last change."""
+    atomic_write_text(Path(save_dir) / HEARTBEAT_FILE, f"{int(counter)}|{clean_field(slot_id)}|{clean_field(name)}\n")
+
+
 def render_config(slot_data: Mapping, poll_frames: Optional[int] = None, slot_id: Optional[str] = None) -> str:
     lines = ["[ap]",
              f"death_link={1 if slot_data.get('death_link') else 0}",

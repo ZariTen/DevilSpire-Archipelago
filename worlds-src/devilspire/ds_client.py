@@ -9,6 +9,7 @@ import asyncio
 import logging
 import os
 import sys
+import time
 import typing
 from pathlib import Path
 
@@ -30,6 +31,7 @@ from NetUtils import ClientStatus
 
 POLL_SECONDS = 0.5
 HEALTH_SECONDS = 10.0
+HEARTBEAT_SECONDS = 3.0  # game: "connected" if ap_heartbeat.txt changed within 10 s
 
 
 _mod_label_cache: typing.List[typing.Optional[str]] = []
@@ -140,6 +142,7 @@ class DevilSpireContext(CommonContext):
         self.datawin = health.DataWinCheck(self._patch_status)
         self.orig_watch = health.OriginalSaveWatch()
         self.next_health = 0.0
+        self.next_heartbeat = 0.0
         self._warned_dir = False
         self.set_save_dir(fp.find_save_dir(save_dir))
 
@@ -346,6 +349,12 @@ class DevilSpireContext(CommonContext):
                     await self.flush_locations()
                     self.write_config()   # no-op unless missing/changed (e.g. a failed write on Windows)
                     self.write_in()       # no-op unless the last write failed or content changed
+                    if self.items_synced and time.time() >= self.next_heartbeat:
+                        self.next_heartbeat = time.time() + HEARTBEAT_SECONDS
+                        try:
+                            fp.write_heartbeat(self.save_dir, int(time.time() * 1000), self.slot_id, self.auth or "")
+                        except OSError:
+                            pass
                 now = asyncio.get_running_loop().time()
                 if now >= self.next_health:
                     self.next_health = now + HEALTH_SECONDS
