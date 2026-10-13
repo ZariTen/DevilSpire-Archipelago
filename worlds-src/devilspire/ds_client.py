@@ -31,6 +31,7 @@ from NetUtils import ClientStatus
 
 POLL_SECONDS = 0.5
 HEALTH_SECONDS = 10.0
+SYNC_PROBE_KEY = "devilspire_sync_probe"  # Get sent after Connected; its Retrieved reply comes after any ReceivedItems
 HEARTBEAT_SECONDS = 3.0  # game: "connected" if ap_heartbeat.txt changed within 10 s
 
 
@@ -179,6 +180,13 @@ class DevilSpireContext(CommonContext):
             self.sent_locations.clear()
             self.items_synced = False
             self.on_connected_setup()
+            # The server sends ReceivedItems right after Connected (same frame) only if the slot HAS items. Answers
+            # come in order, so the reply to a Get sent now arrives after it: then the item list is final (maybe 0).
+            asyncio.create_task(self.send_msgs([{"cmd": "Get", "keys": [SYNC_PROBE_KEY]}]))
+        elif cmd == "Retrieved" and SYNC_PROBE_KEY in (args.get("keys") or {}):
+            if not self.items_synced:
+                self.items_synced = True
+                self.refresh_items(force=True)
         elif cmd == "ReceivedItems":
             self.items_synced = True
             self.refresh_items()

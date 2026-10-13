@@ -92,6 +92,10 @@ try:
     bc = start_client("Buddy", bd, tmp / "buddy.log")
     cfg = wait_for(lambda: read(zd / "ap_config.ini"))
     check("ap_config.ini written", cfg.startswith(f"[ap]\ndeath_link=1\nfloor_check_step=5\nchest_checks=0\nbase_id={BASE}\n") and "slot_id=" in cfg, repr(cfg))
+    # fresh slot, 0 items: the server sends no ReceivedItems; the client must still count as synced
+    check("fresh slot with 0 items: empty ap_in.txt + heartbeat written",
+          wait_for(lambda: (zd / "ap_in.txt").exists() and read(zd / "ap_heartbeat.txt") and
+                   not [l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")], 10))
     check("stale ap_out.txt of another seed moved to ap_backup", wait_for(lambda: read(zd / "ap_out.txt") == "" and
           any((zd / "ap_backup").glob("*/ap_out.txt"))))
     check("ap_in.txt written", wait_for(lambda: (zd / "ap_in.txt").exists()))

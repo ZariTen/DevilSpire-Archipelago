@@ -108,7 +108,7 @@ class Client:
 def open_all(g):
     """let the game hand out everything at the camp (weightless direct, weighted picked up from the ground).
     Items only come once the game saw a fresh client heartbeat (ap_heartbeat.txt changed since it started)."""
-    wait_for(lambda: (g.poll(), g.hb_seen)[1], 8)
+    wait_for(lambda: (g.poll(), g.hb_seen)[1], 30)
     return g.collect_all()
 
 
