@@ -104,6 +104,24 @@ class GameModelTests(unittest.TestCase):
         self.g.die(); self.g.new_run(); self.g.goto("dungeon", 0.5); self.g.grant_tick()
         self.assertEqual(sorted(self.g.ground), [30, 31, 32, 33, 60])  # next run: only the best weapon
 
+    def test_mid_run_upgrade_then_continue(self):
+        """e2e flake case: a newer progressive copy arrives at the camp after a run started; then quit + Continue.
+        Old tier stays, new tier is added, nothing is granted twice and nothing is lost."""
+        setup(self.d, 0)
+        w = fp.InWriter(self.d / fp.IN_FILE)
+        W, M = 38470660, 38470600
+        w.items = [(W, "PW", "B"), (M, "x", "B")]
+        w.flush()
+        self.g.start(); self.g.new_run(); self.g.poll(); self.g.collect_all()
+        w.items.append((W, "PW", "B")); w.flush(); self.g.poll()
+        self.g.collect_all()
+        self.assertEqual(self.g.owned(), Counter({W: 2, M: 1}))        # tier 1 kept + tier 2 added
+        self.assertEqual(self.g.granted, 3)
+        self.g.quit(); self.g.start(); self.g.poll(); self.g.collect_all()
+        self.assertEqual(self.g.owned(), Counter({W: 2, M: 1}))        # Continue: nothing re-granted
+        self.g.die(); self.g.new_run(); self.g.collect_all()
+        self.assertEqual(self.g.owned(), self.g.expected())            # next run: best tier only
+
     def test_mid_run_items(self):
         w = setup(self.d, 2)
         self.g.start(); self.g.new_run(); self.g.poll(); self.g.collect_all()

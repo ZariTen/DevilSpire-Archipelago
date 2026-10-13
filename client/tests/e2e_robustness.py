@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fake_game import FakeGame  # noqa: E402
+import fake_game as fg  # noqa: E402
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ap-root", required=True)
@@ -116,6 +117,21 @@ def same(g):
     return g.owned() == g.expected()
 
 
+def same_mid(g):
+    """after items arrived mid-run: a later progressive copy adds the next tier and the old tier is kept (by design,
+    see test_progressive_best_tier_only), so owned may exceed the best-tier set, but never any received item twice"""
+    o, e = g.owned(), g.expected()
+    every = Counter()
+    for item in g.items:
+        every[item] += fg.parts(item)
+    return e <= o <= every
+
+
+def diff(g):
+    o, e = g.owned(), g.expected()
+    return {"extra": dict(o - e), "missing": dict(e - o)}
+
+
 try:
     mdA = generate("A", ["Zari", "Buddy"])
     mdB = generate("B", ["Zari"])
@@ -172,7 +188,7 @@ try:
     game.poll()
     open_all(game)  # items of the checks just sent may be new; nothing may come twice
     check("client restart (full ap_in rewrite) grants nothing twice",
-          same(game) and len(game.items) == game.n, (len(game.char_items), game.n))
+          same_mid(game) and len(game.items) == game.n, (len(game.char_items), game.n, diff(game)))
 
     # 3. server restart while client and game run
     srvA.kill(); srvA.wait()
@@ -187,8 +203,8 @@ try:
     game.quit(); game.start(); game.poll()
     check("ap_in indexes stable across server crash/restart and reconnects", game.items[:len(snap_items)] == snap_items)
     open_all(game)
-    check("game restart mid-run: nothing re-granted", same(game) and game.granted == game.n,
-          (len(game.char_items), game.n, game.granted, same(game)))
+    check("game restart mid-run: nothing re-granted", same_mid(game) and game.granted == game.n,
+          (len(game.char_items), game.n, game.granted, diff(game)))
     game.die(); game.new_run(); game.poll()
     check("new run re-grants every item exactly once", open_all(game) == game.n and same(game))
 
