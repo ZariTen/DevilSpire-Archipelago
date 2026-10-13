@@ -19,14 +19,16 @@ It keeps a backup of the original file (`data.win.orig`).
 1. In the client, connect to the server with your slot name.
 2. Start Devil Spire from Steam as usual. (Client or game first, either is fine.)
 3. Choose *New Game* and make a character. The only mode is **Archipelago**.
-4. Open the chest next to the camp bonfire. Press interact twice to get your items.
+4. At the camp you get your items. Stat boosts, gold, stones and spell pages go straight to you.
+   Equipment, rings and potions lie on the ground around you. Pick up what you want.
 5. Go down the tower. New floors and bosses count as checks.
 6. Beat the boss on floor -100 to win.
 
 Good to know:
-- **Dying** starts a new run. Open the camp chest again to get all your items back.
-- Items that arrive during a run wait in the camp chest until your next run.
-- The chest gives up to 100 items at a time. If it says "open again", open it again.
+- **Dying** starts a new run. You get all your items back at the camp.
+- Items that arrive during a run come at once. Equipment, rings and potions drop at your feet.
+- Items you leave on the ground come back on the next floor (or at the camp after Continue). They are not lost and not doubled.
+- At most 60 items lie on the ground at once. Pick some up and the rest appear.
 - **DeathLink** (if on) only kills you inside the tower, never at the camp or in menus.
 - Checks you make while the client is closed are sent when it reconnects.
 
@@ -57,7 +59,7 @@ If you join a **different multiworld**, the client moves your old Archipelago ch
 - **"different multiworld connected" in the game:** quit and restart the game, then choose *New Game*.
 - **"UNPATCHED Devil Spire is being played":** close the game, run `/auto_patch`, start it again.
 - **Which mod version do I have?** The title screen shows it in the top-left corner, e.g. `Archipelago v0.1.0 (64a9604)`. `/status` shows the same text. If they differ, run `/auto_patch`.
-- **Items don't arrive:** check the client is connected (`/status`). Then open the camp chest (interact twice).
+- **Items don't arrive:** check the client is connected (`/status`). Items come while you are in the camp or the tower (not in menus).
 - **Save folder not found:** start the game once, then check `/status`. Set it by hand with `/savedir <path>`.
 - **Permission error:** close the game. On Windows, the client may need to run as administrator.
 - **Non-English Windows user name** (e.g. `José`): not tested. If your normal saves work, this should too.

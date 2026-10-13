@@ -10,12 +10,13 @@ if (global.ap_slot_id == "")
 {
     global.ap_slot_id = cfgslot;
     ap_save_souls();
-    ap_save_granted();
+    ap_write_granted(); // committed state only (the live run may have unsaved progress)
     ap_emit("X|slot adopted");
     exit;
 }
 global.ap_stale = 1;
 global.ap_granted = -1;
+ds_list_clear(global.ap_drops);
 ap_save_granted();
 ap_emit("X|slot changed while running: restart the game");
 with (instance_create(0, 0, obj_message))

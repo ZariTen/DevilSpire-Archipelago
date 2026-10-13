@@ -4,6 +4,7 @@ if (global.mode != 1)
     exit;
 }
 global.ap_granted = -1;
+ds_list_clear(global.ap_drops);
 ap_save_granted();
 if (global.ap_dl_recv)
 {

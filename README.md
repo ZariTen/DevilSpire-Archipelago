@@ -9,7 +9,7 @@ You need your own copy of Devil Spire on **Steam**. No game files are included.
 ## How it plays
 - You play one mode: **Archipelago** (100 floors down).
 - Reaching floors and beating bosses sends items to other players.
-- Items you receive wait in a **chest next to the camp bonfire**.
+- Items you receive come to you at the camp. Equipment lies on the ground around you.
 - If you die, you start a new run and get all your items again.
 - Beat the boss on floor -100 to win.
 

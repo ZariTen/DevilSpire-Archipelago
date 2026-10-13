@@ -8,14 +8,15 @@ The patched game runs on the real Steam install (Proton). Boot, Archipelago mode
 - Saves go to a separate folder, `Devil_Spire_AP`.
 - One game mode, "Archipelago" (Descent, 100 floors). Goal: beat Rhamdon on floor -100.
 - Checks: bosses and floors (`floor_checks`). No gating. 110 boost items ([item-catalog](docs/dev/item-catalog.md)). Traps via `trap_percentage`.
-- Death starts a new run. Items are re-granted at the camp chest. Souls are granted once.
+- Death starts a new run. Items are re-granted at the camp (weightless direct, equipment on the ground). Souls are granted once.
 - Base ID 38,470,000. Minimum Archipelago 0.6.8. License MIT.
 
 ## To test in-game
 - [ ] Title and new character go straight to Archipelago mode (also with gamepad).
 - [ ] Boss checks (each boss, Golems, -99 gauntlet) and the goal on floor -100.
 - [ ] Item effects, traps and DeathLink.
-- [ ] Chest: reachable, re-arms for mid-run items, works after death and Continue.
+- [ ] Camp items: ground spread is tidy and reachable (not in decor); 100+ items; Continue doesn't double or lose items.
+- [ ] Mid-run items: equipment drops at your feet; untaken items follow to the next floor.
 - [ ] First-ever character (the tutorial skips the camp).
 - [ ] Client with the real game: reconnect, no duplicate items, seed switch, health warnings.
 - [ ] Non-ASCII Windows user name.

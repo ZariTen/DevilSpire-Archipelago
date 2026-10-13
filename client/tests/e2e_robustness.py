@@ -9,6 +9,7 @@ checks, server restart, no item doubling (game restart / client restart / new ru
 import argparse
 import os
 import re
+from collections import Counter
 import subprocess
 import sys
 import tempfile
@@ -105,13 +106,12 @@ class Client:
 
 
 def open_all(g):
-    """open the chest until nothing more comes (the game grants at most 100 items per open)"""
-    total = 0
-    while True:
-        c = g.open_chest()
-        if not c:
-            return total
-        total += c
+    """let the game hand out everything at the camp (weightless direct, weighted picked up from the ground)"""
+    return g.collect_all()
+
+
+def same(g):
+    return g.owned() == Counter(g.items)
 
 
 try:
@@ -138,7 +138,7 @@ try:
           not (zd / "ap_backup").exists() and (zd / "descent_character.ini").exists())
     check("souls state repaired to -1", read(zd / "ap_souls_granted.txt") == "-1\n\n")
     game.poll()
-    check("running game adopts the slot (ap_granted.txt tagged)", read(zd / "ap_granted.txt") == f"0\n{sid_a}\n",
+    check("running game adopts the slot (ap_granted.txt tagged)", read(zd / "ap_granted.txt") == f"0\n{sid_a}\n\n",
           read(zd / "ap_granted.txt"))
 
     # Buddy checks everything -> Zari gets items
@@ -158,7 +158,7 @@ try:
     n_items = n_in()
     game.poll()
     got = open_all(game)
-    check("items received and granted once", got == n_items and game.char_items == game.items, (got, n_items))
+    check("items received and granted once", got == n_items and same(game), (got, n_items))
 
     # 2. client closed, checks made offline, client restarted
     zc.kill()
@@ -170,7 +170,7 @@ try:
     game.poll()
     open_all(game)  # items of the checks just sent may be new; nothing may come twice
     check("client restart (full ap_in rewrite) grants nothing twice",
-          game.char_items == game.items and len(game.items) == game.n, (len(game.char_items), game.n))
+          same(game) and len(game.items) == game.n, (len(game.char_items), game.n))
 
     # 3. server restart while client and game run
     srvA.kill(); srvA.wait()
@@ -185,10 +185,10 @@ try:
     game.quit(); game.start(); game.poll()
     check("ap_in indexes stable across server crash/restart and reconnects", game.items[:len(snap_items)] == snap_items)
     open_all(game)
-    check("game restart mid-run: nothing re-granted", game.char_items == game.items and game.granted == game.n,
-          (len(game.char_items), game.n, game.granted, game.char_items == game.items))
+    check("game restart mid-run: nothing re-granted", same(game) and game.granted == game.n,
+          (len(game.char_items), game.n, game.granted, same(game)))
     game.die(); game.new_run(); game.poll()
-    check("new run re-grants every item exactly once", open_all(game) == game.n and game.char_items == game.items)
+    check("new run re-grants every item exactly once", open_all(game) == game.n and same(game))
 
     # 4b. goal reached while the client is closed -> sent on restart; old patch protocol warned
     zc.kill()
@@ -202,9 +202,9 @@ try:
     check("server registered the goal", wait_for(lambda: "goal" in read(tmp / "serverA.log").lower()))
     check("old patch protocol in ap_out is warned", wait_for(lambda: "patch protocol 1" in read(zc.log)))
     game.quit(); game.start()
-    check("warning clears after the patched game restarts (S|3)",
+    check("warning clears after the patched game restarts (S|4)",
           wait_for(lambda: read(zc.log).count("patch protocol") == 1 and zc.checked() is not None))
-    game.emit("S|3|Archipelago v0.0.0 (0000000)")
+    game.emit("S|4|Archipelago v0.0.0 (0000000)")
     check("other mod version in the running game is warned",
           wait_for(lambda: "running game is Archipelago v0.0.0 (0000000)" in read(zc.log)))
     check("/status shows both mod versions", wait_for(lambda: zc.status() and re.search(

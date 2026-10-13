@@ -20,7 +20,12 @@ global.ap_granted = -1;
 global.ap_cur = 0;
 global.ap_tmp = 0;
 global.ap_cnt = 0;
-global.ap_chest_spawn = 0;
+global.ap_dcnt = 0;
+// weighted items of the current run still waiting on the ground (received-item indexes) and their live obj_droppeditem
+global.ap_drops = ds_list_create();
+global.ap_drop_inst = ds_map_create();
+global.ap_commit_granted = -1;
+global.ap_commit_drops = "";
 // souls are granted only ONCE per slot: highest received-item index whose Pouch of Souls was already granted (-1 = none)
 global.ap_souls_max = -1;
 global.ap_slot_id = cfgslot;
@@ -62,11 +67,39 @@ if (file_exists("ap_granted.txt"))
     {
         var gl = file_text_read_string(f);
         file_text_readln(f);
+        var dl = "";
         if (!file_text_eof(f))
         {
             gslot = file_text_read_string(f);
+            file_text_readln(f);
+            if (!file_text_eof(f))
+            {
+                dl = file_text_read_string(f); // line 3: pending ground items "i,j,k" (missing in older builds)
+            }
         }
         file_text_close(f);
+        while (string_length(dl) > 0)
+        {
+            var cp = string_pos(",", dl);
+            var tok = dl;
+            if (cp > 0)
+            {
+                tok = string_copy(dl, 1, cp - 1);
+                dl = string_delete(dl, 1, cp);
+            }
+            else
+            {
+                dl = "";
+            }
+            tok = string_digits(tok);
+            if (string_length(tok) > 0)
+            {
+                if (ds_list_find_index(global.ap_drops, real(tok)) < 0)
+                {
+                    ds_list_add(global.ap_drops, real(tok));
+                }
+            }
+        }
         var s = string_digits(gl);
         if (string_length(s) > 0)
         {
@@ -81,7 +114,12 @@ if (file_exists("ap_granted.txt"))
 if (cfgslot != "" && gslot != "" && gslot != cfgslot)
 {
     global.ap_granted = -1; // run belongs to another multiworld: no items until a new character is created
+    ds_list_clear(global.ap_drops);
     ap_emit("X|slot changed, run inactive");
 }
+if (global.ap_granted < 0)
+{
+    ds_list_clear(global.ap_drops);
+}
 ap_save_granted();
-ap_emit("S|3|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match
+ap_emit("S|4|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match

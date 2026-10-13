@@ -9,7 +9,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "worlds-src" / "devilspire"))
 import file_protocol as fp  # noqa: E402
+import fake_game as fg  # noqa: E402
 from fake_game import FakeGame  # noqa: E402
+from collections import Counter  # noqa: E402
 
 SLOT = "seed1:0:1"
 
@@ -30,30 +32,78 @@ class GameModelTests(unittest.TestCase):
     def test_bulk_500_items_batches_no_loss_no_dup(self):
         w = setup(self.d, 20)
         self.g.start(); self.g.new_run(); self.g.poll()
-        self.assertEqual(self.g.open_chest(), 20)
-        w.items += [(38470700, f"burst {i}", "Buddy") for i in range(480)]  # !collect-like burst
+        self.assertEqual(self.g.collect_all(), 20)
+        w.items += [(38470600 + i % 52, f"burst {i}", "Buddy") for i in range(480)]  # !collect-like burst
         w.flush()
         self.g.poll()
         self.assertEqual(self.g.n, 500)
-        opens = []
+        self.g.goto("dungeon", 0.5)
+        ticks = []
         while True:
-            c = self.g.open_chest()
+            c = self.g.grant_tick()
             if not c:
                 break
-            opens.append(c)
-        self.assertEqual(opens, [100, 100, 100, 100, 80])
-        self.assertEqual(self.g.char_items, self.g.items)
-        self.assertEqual(len(self.g.char_items), 500)
+            ticks.append(c)
+            self.assertLessEqual(len(self.g.ground), fg.GROUND_CAP)
+        self.assertEqual(ticks, [100, 100, 100, 100, 80])
+        self.g.collect_all()
+        self.assertEqual(self.g.owned(), Counter(self.g.items))
+
+    def test_classification(self):
+        for code in (100, 101, 102, 103, 104, 110, 111, 112, 113, 130, 131, 132, 200, 201, 202):
+            self.assertFalse(fg.weighted(38470500 + code), code)
+        for code in (120, 121, 122) + tuple(range(140, 152)):
+            self.assertTrue(fg.weighted(38470500 + code), code)
+
+    def test_camp_weightless_direct_weighted_on_ground(self):
+        setup(self.d, 0)
+        w = fp.InWriter(self.d / fp.IN_FILE)
+        w.items = [(38470600, "STR", "B"), (38470640, "Sword", "B"), (38470610, "Gold", "B"), (38470620, "Pack", "B")]
+        w.flush()
+        self.g.start(); self.g.new_run(); self.g.poll(); self.g.goto("dungeon", 0.5)
+        self.assertEqual(self.g.grant_tick(), 4)
+        self.assertEqual(self.g.char_items, [38470600, 38470610])
+        self.assertEqual(sorted(self.g.ground), [1, 3])
+        # quit at the camp before picking up, Continue: ground items come back, weightless not doubled
+        self.g.quit(); self.g.start(); self.g.poll(); self.g.goto("dungeon", 0.5)
+        self.assertEqual(self.g.grant_tick(), 0)
+        self.assertEqual(sorted(self.g.ground), [1, 3])
+        self.g.pick_up(1)
+        # quit after picking up but before any save: rolled back together (sword back on the ground, not in inventory)
+        self.g.quit(); self.g.start(); self.g.poll(); self.g.goto("dungeon", 0.5); self.g.grant_tick()
+        self.assertEqual(sorted(self.g.ground), [1, 3])
+        self.assertNotIn(38470640, self.g.char_items)
+        self.g.pick_up(1); self.g.next_floor(-1)            # entering the tower saves
+        self.g.quit(); self.g.start(); self.g.poll(); self.g.goto("dungeon", -1); self.g.grant_tick()
+        self.assertEqual(self.g.ground, [3])                # untaken pack follows to the floor; sword kept once
+        self.assertEqual(self.g.owned()[38470640], 1)
+
+    def test_mid_run_items(self):
+        w = setup(self.d, 2)
+        self.g.start(); self.g.new_run(); self.g.poll(); self.g.collect_all()
+        self.g.goto("dungeon", -5)
+        w.items += [(38470601, "INT", "B"), (38470645, "Armor", "B")]
+        w.flush(); self.g.poll()
+        self.assertEqual(self.g.grant_tick(), 2)
+        self.assertIn(38470601, self.g.char_items)           # weightless: applied at once
+        self.assertEqual(self.g.ground, [3])                 # weighted: dropped at the player
+        self.g.quit(); self.g.start(); self.g.poll(); self.g.goto("dungeon", -5)
+        self.assertEqual(self.g.grant_tick(), 2)             # not saved yet: re-processed once after Continue
+        self.assertEqual(self.g.owned()[38470601], 2)        # setup item 1 is also INT
+        self.g.next_floor(-6); self.g.grant_tick()
+        self.assertEqual(self.g.ground, [3])                 # left behind: spawned again on the next floor
+        self.g.pick_up(3); self.g.next_floor(-7)
+        self.assertEqual(self.g.owned(), Counter(self.g.items))
 
     def test_new_character_mid_seed_regrants_once(self):
         setup(self.d, 30)
         self.g.start(); self.g.new_run(); self.g.poll()
-        self.assertEqual(self.g.open_chest(), 30)
+        self.assertEqual(self.g.collect_all(), 30)
         (self.d / "descent_character.ini").unlink(missing_ok=True)  # player deletes the save / abandons the run
         self.g.new_run()
-        self.assertEqual(self.g.open_chest(), 30)
-        self.assertEqual(self.g.open_chest(), 0)
-        self.assertEqual(self.g.char_items, self.g.items)
+        self.assertEqual(self.g.collect_all(), 30)
+        self.assertEqual(self.g.collect_all(), 0)
+        self.assertEqual(self.g.owned(), Counter(self.g.items))
 
     def test_deathlink_ignored_without_active_run(self):
         w = setup(self.d, 1)
@@ -76,7 +126,7 @@ class GameModelTests(unittest.TestCase):
         self.g.start()
         self.assertEqual(self.g.granted, -1)
         self.g.poll()
-        self.assertEqual(self.g.open_chest(), 0)
+        self.assertEqual(self.g.collect_all(), 0)
 
 
 class Utf8PathTests(unittest.TestCase):

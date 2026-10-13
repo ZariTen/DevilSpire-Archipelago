@@ -1,5 +1,5 @@
-// ap_grant_item(item_id): apply one received item to the live run (docs/item-catalog.md). Returns 1 when handled, 0 to retry later.
-// Item id = ap_base + 500 + code. Items are re-granted on every new run when the Archipelago chest is opened (ap_granted reset by ap_new_run; souls only once per slot); traps only fire
+// ap_grant_item(item_id): apply one received item to the live run (docs/dev/item-catalog.md). Returns 1 when handled, 0 to retry later.
+// Item id = ap_base + 500 + code. Weightless items (stat orbs/points, gold, stones, souls, spell pages) are applied directly; weighted ones are queued in global.ap_drops and spawned as ground pickups. Re-granted on every new run (souls once per slot); traps only fire
 // when they were received live (global.ap_live[global.ap_cur], set by ap_poll) and are then consumed.
 var rel = argument0 - global.ap_base - 500;
 var ok = 1;
@@ -84,29 +84,6 @@ else if (rel == 112)
 {
     it = generate_stone(irandom(35)); // like the boss blue orb (stone kinds 0-35)
 }
-else if (rel == 120 || rel == 121 || rel == 122)
-{
-    if (rel == 120)
-    {
-        it = generate_potion(0); // Red Potion
-    }
-    else if (rel == 121)
-    {
-        it = generate_potion(25); // Blue Potion
-    }
-    else
-    {
-        it = generate_potion(99); // White Potion
-    }
-    if (rel != 122)
-    {
-        with (it)
-        {
-            count = 3;
-            weight = 0.75;
-        }
-    }
-}
 else if (rel == 130)
 {
     it = generate_spell(irandom_range(0, 11));
@@ -119,30 +96,13 @@ else if (rel == 132)
 {
     it = generate_spell(irandom_range(24, 47));
 }
-else if (rel >= 140 && rel <= 148)
+else if (ap_item_weighted(argument0))
 {
-    var cat = floor((rel - 140) / 3); // 0 weapon, 1 armor, 2 accessory
-    var lv = 25 * (((rel - 140) mod 3) + 1);
-    if (cat == 0)
+    // weighted (potions, equipment, rings): not added directly; queued as a ground pickup (ap_drop_spawn)
+    if (ds_list_find_index(global.ap_drops, global.ap_cur) < 0)
     {
-        it = generate_weapon(lv, (random(3) < 1) + (2 * irandom(11))); // same type roll as generate_equipment
+        ds_list_add(global.ap_drops, global.ap_cur);
     }
-    else if (cat == 1)
-    {
-        it = generate_armor(lv, irandom(3));
-    }
-    else
-    {
-        it = generate_accessory(lv, irandom(3));
-    }
-}
-else if (rel == 149 || rel == 150)
-{
-    it = generate_shield(25 * (rel - 148));
-}
-else if (rel == 151)
-{
-    it = generate_ring(irandom(35));
 }
 else if (rel >= 200 && rel <= 202)
 {

@@ -13,7 +13,7 @@ Fan-made. Not affiliated with the game's developer.
 ## Play
 1. Connect the client to the server.
 2. Start Devil Spire from Steam. Choose *New Game*.
-3. Open the chest next to the camp bonfire to get your items.
+3. At the camp you get your items. Pick up the equipment lying around you.
 
 ## Uninstall
 Type `/restore` in the client, or use Steam's *Verify integrity of game files*.

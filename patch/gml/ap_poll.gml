@@ -120,20 +120,34 @@ if (!global.ap_stale && global.mode == 1 && room == rom_dungeon && instance_exis
             }
             obj_player.hp = 0;
         }
-        else if (global.ap_granted >= 0 && global.ap_granted < global.ap_n)
+        else if (global.ap_granted >= 0 && !instance_exists(obj_dungeoncreator))
         {
-            // items are NOT granted automatically any more: they stay pending until the player opens the Archipelago chest.
-            // If the chest of this floor was already emptied, re-arm it (new placeholder loot, lid closed).
-            with (obj_chest)
+            // items: weightless ones are applied directly, weighted ones lie on the ground as normal pickups (ap_drop_spawn)
+            if (global.ap_granted < global.ap_n)
             {
-                if (ap_chest && item == -4)
+                ap_grant_pending();
+                var direct = global.ap_cnt - global.ap_dcnt;
+                if (global.level == 0.5 && global.ap_cnt > 0)
                 {
-                    item = generate_gold(1);
-                    open = 0;
-                    float = 0;
-                    image_index = 0;
+                    // camp: persist the character together with ap_granted.txt (the game itself only saves on floor change),
+                    // so quitting at the camp and choosing Continue neither loses nor re-grants these items
+                    save_souls();
+                    save_game(global.mode);
+                    ap_save_granted();
+                }
+                if (global.ap_cnt > 0 && (global.level == 0.5 || global.ap_cnt > 3))
+                {
+                    with (instance_create(0, 0, obj_message))
+                    {
+                        text = "Archipelago: " + string(direct) + " received";
+                        if (global.ap_dcnt > 0)
+                        {
+                            text += ", " + string(global.ap_dcnt) + " on the ground";
+                        }
+                    }
                 }
             }
+            ap_drop_spawn();
         }
     }
 }

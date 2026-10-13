@@ -25,8 +25,16 @@
 - Hooks: `obj_setup_Alarm_0` -> `ap_init`; `obj_god_Step_1` -> `ap_poll`; `next_floor` -> `ap_floor_reached`;
   boss floor cleared (`obj_enemy_Step_0`) -> `ap_boss_cleared`; `obj_rhamdon_Step_1` -> `ap_goal`;
   player death -> `ap_death_send`; new character -> `ap_new_run`.
-- Camp chest: spawned next to the bonfire after `create_village(1)`; `interact` on it -> `ap_chest_open`
-  (grants pending items, max 100 per open, then saves the character).
+- Items (`ap_poll`, player alive in `rom_dungeon`, no `obj_dungeoncreator`): `ap_grant_pending` processes up to 100 per poll.
+  Weightless (`ap_item_weighted` = 0: stat orbs/point, gold, Blue Orb stone, souls, spell pages, traps) are applied directly.
+  Weighted (potions 0.25 each, weapons/armor/accessories/shields, rings 0.1) go to the ground list `global.ap_drops`.
+- Ground items (`ap_drop_spawn`): native `obj_droppeditem` (`item = ap_drop_make(id)`), picked up with the game's `interact`/`get_item`.
+  Camp: grid (20 px) around the arrival point (0,212); tower: grid (16 px) around the player. Spot must be free for the
+  player's mask and not on decor/shades/bonfire/entrance/tombstones; else at the anchor. Max 60 on the ground.
+  `obj_droppeditem` gets `ap_idx` (Create); its Destroy (= picked up) calls `ap_drop_taken`. Leaving the room does not fire
+  Destroy, so untaken items spawn again in the next room. The item is rolled again on each spawn.
+- Commit: `ap_granted.txt` is only written next to the character save (`next_floor`, camp after granting, new run,
+  death). Quit + Continue rolls back both together: nothing lost, nothing doubled. Mid-floor progress is lost like vanilla.
 
 ## Files in the save folder
 Text files, one record per line, fields split by `|`.
@@ -52,7 +60,7 @@ slot_id=<seed>:<team>:<slot>
   (item, location, player) order in `ap_client_state.json` and only appends.
 - `D|<seq>|<text>` DeathLink. Kills only during an active run inside the tower; otherwise ignored.
 
-Game-private: `ap_granted.txt` (items granted to the current run, `-1` = no run; line 2 = slot_id),
+Game-private: `ap_granted.txt` (items processed for the current run, `-1` = no run; line 2 = slot_id; line 3 = ground indexes `i,j,k`),
 `ap_souls_granted.txt` (souls are granted once per slot; line 2 = slot_id).
 
 ## Multiworld switch
@@ -71,5 +79,5 @@ Game-private: `ap_granted.txt` (items granted to the current run, `-1` = no run;
 140-142 weapon, 143-145 armor, 146-148 accessory, 149/150 shield, 151 ring, 200-202 traps. Effects: [item-catalog.md](item-catalog.md).
 
 ## Known gaps
-In-game behaviour is mostly untested (item effects, traps, chest placement). Bosses don't spawn if the player
+In-game behaviour is mostly untested (item effects, traps, ground item placement). Bosses don't spawn if the player
 has no kills on the run (`global.kills == 0`). Test helper: `patch/make_test_ap_in.sh` writes a sample `ap_in.txt`.

@@ -15,7 +15,7 @@ if (!Regex.IsMatch(modLabel, @"^Archipelago v[0-9A-Za-z.\-]+ \([0-9a-f]{7}\)$"))
 string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
-    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_chest_open", "ap_chest_spawn", "ap_chest_init" };
+    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
@@ -51,7 +51,7 @@ Edit("gml_Object_obj_setup_Alarm_0", @"global\.nightmare = ini_read_real\(""Unlo
 Edit("gml_Object_obj_enemy_Step_0", @"if \(aux\)(\s*)\{(\s*if \(global\.mode == 4\))",
      "if (aux)$1{\nap_boss_cleared();$2", "boss-floor clear hook");
 Edit("gml_Script_next_floor", @"save_souls\(\);(\s*)save_game\(global\.mode\);",
-     "ap_floor_reached();\nsave_souls();$1save_game(global.mode);", "floor reached hook");
+     "ap_floor_reached();\nsave_souls();$1save_game(global.mode);\nap_save_granted();", "floor reached hook + commit AP run state with the save");
 // (c) goal
 Edit("gml_Object_obj_rhamdon_Step_1", @"room = rom_ending;", "ap_goal();\nroom = rom_ending;", "goal hook");
 // (d) death (DeathLink send); receive+items are handled in ap_poll
@@ -82,14 +82,10 @@ Edit("gml_Script_buttonize_title", @"""Descent \(flr\. """, "\"Archipelago (flr.
 Edit("gml_Script_mode_difficulty_floor", @"modus = ""Descent"";", "modus = \"Archipelago\";", "HUD/gameover/ending mode name");
 Edit("gml_Object_obj_title_Draw_64", @"""Climb Down#Floors: 99#Dungeons: 10#Ending T""", "\"Archipelago#Floors: 99#Dungeons: 10#Ending T\"", "mode description");
 
-// (j) Archipelago chest: obj_chest Create uses ap_chest_init() instead of the loot roll when global.ap_chest_spawn is set
-group.QueuePrepend(Data.Code.ByName("gml_Object_obj_chest_Create_0"),
-    "ap_chest = 0;\nif (global.ap_chest_spawn)\n{\nap_chest_init();\nexit;\n}");
-// using an OPENED Archipelago chest grants the pending items instead of the (placeholder) item
-Edit("gml_Script_interact", @"else if \(open == 90\)(\s*)\{(\s*)if \(argument0 == 0 \|\| other\.monster\)",
-     "else if (open == 90)$1{\nif (ap_chest)\n{\nap_chest_open();\nexit;\n}$2if (argument0 == 0 || other.monster)", "AP chest open");
-// spawn it in the pre-tower camp (village, dungeon 0.5) next to the bonfire, right after create_village(1)
-Edit("gml_Object_obj_dungeoncreator_Step_0", @"create_village\(1\);", "create_village(1);\nap_chest_spawn();", "AP chest spawn (camp)");
+// (j) received WEIGHTED items lie on the ground as native obj_droppeditem pickups (ap_drop_spawn, called from ap_poll).
+// ap_idx = received-item index (-1 = vanilla drop); Destroy = picked up (room end does not fire Destroy) -> ap_drop_taken
+group.QueuePrepend(Data.Code.ByName("gml_Object_obj_droppeditem_Create_0"), "ap_idx = -1;");
+group.QueuePrepend(Data.Code.ByName("gml_Object_obj_droppeditem_Destroy_0"), "if (ap_idx >= 0)\n{\nap_drop_taken(ap_idx);\nap_idx = -1;\n}");
 
 // (l) mod label: small, faint text in the top-left corner of the title screen (nothing else is drawn there).
 // GMS1 has no font/align getters: colour+alpha are restored, align/font are left as this event normally ends

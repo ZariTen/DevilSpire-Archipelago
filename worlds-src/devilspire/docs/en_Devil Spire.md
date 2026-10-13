@@ -22,7 +22,7 @@ Power boosts:
 - Traps, if the host turns them on: Ambush, Plague, Pickpocket.
 
 ## How do I get them?
-Items wait in a chest next to the camp bonfire. When you die, you start a new run and get all your items again. Souls are only given once.
+Stat boosts, gold, stones and spell pages go straight to you. Equipment, rings and potions lie on the ground around you at the camp (or at your feet during a run). When you die, you start a new run and get all your items again. Souls are only given once.
 
 ## DeathLink
 Optional. Your death kills other DeathLink players, and theirs kills you, but only while you are inside the tower.
