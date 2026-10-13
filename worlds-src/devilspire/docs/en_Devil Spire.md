@@ -10,7 +10,9 @@ Beat Rhamdon on floor -100.
 
 ## What are the checks?
 - **Bosses** (always): floors -9, -19, ... -99 (10 checks; the two Golems count as one).
-- **Floors** (option `floor_checks`): every floor, every 5th, every 10th, or none.
+- **Floors** (option `floor_checks`): every 2nd (default), every floor, every 5th, every 10th, or none.
+- **Chests** (option `chest_checks`, default 3): the first chests you open in each band of 10 floors. Mimics don't count.
+- **Shops** (always): on floors -10, -20, ... -90, two stands sell an Archipelago Item for 150 gold (18 checks).
 
 ## What items can I get?
 Power boosts:

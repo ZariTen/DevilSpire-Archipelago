@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Print the mod label drawn on the title screen, e.g. "Archipelago v0.1.0 (1a2b3c4)".
 Version = world_version from worlds-src/devilspire/archipelago.json.
-Id = first 7 hex of a sha256 over the patch sources (patch/ApPatch.csx, patch/gml/*.gml, patch/EXPECTED_ORIGINAL_SHA256),
+Id = first 7 hex of a sha256 over the patch sources (patch/ApPatch.csx, patch/gml/*.gml, patch/assets/*.png, patch/EXPECTED_ORIGINAL_SHA256),
 so the same sources always give the same label (reproducible, independent of git state or commits).
 """
 import hashlib
@@ -13,7 +13,8 @@ root = Path(__file__).resolve().parent.parent
 
 def patch_source_id() -> str:
     patch = root / "patch"
-    files = [patch / "ApPatch.csx", patch / "EXPECTED_ORIGINAL_SHA256", *sorted((patch / "gml").glob("*.gml"))]
+    files = [patch / "ApPatch.csx", patch / "EXPECTED_ORIGINAL_SHA256", *sorted((patch / "gml").glob("*.gml")),
+             *sorted((patch / "assets").glob("*.png"))]
     h = hashlib.sha256()
     for f in files:
         h.update(f.relative_to(root).as_posix().encode() + b"\0")

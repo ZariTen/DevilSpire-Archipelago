@@ -10,6 +10,7 @@ if (global.ap_slot_id == "")
 {
     global.ap_slot_id = cfgslot;
     ap_save_souls();
+    ap_save_checks();
     ap_write_granted(); // committed state only (the live run may have unsaved progress)
     ap_emit("X|slot adopted");
     exit;

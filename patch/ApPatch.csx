@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UndertaleModLib.Compiler;
 using UndertaleModLib.Models;
+using UndertaleModLib.Util;
 
 // mod label ("Archipelago v<world_version> (<patch source id>)"), set by apply_patch.sh; never hand-edited
 string modLabel = Environment.GetEnvironmentVariable("DS_AP_MOD_LABEL") ?? "";
@@ -15,10 +16,46 @@ if (!Regex.IsMatch(modLabel, @"^Archipelago v[0-9A-Za-z.\-]+ \([0-9a-f]{7}\)$"))
 string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
-    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room", "ap_copies" };
+    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room", "ap_copies",
+    "ap_save_checks", "ap_load_checks", "ap_chest_check", "ap_shop_setup", "ap_make_apitem", "ap_shop_item" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
+
+// (n) Archipelago item icon: new sprites spr_apicon (16x16 inventory icon) and spr_Dapicon (64x64, drawn in 3D on
+// stands/the ground), each on its own new texture page, from patch/assets/*.png (patch/assets/make_ap_icon.py).
+// Collision mask/bbox settings are copied from same-size vanilla item sprites (items never collide).
+string assetDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "assets");
+void ImportSprite(string name, string png, string template)
+{
+    if (Data.Sprites.ByName(name) != null) throw new Exception("sprite exists: " + name);
+    var tpl = Data.Sprites.ByName(template);
+    byte[] bytes = File.ReadAllBytes(Path.Combine(assetDir, png));
+    var img = GMImage.FromPng(bytes);
+    if (img.Width != tpl.Width || img.Height != tpl.Height) throw new Exception(png + " must be " + tpl.Width + "x" + tpl.Height);
+    var tex = new UndertaleEmbeddedTexture();
+    tex.Scaled = tpl.Textures[0].Texture.TexturePage.Scaled;
+    tex.TextureData.Image = img;
+    Data.EmbeddedTextures.Add(tex);
+    var tpi = new UndertaleTexturePageItem();
+    tpi.SourceX = 0; tpi.SourceY = 0; tpi.SourceWidth = (ushort)img.Width; tpi.SourceHeight = (ushort)img.Height;
+    tpi.TargetX = 0; tpi.TargetY = 0; tpi.TargetWidth = (ushort)img.Width; tpi.TargetHeight = (ushort)img.Height;
+    tpi.BoundingWidth = (ushort)img.Width; tpi.BoundingHeight = (ushort)img.Height;
+    tpi.TexturePage = tex;
+    Data.TexturePageItems.Add(tpi);
+    var spr = new UndertaleSprite();
+    spr.Name = Data.Strings.MakeString(name);
+    spr.Width = tpl.Width; spr.Height = tpl.Height;
+    spr.MarginLeft = tpl.MarginLeft; spr.MarginRight = tpl.MarginRight; spr.MarginTop = tpl.MarginTop; spr.MarginBottom = tpl.MarginBottom;
+    spr.OriginX = tpl.OriginX; spr.OriginY = tpl.OriginY;
+    spr.BBoxMode = tpl.BBoxMode; spr.SepMasks = tpl.SepMasks; spr.Transparent = tpl.Transparent; spr.Smooth = tpl.Smooth; spr.Preload = tpl.Preload;
+    spr.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = tpi });
+    spr.CollisionMasks.Add(tpl.CollisionMasks[0]);
+    Data.Sprites.Add(spr);
+    Console.WriteLine("imported sprite " + name + " (" + img.Width + "x" + img.Height + ")");
+}
+ImportSprite("spr_apicon", "ap_icon.png", "spr_misc");
+ImportSprite("spr_Dapicon", "ap_icon_D.png", "spr_Dmisc");
 
 var group = new CodeImportGroup(Data);
 group.AutoCreateAssets = true;
@@ -105,6 +142,18 @@ Edit("gml_Object_obj_logo_Draw_64", @"(draw_sprite_part_ext\(spr_title, [^;]*\);
 
 // leaving the camp forfeits untaken camp ground items (before next_floor changes global.level)
 group.QueuePrepend(Data.Code.ByName("gml_Script_next_floor"), "ap_leave_room();");
+
+// (o) chest checks: each chest counts once (opened, or used when pre-opened); shop checks: 2 stands on shop floors
+group.QueuePrepend(Data.Code.ByName("gml_Object_obj_chest_Create_0"), "ap_counted = 0;");
+group.QueuePrepend(Data.Code.ByName("gml_Object_obj_shop_Create_0"), "ap_shop = -1;");
+Edit("gml_Script_interact", @"steam_increase_stat\(""sta_chests"", 1\);", "steam_increase_stat(\"sta_chests\", 1);\nap_chest_check();", "chest check on open");
+Edit("gml_Script_interact", @"else if \(open == 90\)(\s*)\{(\s*)if \(argument0 == 0 \|\| other\.monster\)",
+     "else if (open == 90)$1{\nap_chest_check();$2if (argument0 == 0 || other.monster)", "chest check on pre-opened chest");
+Edit("gml_Object_obj_dungeoncreator_Step_0", @"instance_create\(x \+ 40, y \+ 20, obj_shop\);", "instance_create(x + 40, y + 20, obj_shop);\nap_shop_setup();", "AP shop stands");
+group.QueuePrepend(Data.Code.ByName("gml_Script_get_item"),
+    "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nreturn ap_shop_item(argument0);\n}\n}\n}");
+group.QueuePrepend(Data.Code.ByName("gml_Script_get_item_description"),
+    "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nreturn \"Sends an Archipelago check to the multiworld.\";\n}\n}\n}");
 
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");

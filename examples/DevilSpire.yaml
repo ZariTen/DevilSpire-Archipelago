@@ -7,5 +7,6 @@ Devil Spire:
   progression_balancing: 50
   accessibility: full
   death_link: true
-  floor_checks: every_floor
+  floor_checks: every_2nd
+  chest_checks: 3
   trap_percentage: 0

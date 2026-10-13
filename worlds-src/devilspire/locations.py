@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 from BaseClasses import Location
 
-from .constants import BASE_ID, LOCATION_OFFSET, FLOOR_OFFSET
+from .constants import BASE_ID, LOCATION_OFFSET, FLOOR_OFFSET, CHEST_OFFSET, SHOP_OFFSET
 
 
 class DevilSpireLocation(Location):
@@ -51,15 +51,37 @@ def floor_checks_enabled(step: int) -> list[LocationData]:
         return []
     return [d for d in FLOOR_LOCATIONS if (-d.floor - 1) % step == 0]
 
+
+# Chest checks: per 10-floor band, the k-th chest opened in that band (cumulative over runs). Option `chest_checks` = k max.
+CHEST_LOCATIONS: list[LocationData] = [
+    LocationData(f"Chest (Floors -{b * 10 + 1} to -{b * 10 + 10}) #{k + 1}", -(b * 10 + 1), b, b * 5 + k)
+    for b in range(10) for k in range(5)
+]
+
+
+def chest_checks_enabled(per_band: int) -> list[LocationData]:
+    return [d for d in CHEST_LOCATIONS if d.code % 5 < per_band]
+
+
+# Shop checks: Descent shop floors -10..-90 (shoptime: |floor| mod 10 == 0 and not a boss floor); 2 stands each.
+SHOP_LOCATIONS: list[LocationData] = [
+    LocationData(f"Shop Floor -{n} #{s + 1}", -n, n // 10 - 1, (n // 10 - 1) * 2 + s)
+    for n in range(10, 100, 10) for s in range(2)
+]
+
 VICTORY_LOCATION = "Rhamdon defeated"  # event location (no id), holds the "Victory" event item
 VICTORY_ITEM = "Victory"
 
 LOCATION_NAME_TO_ID: dict[str, int] = {
     **{d.name: BASE_ID + LOCATION_OFFSET + d.code for d in BOSS_LOCATIONS},
     **{d.name: BASE_ID + FLOOR_OFFSET + d.code for d in FLOOR_LOCATIONS},
+    **{d.name: BASE_ID + CHEST_OFFSET + d.code for d in CHEST_LOCATIONS},
+    **{d.name: BASE_ID + SHOP_OFFSET + d.code for d in SHOP_LOCATIONS},
 }
 
 LOCATION_NAME_GROUPS: dict[str, set[str]] = {
     "Bosses": {d.name for d in BOSS_LOCATIONS},
     "Floor Checks": {d.name for d in FLOOR_LOCATIONS},
+    "Chests": {d.name for d in CHEST_LOCATIONS},
+    "Shops": {d.name for d in SHOP_LOCATIONS},
 }

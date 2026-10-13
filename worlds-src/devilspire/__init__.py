@@ -67,8 +67,12 @@ class DevilSpireWorld(World):
         n_locations = len(self.multiworld.get_unfilled_locations(self.player))
         pool = list(items.POOL_TEMPLATE)  # 110 entries = default location count
         if n_locations < len(pool):
+            # fewer locations than the 110 template: drop filler first, then useful, then progressive copies
+            # (nothing gates anything, so dropping progressive copies is safe; it just lowers the top tier)
             self.random.shuffle(pool)
-            pool = pool[:n_locations]  # random subset (no logic depends on items)
+            rank = {items.F: 0, items.U: 1, items.P: 2}
+            pool.sort(key=lambda n: rank.get(items.ITEM_TABLE[n].classification, 0))
+            pool = pool[len(pool) - n_locations:]
         while len(pool) < n_locations:
             pool.append(self.get_filler_item_name())
         # traps replace filler entries with trap_percentage
@@ -88,7 +92,7 @@ class DevilSpireWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         return {
-            **self.options.as_dict("death_link", "floor_checks", "trap_percentage"),
+            **self.options.as_dict("death_link", "floor_checks", "chest_checks", "trap_percentage"),
             "goal": "descent_rhamdon",  # fixed
             "descent_unlocked": True,  # patch force-unlocks Descent
             "gating": False,  # no depth keys: everything reachable from the start

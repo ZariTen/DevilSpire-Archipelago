@@ -19,7 +19,7 @@ STATE_FILE = "ap_client_state.json"  # client-private: remembers which seed/slot
 
 ENV_SAVE_DIR = "DEVILSPIRE_SAVE_DIR"
 SAVE_DIR_NAME = "Devil_Spire_AP"  # patched game's own save folder (GEN8 Name, set by ApPatch.csx)
-FLOOR_STEP_BY_OPTION = {0: 1, 1: 5, 2: 10, 3: 0}  # slot_data floor_checks -> ap_config floor_check_step
+FLOOR_STEP_BY_OPTION = {0: 1, 1: 5, 2: 10, 3: 0, 4: 2}  # slot_data floor_checks -> ap_config floor_check_step
 
 
 # ---------------------------------------------------------------------------------------------- save dir discovery
@@ -106,6 +106,7 @@ def render_config(slot_data: Mapping, poll_frames: Optional[int] = None, slot_id
     lines = ["[ap]",
              f"death_link={1 if slot_data.get('death_link') else 0}",
              f"floor_check_step={floor_step(slot_data.get('floor_checks', 0))}",
+             f"chest_checks={int(slot_data.get('chest_checks', 0))}",
              f"base_id={int(slot_data['base_id'])}"]
     if poll_frames:
         lines.append(f"poll_frames={int(poll_frames)}")
@@ -254,7 +255,7 @@ class InWriter:
 # ---------------------------------------------------------------------------------------------- session identity
 # Files that belong to one multiworld slot. On a seed/slot switch they are MOVED (never deleted) into
 # ap_backup/<timestamp>_<old slot>/ so the next run starts clean. Meta progression (souls.ini, unlocks.ini) stays.
-RESET_FILES = ("descent_character.ini", "corpse.ini", "ap_granted.txt", "ap_souls_granted.txt", OUT_FILE, IN_FILE,
+RESET_FILES = ("descent_character.ini", "corpse.ini", "ap_granted.txt", "ap_souls_granted.txt", "ap_checks.txt", OUT_FILE, IN_FILE,
                CONFIG_FILE, STATE_FILE)
 BACKUP_DIR = "ap_backup"
 

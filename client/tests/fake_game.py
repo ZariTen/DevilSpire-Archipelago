@@ -1,5 +1,6 @@
 """Python model of the patched game's file side (mirrors patch/gml: ap_init, ap_read_config, ap_slot_check, ap_poll,
-ap_emit, ap_new_run, ap_grant_pending, ap_drop_spawn, ap_drop_taken, ap_save_granted, ap_death_send). Used by the e2e tests.
+ap_emit, ap_new_run, ap_grant_pending, ap_drop_spawn, ap_drop_taken, ap_save_granted, ap_death_send,
+ap_chest_check, ap_shop_setup, ap_shop_item, ap_load_checks/ap_save_checks). Used by the e2e tests.
 
 Items: weightless ones are applied when processed; weighted ones (ap_item_weighted.gml) go to `drops` and lie on the
 ground (at most 60 at once) until picked up. Run state and the character are only written together (commit = save_game +
@@ -49,7 +50,59 @@ class FakeGame:
         if txt is None:
             return ""
         kv = dict(l.split("=", 1) for l in txt.splitlines() if "=" in l)
+        if _digits(kv.get("chest_checks", "")):
+            self.chest_n = int(_digits(kv["chest_checks"]))
         return kv.get("slot_id", "")
+
+    # --- chest / shop checks (ap_checks.txt: chest counts per band, 18 shop flags, slot)
+    def save_checks(self):
+        (self.d / "ap_checks.txt").write_text(
+            f"{','.join(map(str, self.chest_cnt))}\n{''.join('1' if s else '0' for s in self.shop_sent)}\n{self.slot_id}\n")
+
+    def load_checks(self, cfg):
+        self.chest_cnt, self.shop_sent = [0] * 10, [False] * 18
+        txt = self._read("ap_checks.txt")
+        if txt is None:
+            return
+        l = txt.splitlines() + ["", "", ""]
+        if cfg and l[2] and l[2] != cfg:
+            return
+        for b, t in enumerate(l[0].split(",")[:10]):
+            if _digits(t):
+                self.chest_cnt[b] = int(_digits(t))
+        if len(l[1]) == 18 and set(l[1]) <= {"0", "1"}:
+            self.shop_sent = [c == "1" for c in l[1]]
+
+    def open_chest(self, chest, mimic=False):
+        """ap_chest_check: `chest` identifies the chest on the current floor visit (counted once)."""
+        key = (self.visit, chest)
+        if key in self.counted or self.level >= 0 or self.stale or self.chest_n <= 0 or mimic:
+            return False
+        self.counted.add(key)
+        band = min(9, (-int(self.level) - 1) // 10)
+        if self.chest_cnt[band] < min(self.chest_n, 5):
+            self.emit(f"L|{BASE + 200 + band * 5 + self.chest_cnt[band]}")
+            self.chest_cnt[band] += 1
+            self.save_checks()
+            return True
+        return False
+
+    def shop_stands(self):
+        """ap_shop_setup: shop slots (0..17) offered as Archipelago Items on the current floor"""
+        n = -int(self.level) if self.level < 0 else 0
+        if self.stale or not (10 <= n <= 90 and n % 10 == 0):
+            return []
+        k = (n // 10 - 1) * 2
+        return [k + s for s in range(2) if not self.shop_sent[k + s]]
+
+    def buy_ap(self, slot):
+        """ap_shop_item (buy or steal)"""
+        if slot in self.shop_stands():
+            self.emit(f"L|{BASE + 250 + slot}")
+            self.shop_sent[slot] = True
+            self.save_checks()
+            return True
+        return False
 
     def emit(self, line):
         k = line[0]
@@ -76,6 +129,7 @@ class FakeGame:
     def start(self):
         self.d.mkdir(parents=True, exist_ok=True)
         self.running, self.stale, self.n, self.items = True, False, 0, []
+        self.chest_n, self.visit, self.counted = 3, 0, set()
         cfg = self._config()
         self.slot_id = cfg
         self.granted, gslot, self.drops, self.ground = -1, "", [], []
@@ -95,8 +149,10 @@ class FakeGame:
             self.drops = []
         self.c_granted, self.c_drops = self.granted, list(self.drops)
         self.write_granted()
+        self.load_checks(cfg)
+        self.save_checks()
         self.dl_init, self.dl_seq, self.room, self.level, self.alive, self.deaths = False, 0, "title", 0, True, []
-        self.emit("S|5|patch started")
+        self.emit("S|6|patch started")
 
     def quit(self):
         self.running = False
@@ -108,6 +164,7 @@ class FakeGame:
         if cfg and cfg != self.slot_id and not self.stale:
             if self.slot_id == "":
                 self.slot_id = cfg
+                self.save_checks()
                 self.write_granted()   # committed state only
             else:
                 self.stale, self.granted = True, -1
@@ -217,6 +274,7 @@ class FakeGame:
         if self.level == 0.5 and self.granted >= 0:
             self.drops = []   # ap_leave_room: untaken camp ground items are forfeited for this run
         self.room, self.level, self.ground = "dungeon", level, []
+        self.visit += 1
         self.save_granted()
 
     def owned(self):
@@ -228,6 +286,7 @@ class FakeGame:
     def goto(self, room, level):
         if (room, level) != (self.room, self.level):
             self.ground = []   # leaving a room removes its instances (no Destroy event)
+            self.visit += 1
         self.room, self.level = room, level
 
     def die(self):

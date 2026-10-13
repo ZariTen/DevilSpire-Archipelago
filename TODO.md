@@ -17,6 +17,8 @@ The patched game runs on the real Steam install (Proton). Boot, Archipelago mode
 - [ ] Item effects, traps and DeathLink.
 - [ ] Camp items: ground spread is tidy and reachable (not in decor); 100+ items; Continue doesn't double or lose items.
 - [ ] Mid-run items: equipment drops at your feet; untaken items follow to the next floor. Camp leftovers are dropped on entering the tower.
+- [ ] Chest checks: open, pre-opened, locked, mimic; band cap; message.
+- [ ] Shop checks: AP icon on the stand and in the shop UI, price tag 150, buy and steal send the check, gone once sent.
 - [ ] First-ever character (the tutorial skips the camp).
 - [ ] Client with the real game: reconnect, no duplicate items, seed switch, health warnings.
 - [ ] Non-ASCII Windows user name.

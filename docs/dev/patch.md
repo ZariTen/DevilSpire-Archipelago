@@ -37,6 +37,16 @@
 - Commit: `ap_granted.txt` is only written next to the character save (`next_floor`, camp after granting, new run,
   death). Quit + Continue rolls back both together: nothing lost, nothing doubled. Mid-floor progress is lost like vanilla.
 
+## Chest and shop checks
+- Chests (`ap_chest_check`, from `interact`): when the player opens a chest, or uses one that was generated open.
+  Once per chest (`ap_counted`); mimics (`obj_skullcrab` inside) and camp chests don't count. Up to `chest_checks`
+  (ap_config, 0-5) per 10-floor band, cumulative over runs.
+- Shops: Descent shop floors are |floor| mod 10 == 0 without a boss (-10..-90). `ap_shop_setup` runs after the
+  8 stands are created and puts an "Archipelago Item" (obj_misc type 77, `ap_make_apitem`) on up to 2 stands, one per
+  unsent check, price 150. `get_item` sends the check for it (`ap_shop_item`), so buying and stealing both work.
+- Icon: `spr_apicon` (16x16) and `spr_Dapicon` (64x64, 3D) imported by `ApPatch.csx` from `patch/assets/*.png`
+  (`make_ap_icon.py` draws them). The PNGs are part of the mod label hash.
+
 ## Files in the save folder
 Text files, one record per line, fields split by `|`.
 
@@ -44,13 +54,15 @@ Text files, one record per line, fields split by `|`.
 ```
 [ap]
 death_link=1
-floor_check_step=1      ; 1, 5, 10, or 0 = off (floor N counts if (N-1) mod step == 0)
+floor_check_step=2      ; 1, 2, 5, 10, or 0 = off (floor N counts if (N-1) mod step == 0)
+chest_checks=3          ; chest checks per 10-floor band (0 = off)
 base_id=38470000
 slot_id=<seed>:<team>:<slot>
 ```
 
 `ap_out.txt` (game -> client, append only):
 - `L|<location id>|<slot_id>` check. Boss: `base_id + (N-9)/10`. Floor -N: `base_id + 100 + N-1`.
+  Chest: `base_id + 200 + band*5 + k` (band = (N-1) div 10). Shop: `base_id + 250 + (N/10-1)*2 + stand` (N = 10..90).
 - `G|1|<slot_id>` goal. `D|<text>` death (DeathLink). `S|<protocol>|<mod label>` game started (the client warns on a mismatch).
 - `N|..` new run, `X|..` info, `E|..` error.
 - The client rescans the whole file on every connect (the server ignores duplicates).
@@ -62,7 +74,8 @@ slot_id=<seed>:<team>:<slot>
 - `D|<seq>|<text>` DeathLink. Kills only during an active run inside the tower; otherwise ignored.
 
 Game-private: `ap_granted.txt` (items processed for the current run, `-1` = no run; line 2 = slot_id; line 3 = ground indexes `i,j,k`),
-`ap_souls_granted.txt` (souls are granted once per slot; line 2 = slot_id).
+`ap_souls_granted.txt` (souls are granted once per slot; line 2 = slot_id),
+`ap_checks.txt` (chest checks sent per band `c0,..,c9`; 18 shop flags; slot_id; cumulative per slot, reset by the client on a seed switch).
 
 ## Multiworld switch
 - First connection for a save folder: existing files are kept and offline checks are sent.

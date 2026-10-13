@@ -52,7 +52,7 @@ Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine c
 | Plague Trap | 1 random body + 1 random mind ailment | add to ailment timers | Mild | Opt (trap) | V |
 | Pickpocket Trap | lose half the carried gold | halve `count` of gold stacks | Mild | Opt (trap) | V |
 
-## Final pool (default 110 = locations with floor checks "every floor")
+## Final pool (110-item template; default locations: 50 floors + 10 bosses + 30 chests + 18 shops = 108)
 Progression (27, gate nothing - logic stays open): Progressive Weapon 7, Armor 7, Shield 3, Accessory 4, Spellbook 6.
 Useful (27): Orb of Strength 5, Intelligence 5, Vitality 7, Agility 5, Stat Point 5.
 Filler (56): Yellow Orb (Gold) 16, Gold Hoard 4, Blue Orb (Stone) 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Mystic Ring 3.
@@ -61,7 +61,7 @@ is given (a mid-run copy adds the new tier); the spellbook gives every copy. The
 items (Spell Page x9, Weapon/Armor/Accessory/Shield LvX x25): 34 -> 27; the 7 freed slots went to +1 each stat orb,
 +1 Stat Point, +2 Yellow Orb. Removed codes 130-132 and 140-150 are not reused (new codes 160-164).
 Traps: none by default; `trap_percentage` converts that % of fillers into Ambush/Plague/Pickpocket.
-With fewer locations (floor checks every 5th/10th/off: 30/20/10) a random subset of the 110-item template is used.
+With fewer locations the template is trimmed filler first, then useful, then progressive copies (safe: nothing gates; it only lowers the top tier). More locations than 110 are padded with random filler.
 
 ## Open balance questions
 - Whether re-granting equipment every run (about 28 pieces cluttering the 100-slot inventory) is wanted; maybe cap or merge.
