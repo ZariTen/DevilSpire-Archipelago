@@ -103,6 +103,26 @@ def floor_step(floor_checks: int) -> int:
 
 
 HEARTBEAT_FILE = "ap_heartbeat.txt"
+SCOUTS_FILE = "ap_scouts.txt"
+SCOUT_OFFSETS = tuple(range(250, 268)) + tuple(300 + n for n in range(1, 99) if n % 10 not in (0, 9))  # shops, locked chests
+
+
+def scout_text(s: object, limit: int = 40) -> str:
+    """game-safe text: one line, no field separator, no '#' (GMS1 newline), printable ASCII only, short"""
+    t = "".join(c if 32 <= ord(c) < 127 else "?" for c in clean_field(s).replace("#", " "))
+    return t[:limit].strip()
+
+
+def scout_tag(flags: int) -> str:
+    return "trap" if flags & 4 else "progression" if flags & 1 else "useful" if flags & 2 else "filler"
+
+
+def write_scouts(save_dir: Path, slot_id: str, rows: Iterable[tuple[int, str, str, int]]) -> None:
+    """ap_scouts.txt for the Archipelago Item description: line 1 = slot id, then "offset|item|player|tag"
+    (offset = location id - base_id; player "you" for the own slot)."""
+    lines = [clean_field(slot_id)] + [f"{int(o)}|{scout_text(i)}|{scout_text(p, 24)}|{scout_tag(int(f))}"
+                                      for o, i, p, f in sorted(rows)]
+    atomic_write_text(Path(save_dir) / SCOUTS_FILE, "\n".join(lines) + "\n")
 
 
 def write_heartbeat(save_dir: Path, counter: int, slot_id: str, name: str) -> None:
@@ -264,7 +284,7 @@ class InWriter:
 # Files that belong to one multiworld slot. On a seed/slot switch they are MOVED (never deleted) into
 # ap_backup/<timestamp>_<old slot>/ so the next run starts clean. Meta progression (souls.ini, unlocks.ini) stays.
 RESET_FILES = ("descent_character.ini", "corpse.ini", "ap_granted.txt", "ap_souls_granted.txt", "ap_checks.txt", OUT_FILE, IN_FILE,
-               CONFIG_FILE, STATE_FILE)
+               CONFIG_FILE, STATE_FILE, SCOUTS_FILE)
 BACKUP_DIR = "ap_backup"
 
 

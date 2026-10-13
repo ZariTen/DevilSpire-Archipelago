@@ -218,5 +218,20 @@ class SaveDirTests(unittest.TestCase):
                          appdata / "Devil_Spire_AP")
 
 
+
+class ScoutTests(unittest.TestCase):
+    def test_sanitize(self):
+        self.assertEqual(fp.scout_text("A|B#C\nD"), "A/B C D")
+        self.assertEqual(fp.scout_text("José ☃"), "Jos? ?")
+        self.assertEqual(len(fp.scout_text("x" * 100)), 40)
+        self.assertEqual([fp.scout_tag(f) for f in (0, 1, 2, 4, 5)], ["filler", "progression", "useful", "trap", "trap"])
+
+    def test_write(self):
+        d = Path(tempfile.mkdtemp())
+        fp.write_scouts(d, "s:0:1", [(301, "Progressive Weapon", "you", 1), (250, "Sword#2", "Al|ex", 0)])
+        self.assertEqual((d / fp.SCOUTS_FILE).read_text(),
+                         "s:0:1\n250|Sword 2|Al/ex|filler\n301|Progressive Weapon|you|progression\n")
+        self.assertIn(fp.SCOUTS_FILE, fp.RESET_FILES)
+
 if __name__ == "__main__":
     unittest.main()

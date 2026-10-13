@@ -156,7 +156,7 @@ Edit("gml_Object_obj_dungeoncreator_Step_0", @"instance_create\(x \+ 40, y \+ 20
 group.QueuePrepend(Data.Code.ByName("gml_Script_get_item"),
     "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nreturn ap_shop_item(argument0);\n}\n}\n}");
 group.QueuePrepend(Data.Code.ByName("gml_Script_get_item_description"),
-    "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nreturn \"Sends an Archipelago check to the multiworld.\";\n}\n}\n}");
+    "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nif (argument0.ap_desc != \"\")\n{\nreturn argument0.ap_desc;\n}\nreturn \"Sends an Archipelago check to the multiworld.\";\n}\n}\n}");
 
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");

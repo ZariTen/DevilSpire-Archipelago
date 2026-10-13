@@ -76,6 +76,20 @@ class FakeGame:
         n = -int(self.level) if self.level < 0 else 0
         return (not self.stale and 1 <= n <= 98 and n % 10 not in (0, 9) and not self.lock_sent[n - 1])
 
+    def ap_item_desc(self, offset):
+        """ap_make_apitem: description of the Archipelago Item at location offset (ap_scouts.txt), "" if unknown"""
+        txt = self._read("ap_scouts.txt")
+        if not txt:
+            return ""
+        lines = txt.splitlines()
+        if not self.slot_id or lines[0] != self.slot_id:
+            return ""
+        for line in lines[1:]:
+            f = line.split("|")
+            if f[0] == str(offset) and len(f) >= 4:
+                return f"{f[1]} for {f[2]}" + (f" ({f[3]})" if f[3] else "")
+        return ""
+
     def take_locked_ap(self):
         """unlock the chest with the floor key and take the Archipelago Item (ap_shop_item, ap_loc 1000 + N)"""
         if not self.locked_ap_chest():

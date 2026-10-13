@@ -96,6 +96,17 @@ try:
     check("fresh slot with 0 items: empty ap_in.txt + heartbeat written",
           wait_for(lambda: (zd / "ap_in.txt").exists() and read(zd / "ap_heartbeat.txt") and
                    not [l for l in read(zd / "ap_in.txt").splitlines() if l.startswith("I|")], 10))
+    sc = wait_for(lambda: read(zd / "ap_scouts.txt"))
+    rows = sc.splitlines()[1:] if sc else []
+    check("ap_scouts.txt: 98 shop + locked chest rows, real names, tagged with the slot",
+          len(rows) == 98 and sc.splitlines()[0] in cfg and all(r.split("|")[2] in ("you", "Buddy") and
+          not r.split("|")[1].startswith("Item ") and r.split("|")[3] in ("progression", "useful", "filler", "trap")
+          for r in rows), (len(rows), rows[:2]))
+    from fake_game import FakeGame
+    g = FakeGame(zd); g.slot_id = sc.splitlines()[0] if sc else ""
+    r0 = rows[0].split("|") if rows else ["", "", "", ""]
+    check("Archipelago Item description holds the scouted item",
+          g.ap_item_desc(250) == f"{r0[1]} for {r0[2]} ({r0[3]})" and r0[0] == "250", (g.ap_item_desc(250), r0))
     check("stale ap_out.txt of another seed moved to ap_backup", wait_for(lambda: read(zd / "ap_out.txt") == "" and
           any((zd / "ap_backup").glob("*/ap_out.txt"))))
     check("ap_in.txt written", wait_for(lambda: (zd / "ap_in.txt").exists()))

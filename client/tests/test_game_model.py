@@ -235,6 +235,19 @@ class CheckTests(unittest.TestCase):
         self.assertTrue(self.g.locked_ap_chest())               # old per-band line: reset, no crash
 
 
+class ScoutDescTests(unittest.TestCase):
+    def test_desc_from_scouts(self):
+        d = Path(tempfile.mkdtemp())
+        setup(d, 0)
+        g = FakeGame(d)
+        g.start()
+        self.assertEqual(g.ap_item_desc(301), "")                     # no scout data: generic description
+        fp.write_scouts(d, SLOT, [(301, "Progressive Sword", "Alex", 1)])
+        self.assertEqual(g.ap_item_desc(301), "Progressive Sword for Alex (progression)")
+        fp.write_scouts(d, "other:0:1", [(301, "X", "Y", 0)])
+        self.assertEqual(g.ap_item_desc(301), "")                     # another slot's file is ignored
+
+
 class SlotSwitchTests(unittest.TestCase):
     def setUp(self):
         self.d = Path(tempfile.mkdtemp())

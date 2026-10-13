@@ -183,6 +183,9 @@ class DevilSpireContext(CommonContext):
             # The server sends ReceivedItems right after Connected (same frame) only if the slot HAS items. Answers
             # come in order, so the reply to a Get sent now arrives after it: then the item list is final (maybe 0).
             asyncio.create_task(self.send_msgs([{"cmd": "Get", "keys": [SYNC_PROBE_KEY]}]))
+            self.scout_ap_items()
+        elif cmd == "LocationInfo":
+            self.write_scouts(args.get("locations") or [])
         elif cmd == "Retrieved" and SYNC_PROBE_KEY in (args.get("keys") or {}):
             if not self.items_synced:
                 self.items_synced = True
@@ -192,6 +195,28 @@ class DevilSpireContext(CommonContext):
             self.refresh_items()
         elif cmd == "RoomUpdate":
             self.refresh_items()
+
+    def scout_ap_items(self) -> None:
+        """what the shop / locked chest Archipelago Items hold (no hints are created)"""
+        base = int(self.slot_data.get("base_id", 0))
+        locs = sorted({base + o for o in fp.SCOUT_OFFSETS} & set(self.server_locations))
+        if base and locs:
+            asyncio.create_task(self.send_msgs([{"cmd": "LocationScouts", "locations": locs, "create_as_hint": 0}]))
+
+    def write_scouts(self, net_items: list) -> None:
+        if self.save_dir is None or self.slot_id is None:
+            return
+        base = int(self.slot_data.get("base_id", 0))
+        rows = []
+        for it in net_items:
+            if it.location - base not in fp.SCOUT_OFFSETS:
+                continue
+            who = "you" if it.player == self.slot else self.player_names.get(it.player, f"Player {it.player}")
+            rows.append((it.location - base, self.item_names.lookup_in_slot(it.item, it.player), who, it.flags))
+        try:
+            fp.write_scouts(self.save_dir, self.slot_id, rows)
+        except OSError as e:
+            logger.error(f"Could not write {fp.SCOUTS_FILE}: {e!r}")
 
     def on_connected_setup(self) -> None:
         """Called after Connected (and when the save dir changes): sync identity, write config, rescan ap_out.
