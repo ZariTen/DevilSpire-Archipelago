@@ -1,7 +1,7 @@
 """Items: power boosts. NOTHING gates progression (Slay-the-Spire style): all floors/bosses are reachable from the start.
 
-Received items persist across deaths: the patch re-applies the FULL received list at the start of every new run
-(stat orbs stack, consumables/gold/souls are re-granted each run - accepted behaviour). Ids/effects: docs/dev/item-catalog.md.
+Received items persist across deaths: the patch re-applies the received list at the start of every new run
+(stat orbs stack, consumables/gold/souls are re-granted each run; progressive gear: only the best tier). Ids/effects: docs/dev/item-catalog.md.
 Item id = BASE_ID + ITEM_OFFSET + code.
 """
 from __future__ import annotations
@@ -13,6 +13,7 @@ from BaseClasses import Item, ItemClassification
 from .constants import BASE_ID, ITEM_OFFSET
 
 U, F, T = ItemClassification.useful, ItemClassification.filler, ItemClassification.trap
+P = ItemClassification.progression
 
 
 class DevilSpireItem(Item):
@@ -28,13 +29,13 @@ class ItemData(NamedTuple):
 
 _ITEMS: list[tuple[str, int, ItemClassification, int, str]] = [
     # stat boosts (game's red-orb effect: +3 to one stat, applied to the live player; stat-specific)
-    ("Orb of Strength", 100, U, 4, "Stat Boosts"),
-    ("Orb of Intelligence", 101, U, 4, "Stat Boosts"),
-    ("Orb of Vitality", 102, U, 6, "Stat Boosts"),
-    ("Orb of Agility", 103, U, 4, "Stat Boosts"),
-    ("Stat Point", 104, U, 4, "Stat Boosts"),  # +1 unspent point (level-up currency, spent in the character sheet)
+    ("Orb of Strength", 100, U, 5, "Stat Boosts"),
+    ("Orb of Intelligence", 101, U, 5, "Stat Boosts"),
+    ("Orb of Vitality", 102, U, 7, "Stat Boosts"),
+    ("Orb of Agility", 103, U, 5, "Stat Boosts"),
+    ("Stat Point", 104, U, 5, "Stat Boosts"),  # +1 unspent point (level-up currency, spent in the character sheet)
     # gold / stones / souls
-    ("Yellow Orb (Gold)", 110, F, 14, "Gold"),  # 150-450 gold (like the boss yellow orb)
+    ("Yellow Orb (Gold)", 110, F, 16, "Gold"),  # 150-450 gold (like the boss yellow orb)
     ("Gold Hoard", 111, F, 4, "Gold"),  # 1000 gold
     ("Blue Orb (Stone)", 112, F, 10, "Stones"),  # random Stone item (36 kinds), apply to equipment manually
     ("Pouch of Souls", 113, F, 8, "Souls"),  # +100 souls (meta currency)
@@ -42,22 +43,13 @@ _ITEMS: list[tuple[str, int, ItemClassification, int, str]] = [
     ("Red Potion Pack", 120, F, 8, "Consumables"),  # 3x Red Potion (full HP)
     ("Blue Potion Pack", 121, F, 4, "Consumables"),  # 3x Blue Potion (full MP)
     ("White Potion", 122, F, 3, "Consumables"),  # 1x White Potion (full heal + cure)
-    # grimoire pages (random spell of a tier, never a duplicate of a known spell)
-    ("Spell Page (Basic)", 130, F, 4, "Spells"),  # spell types 0-11
-    ("Spell Page (Advanced)", 131, F, 3, "Spells"),  # 12-23
-    ("Spell Page (Master)", 132, U, 2, "Spells"),  # 24-47
-    # equipment: random item of the category at "level" L (stats scale ~linearly with L, see catalog)
-    ("Weapon (Lv 25)", 140, F, 3, "Equipment"),
-    ("Weapon (Lv 50)", 141, U, 3, "Equipment"),
-    ("Weapon (Lv 75)", 142, U, 2, "Equipment"),
-    ("Armor Piece (Lv 25)", 143, F, 3, "Equipment"),
-    ("Armor Piece (Lv 50)", 144, U, 3, "Equipment"),
-    ("Armor Piece (Lv 75)", 145, U, 3, "Equipment"),
-    ("Accessory (Lv 25)", 146, F, 2, "Equipment"),
-    ("Accessory (Lv 50)", 147, U, 2, "Equipment"),
-    ("Accessory (Lv 75)", 148, U, 1, "Equipment"),
-    ("Shield (Lv 25)", 149, F, 1, "Equipment"),
-    ("Shield (Lv 50)", 150, U, 2, "Equipment"),
+    # progressive items (classification progression, but they gate NOTHING: logic stays open). The patch counts the copies
+    # received so far (ap_in order): copy N gives tier N. A new run re-grants only the best gear tier (spellbook: every copy).
+    ("Progressive Weapon", 160, P, 7, "Progressive"),  # copy N: random weapon at L = 10*N (10..70)
+    ("Progressive Armor", 161, P, 7, "Progressive"),  # copy N: full set (body, head, arms, legs) at L = 10*N
+    ("Progressive Shield", 162, P, 3, "Progressive"),  # copy N: shield at L = 20*N (20/40/60)
+    ("Progressive Accessory", 163, P, 4, "Progressive"),  # copy N: accessory at L = 15*N (15/30/45/60)
+    ("Progressive Spellbook", 164, P, 6, "Progressive"),  # copies 1-2: Basic spell, 3-4: Advanced, 5-6: Master (no duplicates)
     ("Mystic Ring", 151, F, 3, "Equipment"),  # random ring (36 kinds, the stone-effect rings)
     # traps (count 0 in the template: only created through trap_percentage, replacing filler). Fire ONCE when received live.
     ("Ambush Trap", 200, T, 0, "Traps"),  # 3-5 floor-appropriate enemies spawn around the player

@@ -26,8 +26,8 @@
   boss floor cleared (`obj_enemy_Step_0`) -> `ap_boss_cleared`; `obj_rhamdon_Step_1` -> `ap_goal`;
   player death -> `ap_death_send`; new character -> `ap_new_run`.
 - Items (`ap_poll`, player alive in `rom_dungeon`, no `obj_dungeoncreator`): `ap_grant_pending` processes up to 100 per poll.
-  Weightless (`ap_item_weighted` = 0: stat orbs/point, gold, Blue Orb stone, souls, spell pages, traps) are applied directly.
-  Weighted (potions 0.25 each, weapons/armor/accessories/shields, rings 0.1) go to the ground list `global.ap_drops`.
+  Weightless (`ap_item_weighted` = 0: stat orbs/point, gold, Blue Orb stone, souls, Progressive Spellbook, traps) are applied directly.
+  Weighted (potions 0.25 each, progressive gear, rings 0.1). Progressive: copy N = Nth in `ap_in` order (`ap_copies`); gear only if no later copy is received (best tier per run); ground key = index*10 + armor piece go to the ground list `global.ap_drops`.
 - Ground items (`ap_drop_spawn`): native `obj_droppeditem` (`item = ap_drop_make(id)`), picked up with the game's `interact`/`get_item`.
   Camp: grid (20 px) around the arrival point (0,212); tower: grid (16 px) around the player. Spot must be free for the
   player's mask and not on decor/shades/bonfire/entrance/tombstones; else at the anchor. Max 60 on the ground.
@@ -76,8 +76,7 @@ Game-private: `ap_granted.txt` (items processed for the current run, `-1` = no r
 
 ## Item ids
 `base_id + 500 + code`: 100-103 stat orbs (STR/INT/VIT/AGI), 104 stat point, 110 Yellow Orb (gold), 111 Gold Hoard,
-112 Blue Orb (stone), 113 Pouch of Souls, 120/121 Red/Blue Potion Pack, 122 White Potion, 130-132 spell pages,
-140-142 weapon, 143-145 armor, 146-148 accessory, 149/150 shield, 151 ring, 200-202 traps. Effects: [item-catalog.md](item-catalog.md).
+112 Blue Orb (stone), 113 Pouch of Souls, 120/121 Red/Blue Potion Pack, 122 White Potion, 151 ring, 160-164 Progressive Weapon/Armor/Shield/Accessory/Spellbook, 200-202 traps. Effects: [item-catalog.md](item-catalog.md).
 
 ## Known gaps
 In-game behaviour is mostly untested (item effects, traps, ground item placement). Bosses don't spawn if the player

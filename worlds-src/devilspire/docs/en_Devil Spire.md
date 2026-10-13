@@ -17,12 +17,13 @@ Power boosts:
 - Stat orbs (+3 to a stat) and stat points.
 - Gold, stones, souls.
 - Potion packs.
-- Spell pages.
-- Weapons, armor, accessories, shields and rings.
+- Progressive Weapon, Armor (full set), Shield and Accessory: each copy is a better tier. A new run gives your best tier.
+- Progressive Spellbook: a new spell per copy (Basic, Advanced, Master).
+- Mystic Rings.
 - Traps, if the host turns them on: Ambush, Plague, Pickpocket.
 
 ## How do I get them?
-Stat boosts, gold, stones and spell pages go straight to you. Equipment, rings and potions lie on the ground around you at the camp (or at your feet during a run). When you die, you start a new run and get all your items again. Souls are only given once.
+Stat boosts, gold, stones and spells go straight to you. Equipment, rings and potions lie on the ground around you at the camp (or at your feet during a run). When you die, you start a new run and get all your items again. Souls are only given once.
 
 ## DeathLink
 Optional. Your death kills other DeathLink players, and theirs kills you, but only while you are inside the tower.

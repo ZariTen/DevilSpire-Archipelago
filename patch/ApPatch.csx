@@ -15,7 +15,7 @@ if (!Regex.IsMatch(modLabel, @"^Archipelago v[0-9A-Za-z.\-]+ \([0-9a-f]{7}\)$"))
 string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
-    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room" };
+    "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room", "ap_copies" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
@@ -83,7 +83,7 @@ Edit("gml_Script_mode_difficulty_floor", @"modus = ""Descent"";", "modus = \"Arc
 Edit("gml_Object_obj_title_Draw_64", @"""Climb Down#Floors: 99#Dungeons: 10#Ending T""", "\"Archipelago#Floors: 99#Dungeons: 10#Ending T\"", "mode description");
 
 // (j) received WEIGHTED items lie on the ground as native obj_droppeditem pickups (ap_drop_spawn, called from ap_poll).
-// ap_idx = received-item index (-1 = vanilla drop); Destroy = picked up (room end does not fire Destroy) -> ap_drop_taken
+// ap_idx = ground key (received index*10 + armor part; -1 = vanilla drop); Destroy = picked up (room end does not fire Destroy) -> ap_drop_taken
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_droppeditem_Create_0"), "ap_idx = -1;");
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_droppeditem_Destroy_0"), "if (ap_idx >= 0)\n{\nap_drop_taken(ap_idx);\nap_idx = -1;\n}");
 

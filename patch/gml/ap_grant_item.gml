@@ -1,5 +1,5 @@
 // ap_grant_item(item_id): apply one received item to the live run (docs/dev/item-catalog.md). Returns 1 when handled, 0 to retry later.
-// Item id = ap_base + 500 + code. Weightless items (stat orbs/points, gold, stones, souls, spell pages) are applied directly; weighted ones are queued in global.ap_drops and spawned as ground pickups. Re-granted on every new run (souls once per slot); traps only fire
+// Item id = ap_base + 500 + code. Weightless items (stat orbs/points, gold, stones, souls, spellbook) are applied directly; weighted ones are queued in global.ap_drops and spawned as ground pickups. Progressive gear: only the best tier received so far. Re-granted on every new run (souls once per slot); traps only fire
 // when they were received live (global.ap_live[global.ap_cur], set by ap_poll) and are then consumed.
 var rel = argument0 - global.ap_base - 500;
 var ok = 1;
@@ -84,24 +84,42 @@ else if (rel == 112)
 {
     it = generate_stone(irandom(35)); // like the boss blue orb (stone kinds 0-35)
 }
-else if (rel == 130)
+else if (rel == 164)
 {
-    it = generate_spell(irandom_range(0, 11));
+    // Progressive Spellbook: copy N (counted in received order) -> 1-2 Basic, 3-4 Advanced, 5-6 Master; every copy is re-granted
+    var c = ap_copies(global.ap_cur);
+    if (c <= 2)
+    {
+        it = generate_spell(irandom_range(0, 11));
+    }
+    else if (c <= 4)
+    {
+        it = generate_spell(irandom_range(12, 23));
+    }
+    else
+    {
+        it = generate_spell(irandom_range(24, 47));
+    }
 }
-else if (rel == 131)
+else if (rel >= 160 && rel <= 163 && ap_copies(global.ap_cur) < ap_copies(global.ap_n - 1, argument0))
 {
-    it = generate_spell(irandom_range(12, 23));
-}
-else if (rel == 132)
-{
-    it = generate_spell(irandom_range(24, 47));
+    // progressive gear: a later copy of this item is already received, it grants the better tier (only the best per run)
 }
 else if (ap_item_weighted(argument0))
 {
-    // weighted (potions, equipment, rings): not added directly; queued as a ground pickup (ap_drop_spawn)
-    if (ds_list_find_index(global.ap_drops, global.ap_cur) < 0)
+    // weighted (potions, progressive gear, rings): queued as ground pickups (ap_drop_spawn). Key = index*10 + part
+    // (part 0-3 = the four pieces of a Progressive Armor set, else 0)
+    var parts = 1;
+    if (rel == 161)
     {
-        ds_list_add(global.ap_drops, global.ap_cur);
+        parts = 4;
+    }
+    for (var pt = 0; pt < parts; pt++)
+    {
+        if (ds_list_find_index(global.ap_drops, (global.ap_cur * 10) + pt) < 0)
+        {
+            ds_list_add(global.ap_drops, (global.ap_cur * 10) + pt);
+        }
     }
 }
 else if (rel >= 200 && rel <= 202)

@@ -23,8 +23,8 @@ items=(
  "100|Orb of Strength" "102|Orb of Vitality" "103|Orb of Agility" "104|Stat Point"
  "110|Yellow Orb (Gold)" "111|Gold Hoard" "112|Blue Orb (Stone)" "113|Pouch of Souls"
  "120|Red Potion Pack" "121|Blue Potion Pack" "122|White Potion"
- "130|Spell Page (Basic)" "141|Weapon (Lv 50)" "144|Armor Piece (Lv 50)" "147|Accessory (Lv 50)"
- "149|Shield (Lv 25)" "151|Mystic Ring" "113|Pouch of Souls" "110|Yellow Orb (Gold)" "200|Ambush Trap"
+ "164|Progressive Spellbook" "160|Progressive Weapon" "160|Progressive Weapon" "161|Progressive Armor" "163|Progressive Accessory"
+ "162|Progressive Shield" "151|Mystic Ring" "113|Pouch of Souls" "110|Yellow Orb (Gold)" "200|Ambush Trap"
 )
 tmp="$dir/ap_in.txt.tmp"; : > "$tmp"; i=0
 for e in "${items[@]}"; do

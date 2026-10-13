@@ -19,13 +19,14 @@ It keeps a backup of the original file (`data.win.orig`).
 1. In the client, connect to the server with your slot name.
 2. Start Devil Spire from Steam as usual. (Client or game first, either is fine.)
 3. Choose *New Game* and make a character. The only mode is **Archipelago**.
-4. At the camp you get your items. Stat boosts, gold, stones and spell pages go straight to you.
+4. At the camp you get your items. Stat boosts, gold, stones and spells go straight to you.
    Equipment, rings and potions lie on the ground around you. Pick up what you want.
 5. Go down the tower. New floors and bosses count as checks.
 6. Beat the boss on floor -100 to win.
 
 Good to know:
 - **Dying** starts a new run. You get all your items back at the camp.
+- Gear is **progressive**: each Progressive Weapon/Armor/Shield/Accessory you get is a better tier (Armor = a full set). A new run gives only your best tier. Each Progressive Spellbook gives a spell (Basic, then Advanced, then Master).
 - Items that arrive during a run come at once. Equipment, rings and potions drop at your feet.
 - Items you leave on the camp ground stay behind when you enter the tower. You get them again next run.
 - Items that drop in the tower and that you leave behind come back on the next floor. Nothing is doubled.

@@ -122,4 +122,4 @@ if (global.ap_granted < 0)
     ds_list_clear(global.ap_drops);
 }
 ap_save_granted();
-ap_emit("S|4|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match
+ap_emit("S|5|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match

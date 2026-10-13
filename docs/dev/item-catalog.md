@@ -33,30 +33,35 @@ Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine c
 
 | Item | Effect | How granted (patch) | Balance risk | Rec. | Basis |
 |---|---|---|---|---|---|
-| Orb of Strength/Intelligence/Vitality/Agility | +3 to that stat (+derived stats, same as boss red orb) | direct stat edit on obj_player (code copied from `interact`/obj_orb) | Strong (stacks per run; 18 orbs = +54 stats vs ~+30 from a full vanilla run's red orbs). Classified useful | Pool (4/4/6/4) | V code, G runtime |
-| Stat Point | +1 unspent point to spend | `global.statpoints += 1` | Low | Pool (4) | V |
-| Yellow Orb (Gold) | 150-450 gold item | `generate_gold(irandom_range(150,450))` + `add_inventory` | Low (re-granted every run) | Pool (14) | V |
+| Orb of Strength/Intelligence/Vitality/Agility | +3 to that stat (+derived stats, same as boss red orb) | direct stat edit on obj_player (code copied from `interact`/obj_orb) | Strong (stacks per run; 18 orbs = +54 stats vs ~+30 from a full vanilla run's red orbs). Classified useful | Pool (5/5/7/5) | V code, G runtime |
+| Stat Point | +1 unspent point to spend | `global.statpoints += 1` | Low | Pool (5) | V |
+| Yellow Orb (Gold) | 150-450 gold item | `generate_gold(irandom_range(150,450))` + `add_inventory` | Low (re-granted every run) | Pool (16) | V |
 | Gold Hoard | 1000 gold | `generate_gold(1000)` | Low-med: shops/merchant scale | Pool (4) | V |
 | Blue Orb (Stone) | random stone (0-35) | `generate_stone(irandom(35))` | Low (player must apply to gear; may inventory-clutter) | Pool (10) | V |
 | Pouch of Souls | +100 souls | `global.souls += 100; save_souls()` | Low; re-grant farms souls each run (meta currency for unlocks) | Pool (8) | V |
 | Red Potion Pack | 3x full HP potion | `generate_potion(0)`, count 3, weight 0.75 | Low-med (stacks, 3 per item per run) | Pool (8) | V |
 | Blue Potion Pack | 3x full MP | `generate_potion(25)`, count 3 | Low | Pool (4) | V |
 | White Potion | full heal + cure | `generate_potion(99)` | Low | Pool (3) | V |
-| Spell Page Basic/Advanced/Master | random spell of tier 0-11 / 12-23 / 24-47 | `generate_spell(irandom_range(..))` + `get_item` (grimoire) | Master spells (e.g. Abracadabra) strong; grimoire has 24 slots; full = item skipped | Pool (4/3/2); Master useful | V |
-| Weapon Lv25/50/75 | random weapon (24 types, random roll) | `generate_weapon(L, type roll)` | L75 ~ atk 37 (x1.5 2h) = a floor ~70 drop; weight up to ~7-15 kg may overencumber a weak build | Pool (3/3/2) | V formulas, G balance |
-| Armor Piece Lv25/50/75 | random slot (body/head/arms/legs) | `generate_armor(L, irandom(3))` | Weight (body L75 up to ~18 kg) | Pool (3/3/3) | V |
-| Accessory Lv25/50/75 | charm, stats sum L/5 | `generate_accessory(L, irandom(3))` | Low | Pool (2/2/1) | V |
-| Shield Lv25/50 | random shield/buckler/bulwark | `generate_shield(L)` | Low | Pool (1/2) | V |
+| Progressive Spellbook | copy 1-2: Basic spell (0-11), 3-4: Advanced (12-23), 5-6: Master (24-47) | `generate_spell` + `get_item` (grimoire); every copy re-granted each run | Master spells strong | Pool (6), progression | V |
+| Progressive Weapon | copy N: random weapon at L = 10N (10..70) | `generate_weapon(10N, type roll)`, ground pickup | L70 ~ a floor ~65 drop | Pool (7), progression | V formulas, G balance |
+| Progressive Armor | copy N: full set (body, head, arms, legs) at L = 10N | `generate_armor(10N, 0..3)`, 4 ground pickups | Weight of a full set | Pool (7), progression | V |
+| Progressive Shield | copy N: shield at L = 20N (20/40/60) | `generate_shield(20N)` | Low | Pool (3), progression | V |
+| Progressive Accessory | copy N: charm at L = 15N (15/30/45/60) | `generate_accessory(15N, irandom(3))` | Low | Pool (4), progression | V |
 | Mystic Ring | random ring (36 effects) | `generate_ring(irandom(35))` | Effect-dependent (some are situational) | Pool (3) | V |
 | Ambush Trap | 3-5 enemies spawn next to player, alerted | `instance_create(.., obj_enemy)` | Can kill; live-only | Opt (trap) | V creation, G effect |
 | Plague Trap | 1 random body + 1 random mind ailment | add to ailment timers | Mild | Opt (trap) | V |
 | Pickpocket Trap | lose half the carried gold | halve `count` of gold stacks | Mild | Opt (trap) | V |
 
 ## Final pool (default 110 = locations with floor checks "every floor")
-Useful: Orb of Strength 4, Intelligence 4, Vitality 6, Agility 4, Stat Point 4, Spell Page (Master) 2, Weapon Lv50 3, Lv75 2, Armor Lv50 3, Lv75 3, Accessory Lv50 2, Lv75 1, Shield Lv50 2 (= 40).
-Filler (70): Yellow Orb (Gold) 14, Gold Hoard 4, Blue Orb (Stone) 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Spell Page Basic 4 / Advanced 3, Weapon Lv25 3, Armor Lv25 3, Accessory Lv25 2, Shield Lv25 1, Mystic Ring 3.
+Progression (27, gate nothing - logic stays open): Progressive Weapon 7, Armor 7, Shield 3, Accessory 4, Spellbook 6.
+Useful (27): Orb of Strength 5, Intelligence 5, Vitality 7, Agility 5, Stat Point 5.
+Filler (56): Yellow Orb (Gold) 16, Gold Hoard 4, Blue Orb (Stone) 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Mystic Ring 3.
+Progressive copy N = the Nth copy in received order (the patch counts them in `ap_in.txt`). Per run only the best gear tier
+is given (a mid-run copy adds the new tier); the spellbook gives every copy. The progressive items replaced 34 per-level
+items (Spell Page x9, Weapon/Armor/Accessory/Shield LvX x25): 34 -> 27; the 7 freed slots went to +1 each stat orb,
++1 Stat Point, +2 Yellow Orb. Removed codes 130-132 and 140-150 are not reused (new codes 160-164).
 Traps: none by default; `trap_percentage` converts that % of fillers into Ambush/Plague/Pickpocket.
-No progression items. With fewer locations (floor checks every 5th/10th/off: 30/20/10) a random subset of the 110-item template is used.
+With fewer locations (floor checks every 5th/10th/off: 30/20/10) a random subset of the 110-item template is used.
 
 ## Open balance questions
 - Whether re-granting equipment every run (about 28 pieces cluttering the 100-slot inventory) is wanted; maybe cap or merge.

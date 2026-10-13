@@ -111,7 +111,7 @@ def open_all(g):
 
 
 def same(g):
-    return g.owned() == Counter(g.items)
+    return g.owned() == g.expected()
 
 
 try:
@@ -202,9 +202,9 @@ try:
     check("server registered the goal", wait_for(lambda: "goal" in read(tmp / "serverA.log").lower()))
     check("old patch protocol in ap_out is warned", wait_for(lambda: "patch protocol 1" in read(zc.log)))
     game.quit(); game.start()
-    check("warning clears after the patched game restarts (S|4)",
+    check("warning clears after the patched game restarts (S|5)",
           wait_for(lambda: read(zc.log).count("patch protocol") == 1 and zc.checked() is not None))
-    game.emit("S|4|Archipelago v0.0.0 (0000000)")
+    game.emit("S|5|Archipelago v0.0.0 (0000000)")
     check("other mod version in the running game is warned",
           wait_for(lambda: "running game is Archipelago v0.0.0 (0000000)" in read(zc.log)))
     check("/status shows both mod versions", wait_for(lambda: zc.status() and re.search(

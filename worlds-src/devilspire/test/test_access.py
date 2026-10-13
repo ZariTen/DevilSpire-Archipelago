@@ -15,6 +15,17 @@ class TestTemplate(DevilSpireTestBase):
         self.assertFalse([n for n in POOL_TEMPLATE if ITEM_TABLE[n].classification == T])
         self.assertEqual(ITEM_NAME_TO_ID["Orb of Strength"], 38_470_000 + 500 + 100)
 
+    def test_progressive(self) -> None:
+        from collections import Counter
+        from BaseClasses import ItemClassification as IC
+        c = Counter(POOL_TEMPLATE)
+        self.assertEqual((c["Progressive Weapon"], c["Progressive Armor"], c["Progressive Shield"],
+                          c["Progressive Accessory"], c["Progressive Spellbook"]), (7, 7, 3, 4, 6))
+        self.assertEqual(sum(1 for n in POOL_TEMPLATE if ITEM_TABLE[n].classification == IC.progression), 27)
+        self.assertEqual(ITEM_NAME_TO_ID["Progressive Weapon"], 38_470_000 + 500 + 160)
+        removed = {130, 131, 132} | set(range(140, 151))
+        self.assertFalse([n for n, d in ITEM_TABLE.items() if d.code in removed])
+
 
 class TestFloorChecksDefault(DevilSpireTestBase):
     def test_counts(self) -> None:
@@ -31,7 +42,8 @@ class TestFloorChecksDefault(DevilSpireTestBase):
         for t in range(10):
             self.assertTrue(self.can_reach_region(tier_region_name(t)))
         self.assertBeatable(True)
-        self.assertFalse([i for i in self.multiworld.itempool if i.advancement])
+        # only the progressive items are progression; they gate nothing (everything reachable with an empty state)
+        self.assertFalse([i for i in self.multiworld.itempool if i.advancement and not i.name.startswith("Progressive ")])
 
     def test_single_golem_check(self) -> None:
         names = [l.name for l in self.multiworld.get_locations(1) if "Golem" in l.name]
@@ -44,7 +56,7 @@ class TestFloorChecksDefault(DevilSpireTestBase):
     def test_classifications(self) -> None:
         pool = [i.name for i in self.multiworld.itempool]
         self.assertEqual(sorted(pool), sorted(POOL_TEMPLATE))
-        self.assertEqual(len(self.get_items_by_name("Orb of Vitality")), 6)
+        self.assertEqual(len(self.get_items_by_name("Orb of Vitality")), 7)
 
 
 class TestTraps(DevilSpireTestBase):

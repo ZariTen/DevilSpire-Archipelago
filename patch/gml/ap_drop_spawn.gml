@@ -34,24 +34,24 @@ if (global.level == 0.5)
 var spawned = 0;
 for (var i = 0; i < n && present < 60; i++)
 {
-    var idx = ds_list_find_value(global.ap_drops, i);
+    var idx = ds_list_find_value(global.ap_drops, i); // key = received index * 10 + part
     var have = 0;
     if (ds_map_exists(global.ap_drop_inst, idx))
     {
         have = instance_exists(ds_map_find_value(global.ap_drop_inst, idx));
     }
-    if (have || idx >= global.ap_n)
+    if (have || floor(idx / 10) >= global.ap_n)
     {
         continue;
     }
-    var it = ap_drop_make(global.ap_item_id[idx]);
+    var it = ap_drop_make(idx);
     if (!instance_exists(it))
     {
         // not a weighted item (should not happen): drop it from the list
         ds_list_delete(global.ap_drops, i);
         i -= 1;
         n -= 1;
-        ap_emit("E|bad ground item idx " + string(idx));
+        ap_emit("E|bad ground item key " + string(idx));
         continue;
     }
     var d = instance_create(ax, ay, obj_droppeditem);

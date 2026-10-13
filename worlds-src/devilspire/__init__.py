@@ -94,4 +94,8 @@ class DevilSpireWorld(World):
             "gating": False,  # no depth keys: everything reachable from the start
             "persistent_items": True,  # client must re-apply ALL received items on every new Descent save
             "base_id": BASE_ID,
+            "items_version": 2,  # progressive gear/spellbook (codes 160-164); older builds used per-level items
+            "progressive_tiers": {"weapon": [10 * n for n in range(1, 8)], "armor": [10 * n for n in range(1, 8)],
+                                  "shield": [20, 40, 60], "accessory": [15, 30, 45, 60],
+                                  "spellbook": ["Basic", "Basic", "Advanced", "Advanced", "Master", "Master"]},
         }

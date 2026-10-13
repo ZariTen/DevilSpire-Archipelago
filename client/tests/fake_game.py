@@ -13,7 +13,15 @@ GROUND_CAP = 60
 
 def weighted(item_id):
     rel = item_id - BASE - 500
-    return 120 <= rel <= 122 or 140 <= rel <= 151
+    return 120 <= rel <= 122 or rel == 151 or 160 <= rel <= 163
+
+
+def progressive_gear(item_id):
+    return 160 <= item_id - BASE - 500 <= 163
+
+
+def parts(item_id):
+    return 4 if item_id - BASE - 500 == 161 else 1   # Progressive Armor = full set of 4 pieces
 
 
 def _digits(s):
@@ -26,8 +34,8 @@ class FakeGame:
         self.running = False
         self.char_items: list[int] = []   # items applied to the live character
         self.saved_char: list[int] = []   # character as last saved (Continue restores it)
-        self.drops: list[int] = []        # received-item indexes of weighted items still waiting on the ground
-        self.ground: list[int] = []       # indexes lying in the current room
+        self.drops: list[int] = []        # ground keys (received index * 10 + armor part) still waiting on the ground
+        self.ground: list[int] = []       # keys lying in the current room
 
     # --- files
     def _read(self, n):
@@ -88,7 +96,7 @@ class FakeGame:
         self.c_granted, self.c_drops = self.granted, list(self.drops)
         self.write_granted()
         self.dl_init, self.dl_seq, self.room, self.level, self.alive, self.deaths = False, 0, "title", 0, True, []
-        self.emit("S|4|patch started")
+        self.emit("S|5|patch started")
 
     def quit(self):
         self.running = False
@@ -143,9 +151,12 @@ class FakeGame:
         cnt = 0
         while self.granted < self.n and cnt < 100:   # batch limit as in ap_grant_pending.gml
             item = self.items[self.granted]
-            if weighted(item):
-                if self.granted not in self.drops:
-                    self.drops.append(self.granted)
+            if progressive_gear(item) and self.copies(self.granted) < self.copies(self.n - 1, item):
+                pass   # a later copy is already received: only the best tier is granted
+            elif weighted(item):
+                for pt in range(parts(item)):
+                    if self.granted * 10 + pt not in self.drops:
+                        self.drops.append(self.granted * 10 + pt)
             else:
                 self.char_items.append(item)
             self.granted += 1
@@ -160,7 +171,7 @@ class FakeGame:
         for i in self.drops:
             if len(self.ground) >= GROUND_CAP:
                 break
-            if i not in self.ground and i < self.n:
+            if i not in self.ground and i // 10 < self.n:
                 self.ground.append(i)
 
     def pick_up(self, idx):
@@ -168,8 +179,23 @@ class FakeGame:
             return False
         self.ground.remove(idx)
         self.drops.remove(idx)
-        self.char_items.append(self.items[idx])
+        self.char_items.append(self.items[idx // 10])
         return True
+
+    def copies(self, last, item=None):
+        """ap_copies.gml: copies of `item` (default: the item at `last`) among received items 0..last"""
+        if item is None:
+            item = self.items[last]
+        return sum(1 for i in self.items[:last + 1] if i == item)
+
+    def expected(self):
+        """what one fully collected run holds: every item once, progressive gear only its best copy (armor: 4 pieces)"""
+        c = Counter()
+        for i, item in enumerate(self.items):
+            if progressive_gear(item) and self.copies(i) < self.copies(self.n - 1, item):
+                continue
+            c[item] += parts(item)
+        return c
 
     def collect_all(self):
         """at the camp: let the game process everything, pick up every ground item, then enter the tower.
