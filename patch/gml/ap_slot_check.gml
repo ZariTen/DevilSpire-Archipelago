@@ -46,6 +46,7 @@ global.ap_dl_init = 0;
 global.ap_dl_pending = 0;
 global.ap_fail = 0;
 global.ap_souls_max = -1;
+global.ap_msg_init = 0;
 ap_save_souls();
 ap_load_checks(cfgslot); // the client reset ap_checks.txt on the seed switch; another slot's file is not trusted
 ap_save_checks();

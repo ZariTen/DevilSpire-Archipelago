@@ -8,5 +8,5 @@ Devil Spire:
   accessibility: full
   death_link: true
   floor_checks: every_2nd
-  chest_checks: 3
+  difficulty: extreme
   trap_percentage: 0

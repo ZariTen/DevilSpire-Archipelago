@@ -166,7 +166,7 @@ class FakeGame:
         self.load_checks(cfg)
         self.save_checks()
         self.dl_init, self.dl_seq, self.room, self.level, self.alive, self.deaths = False, 0, "title", 0, True, []
-        self.emit("S|8|patch started")
+        self.emit("S|9|patch started")
 
     def quit(self):
         self.running = False

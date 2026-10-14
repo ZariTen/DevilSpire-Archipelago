@@ -45,10 +45,10 @@ _ITEMS: list[tuple[str, int, ItemClassification, int, str]] = [
     ("White Potion", 122, F, 3, "Consumables"),  # 1x White Potion (full heal + cure)
     # progressive items (classification progression, but they gate NOTHING: logic stays open). The patch counts the copies
     # received so far (ap_in order): copy N gives tier N. A new run re-grants only the best gear tier (spellbook: every copy).
-    ("Progressive Weapon", 160, P, 7, "Progressive"),  # copy N: random weapon at L = 10*N (10..70)
-    ("Progressive Armor", 161, P, 7, "Progressive"),  # copy N: full set (body, head, arms, legs) at L = 10*N
-    ("Progressive Shield", 162, P, 3, "Progressive"),  # copy N: shield at L = 20*N (20/40/60)
-    ("Progressive Accessory", 163, P, 4, "Progressive"),  # copy N: accessory at L = 15*N (15/30/45/60)
+    ("Progressive Weapon", 160, P, 7, "Progressive"),  # copy N: random weapon at L = floor(12.5*N) (12..87)
+    ("Progressive Armor", 161, P, 7, "Progressive"),  # copy N: full set (body, head, arms, legs) at L = floor(12.5*N)
+    ("Progressive Shield", 162, P, 3, "Progressive"),  # copy N: shield at L = 25*N (25/50/75)
+    ("Progressive Accessory", 163, P, 4, "Progressive"),  # copy N: accessory at L = 20*N (20/40/60/80)
     ("Progressive Spellbook", 164, P, 6, "Progressive"),  # copies 1-2: Basic spell, 3-4: Advanced, 5-6: Master (no duplicates)
     ("Mystic Ring", 151, F, 3, "Equipment"),  # random ring (36 kinds, the stone-effect rings)
     # traps (count 0 in the template: only created through trap_percentage, replacing filler). Fire ONCE when received live.
@@ -65,6 +65,23 @@ TRAP_NAMES = [n for n, d in ITEM_TABLE.items() if d.classification == T]
 
 # the default-size pool template (sums to 110 = locations with floor_checks every_floor)
 POOL_TEMPLATE: list[str] = [n for n, d in ITEM_TABLE.items() for _ in range(d.count)]
+
+
+
+def extra_items(k: int) -> list[str]:
+    """k pool entries beyond the 110 template: the template's useful + filler mix scaled proportionally (largest
+    remainder, deterministic). Progressive copies never grow beyond their max tier."""
+    base = [n for n in POOL_TEMPLATE if ITEM_TABLE[n].classification != P]
+    counts: dict[str, int] = {}
+    for n in base:
+        counts[n] = counts.get(n, 0) + 1
+    share = {n: k * c / len(base) for n, c in counts.items()}
+    out = {n: int(s) for n, s in share.items()}
+    rest = k - sum(out.values())
+    for n in sorted(share, key=lambda n: (-(share[n] - out[n]), list(counts).index(n)))[:rest]:
+        out[n] += 1
+    return [n for n in counts for _ in range(out[n])]
+
 
 ITEM_NAME_GROUPS: dict[str, set[str]] = {}
 for _n, _d in ITEM_TABLE.items():

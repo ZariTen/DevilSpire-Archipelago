@@ -6,6 +6,7 @@ global.ap_deathlink = 0;
 global.ap_floor_step = 2;
 global.ap_base = 38470000;
 global.ap_poll_frames = 30;
+global.ap_difficulty = 3; // Extreme until the client wrote ap_config.ini
 var cfgslot = ap_read_config();
 global.ap_tick = 0;
 global.ap_n = 0;
@@ -28,6 +29,8 @@ global.ap_hb_name = "";
 global.ap_hb_seen = 0;
 global.ap_hb_warned = 0;
 global.ap_connected = 0;
+global.ap_msg_init = 0;
+global.ap_msg_seq = 0;
 // weighted items of the current run still waiting on the ground (received-item indexes) and their live obj_droppeditem
 global.ap_drops = ds_list_create();
 global.ap_drop_inst = ds_map_create();
@@ -131,4 +134,4 @@ if (global.ap_granted < 0)
 ap_load_checks(cfgslot);
 ap_save_checks();
 ap_save_granted();
-ap_emit("S|8|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match
+ap_emit("S|9|@AP_MOD_LABEL@"); // S|<patch protocol version>|<mod label>: the client warns when either does not match

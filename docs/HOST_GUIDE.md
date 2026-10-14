@@ -16,7 +16,8 @@ Use the same apworld version as your Devil Spire players.
 | Option | Values | Meaning |
 |---|---|---|
 | `death_link` | true / false | Deaths are shared with other DeathLink players. |
-| `floor_checks` | `every_floor` (default), `every_5th`, `every_10th`, `off` | Which floors count as checks. Bosses always count. |
+| `floor_checks` | `every_2nd` (default), `every_floor`, `every_5th`, `every_10th`, `off` | Which floors count as checks. Bosses, locked chests and shops always count. |
+| `difficulty` | `easy`, `normal`, `hard`, `extreme` (default), `nightmare` | Game difficulty, locked for the whole game. |
 | `trap_percentage` | 0-100 (default 0) | Share of filler items that become traps. |
 
 The goal is beating the boss on floor -100. Nothing is locked: every floor can be reached from the start.

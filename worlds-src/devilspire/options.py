@@ -36,14 +36,29 @@ class FloorChecks(Choice):
         return {0: 1, 1: 5, 2: 10, 3: 0, 4: 2}[self.value]
 
 
+class Difficulty(Choice):
+    """
+    Game difficulty for every Archipelago (Descent) run. The game locks it: the title's difficulty selector shows it
+    and can't change it. Extreme and Nightmare don't need to be unlocked.
+    """
+    display_name = "Difficulty"
+    option_easy = 0
+    option_normal = 1
+    option_hard = 2
+    option_extreme = 3
+    option_nightmare = 4
+    default = 3
+
+
 @dataclass
 class DevilSpireOptions(PerGameCommonOptions):
     death_link: DeathLink
     trap_percentage: TrapPercentage
     floor_checks: FloorChecks
+    difficulty: Difficulty
 
 
 option_groups = [
     OptionGroup("Locations", [FloorChecks]),
-    OptionGroup("Extras", [DeathLink, TrapPercentage]),
+    OptionGroup("Extras", [Difficulty, DeathLink, TrapPercentage]),
 ]

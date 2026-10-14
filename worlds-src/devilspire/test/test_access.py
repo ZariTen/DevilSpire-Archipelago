@@ -70,7 +70,14 @@ class TestFloorChecksDefault(DevilSpireTestBase):
         # 158 locations: the full 110 template + 48 filler
         self.assertFalse(Counter(POOL_TEMPLATE) - Counter(pool))
         self.assertEqual(len(pool), 158)
-        self.assertEqual(len(self.get_items_by_name("Orb of Vitality")), 7)
+        # the 48 extra slots get the template's useful/filler mix scaled up (no extra progressive copies)
+        c = Counter(pool)
+        self.assertEqual((c["Orb of Vitality"], c["Stat Point"], c["Yellow Orb (Gold)"], c["Pouch of Souls"]), (11, 8, 25, 13))
+        self.assertEqual(c["Progressive Weapon"], 7)
+        self.assertEqual(sum(1 for n in pool if ITEM_TABLE[n].classification == U), 27 + 16)
+
+    def test_difficulty_default_extreme(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["difficulty"], 3)
 
 
 class TestTraps(DevilSpireTestBase):
@@ -79,8 +86,8 @@ class TestTraps(DevilSpireTestBase):
     def test_traps_replace_filler(self) -> None:
         pool = self.multiworld.itempool
         self.assertEqual(len(pool), 208)   # 100 floors + 10 bosses + 80 locked chests + 18 shops
-        self.assertEqual(sum(1 for i in pool if i.classification == T),
-                         208 - sum(1 for n in POOL_TEMPLATE if ITEM_TABLE[n].classification != F))
+        self.assertEqual(sum(1 for i in pool if i.classification == T), sum(1 for i in pool if not i.advancement
+                         and not i.useful and i.classification != T) + sum(1 for i in pool if i.classification == T))
         self.assertBeatable(True)
 
 

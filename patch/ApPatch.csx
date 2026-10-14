@@ -17,7 +17,7 @@ string gmlDir = Path.Combine(Path.GetDirectoryName(ScriptPath), "gml");
 string[] newScripts = { "ap_emit", "ap_field", "ap_save_granted", "ap_init", "ap_new_run", "ap_floor_reached",
     "ap_boss_cleared", "ap_goal", "ap_death_send", "ap_grant_item", "ap_poll",
     "ap_save_souls", "ap_read_config", "ap_slot_check", "ap_grant_pending", "ap_item_weighted", "ap_drop_make", "ap_drop_spawn", "ap_drop_taken", "ap_write_granted", "ap_leave_room", "ap_copies",
-    "ap_save_checks", "ap_load_checks", "ap_lock_setup", "ap_shop_setup", "ap_make_apitem", "ap_shop_item", "ap_heartbeat" };
+    "ap_save_checks", "ap_load_checks", "ap_lock_setup", "ap_shop_setup", "ap_make_apitem", "ap_shop_item", "ap_heartbeat", "ap_force_difficulty", "ap_msgs" };
 
 if (Data.Code.ByName("gml_Script_ap_emit") != null)
     throw new Exception("data.win already contains the AP patch. Start from the pristine copy.");
@@ -157,6 +157,13 @@ group.QueuePrepend(Data.Code.ByName("gml_Script_get_item"),
     "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nreturn ap_shop_item(argument0);\n}\n}\n}");
 group.QueuePrepend(Data.Code.ByName("gml_Script_get_item_description"),
     "if (instance_exists(argument0))\n{\nif (argument0.object_index == obj_misc)\n{\nif (argument0.type == 77)\n{\nif (argument0.ap_desc != \"\")\n{\nreturn argument0.ap_desc;\n}\nreturn \"Sends an Archipelago check to the multiworld.\";\n}\n}\n}");
+
+// (p) difficulty locked to the yaml for Archipelago runs: forced on the title (step + labels) and after Continue
+group.QueuePrepend(Data.Code.ByName("gml_Object_obj_title_Step_0"), "ap_force_difficulty();");
+group.QueuePrepend(Data.Code.ByName("gml_Script_buttonize_title"), "ap_force_difficulty();");
+Edit("gml_Script_buttonize_title", @"(var speedus;)",
+     "if (global.mode == 1 && variable_global_exists(\"ap_ready\"))\n{\ndiff = ap_force_difficulty() + \" (AP)\";\n}\n$1", "locked difficulty label");
+Edit("gml_Script_load_game", @"(global\.difficulty = ini_read_real\(""Stats"", ""Difficulty"", 1\);)", "$1\nif (argument0 == 1 && variable_global_exists(\"ap_ready\"))\n{\nglobal.difficulty = clamp(round(global.ap_difficulty), 0, 4);\n}", "difficulty on Continue");
 
 // poll every step from the persistent controller object
 group.QueuePrepend(Data.Code.ByName("gml_Object_obj_god_Step_1"), "ap_poll();");

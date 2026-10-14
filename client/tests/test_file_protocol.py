@@ -129,7 +129,7 @@ class ConfigTests(unittest.TestCase):
             t = fp.render_config({"death_link": 1, "floor_checks": opt, "base_id": 38470000})
             self.assertIn(f"floor_check_step={step}", t)
         t = fp.render_config({"death_link": 0, "floor_checks": 0, "base_id": 38470000})
-        self.assertEqual(t, "[ap]\ndeath_link=0\nfloor_check_step=1\nbase_id=38470000\n")
+        self.assertEqual(t, "[ap]\ndeath_link=0\nfloor_check_step=1\ndifficulty=3\nbase_id=38470000\n")
         self.assertIn("floor_check_step=2", fp.render_config({"floor_checks": 4, "chest_checks": 3, "base_id": 1}))
 
     def test_write_config_idempotent(self):
@@ -225,6 +225,16 @@ class ScoutTests(unittest.TestCase):
         self.assertEqual(fp.scout_text("José ☃"), "Jos? ?")
         self.assertEqual(len(fp.scout_text("x" * 100)), 40)
         self.assertEqual([fp.scout_tag(f) for f in (0, 1, 2, 4, 5)], ["filler", "progression", "useful", "trap", "trap"])
+
+    def test_msgs_keep_last_20(self):
+        d = Path(tempfile.mkdtemp())
+        for i in range(25):
+            fp.append_msg(d, 100 + i, f"Sent X#{i} to A|B")
+        lines = (d / fp.MSGS_FILE).read_text().splitlines()
+        self.assertEqual(len(lines), 20)
+        self.assertEqual(lines[-1], "124|Sent X 24 to A/B")
+        self.assertIn(fp.MSGS_FILE, fp.RESET_FILES)
+        self.assertIn("difficulty=4", fp.render_config({"difficulty": 4, "base_id": 1}))
 
     def test_write(self):
         d = Path(tempfile.mkdtemp())

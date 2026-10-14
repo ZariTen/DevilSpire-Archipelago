@@ -144,6 +144,7 @@ class DevilSpireContext(CommonContext):
         self.orig_watch = health.OriginalSaveWatch()
         self.next_health = 0.0
         self.next_heartbeat = 0.0
+        self.msg_seq = 0
         self._warned_dir = False
         self.set_save_dir(fp.find_save_dir(save_dir))
 
@@ -195,6 +196,19 @@ class DevilSpireContext(CommonContext):
             self.refresh_items()
         elif cmd == "RoomUpdate":
             self.refresh_items()
+
+    def on_print_json(self, args: dict) -> None:
+        super().on_print_json(args)
+        # "Sent <item> to <player>" popup in the game for our checks holding another player's item
+        if args.get("type") == "ItemSend" and self.slot is not None and self.save_dir is not None:
+            item, rcv = args.get("item"), args.get("receiving")
+            if item is not None and item.player == self.slot and rcv != self.slot:
+                self.msg_seq = max(self.msg_seq + 1, int(time.time() * 1000))
+                text = f"Sent {self.item_names.lookup_in_slot(item.item, rcv)} to {self.player_names.get(rcv, rcv)}"
+                try:
+                    fp.append_msg(self.save_dir, self.msg_seq, text)
+                except OSError as e:
+                    logger.error(f"Could not write {fp.MSGS_FILE}: {e!r}")
 
     def scout_ap_items(self) -> None:
         """what the shop / locked chest Archipelago Items hold (no hints are created)"""

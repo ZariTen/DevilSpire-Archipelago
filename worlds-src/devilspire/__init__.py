@@ -73,8 +73,8 @@ class DevilSpireWorld(World):
             rank = {items.F: 0, items.U: 1, items.P: 2}
             pool.sort(key=lambda n: rank.get(items.ITEM_TABLE[n].classification, 0))
             pool = pool[len(pool) - n_locations:]
-        while len(pool) < n_locations:
-            pool.append(self.get_filler_item_name())
+        if n_locations > len(pool):
+            pool += items.extra_items(n_locations - len(pool))  # proportional useful/filler mix, no filler bloat
         # traps replace filler entries with trap_percentage
         pct = self.options.trap_percentage.value
         if pct:
@@ -92,14 +92,15 @@ class DevilSpireWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         return {
-            **self.options.as_dict("death_link", "floor_checks", "trap_percentage"),
+            **self.options.as_dict("death_link", "floor_checks", "trap_percentage", "difficulty"),
             "goal": "descent_rhamdon",  # fixed
             "descent_unlocked": True,  # patch force-unlocks Descent
             "gating": False,  # no depth keys: everything reachable from the start
             "persistent_items": True,  # client must re-apply ALL received items on every new Descent save
             "base_id": BASE_ID,
             "items_version": 2,  # progressive gear/spellbook (codes 160-164); older builds used per-level items
-            "progressive_tiers": {"weapon": [10 * n for n in range(1, 8)], "armor": [10 * n for n in range(1, 8)],
-                                  "shield": [20, 40, 60], "accessory": [15, 30, 45, 60],
+            "progressive_tiers": {"weapon": [int(12.5 * n) for n in range(1, 8)],
+                                  "armor": [int(12.5 * n) for n in range(1, 8)],
+                                  "shield": [25, 50, 75], "accessory": [20, 40, 60, 80],
                                   "spellbook": ["Basic", "Basic", "Advanced", "Advanced", "Master", "Master"]},
         }

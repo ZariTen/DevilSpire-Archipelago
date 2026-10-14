@@ -43,16 +43,41 @@ Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine c
 | Blue Potion Pack | 3x full MP | `generate_potion(25)`, count 3 | Low | Pool (4) | V |
 | White Potion | full heal + cure | `generate_potion(99)` | Low | Pool (3) | V |
 | Progressive Spellbook | copy 1-2: Basic spell (0-11), 3-4: Advanced (12-23), 5-6: Master (24-47) | `generate_spell` + `get_item` (grimoire); every copy re-granted each run | Master spells strong | Pool (6), progression | V |
-| Progressive Weapon | copy N: random weapon at L = 10N (10..70) | `generate_weapon(10N, type roll)`, ground pickup | L70 ~ a floor ~65 drop | Pool (7), progression | V formulas, G balance |
-| Progressive Armor | copy N: full set (body, head, arms, legs) at L = 10N | `generate_armor(10N, 0..3)`, 4 ground pickups | Weight of a full set | Pool (7), progression | V |
-| Progressive Shield | copy N: shield at L = 20N (20/40/60) | `generate_shield(20N)` | Low | Pool (3), progression | V |
-| Progressive Accessory | copy N: charm at L = 15N (15/30/45/60) | `generate_accessory(15N, irandom(3))` | Low | Pool (4), progression | V |
+| Progressive Weapon | copy N: random weapon at L = floor(12.5N) (12..87) | `generate_weapon(L, type roll)`, ground pickup | see tiers below | Pool (7), progression | V formulas, G balance |
+| Progressive Armor | copy N: full set (body, head, arms, legs) at L = floor(12.5N) | `generate_armor(L, 0..3)`, 4 ground pickups | Weight of a full set | Pool (7), progression | V |
+| Progressive Shield | copy N: shield at L = 25N (25/50/75) | `generate_shield(25N)` | Low | Pool (3), progression | V |
+| Progressive Accessory | copy N: charm at L = 20N (20/40/60/80) | `generate_accessory(20N, irandom(3))` | Low | Pool (4), progression | V |
 | Mystic Ring | random ring (36 effects) | `generate_ring(irandom(35))` | Effect-dependent (some are situational) | Pool (3) | V |
 | Ambush Trap | 3-5 enemies spawn next to player, alerted | `instance_create(.., obj_enemy)` | Can kill; live-only | Opt (trap) | V creation, G effect |
 | Plague Trap | 1 random body + 1 random mind ailment | add to ailment timers | Mild | Opt (trap) | V |
 | Pickpocket Trap | lose half the carried gold | halve `count` of gold stacks | Mild | Opt (trap) | V |
 
-## Final pool (110-item template; default locations: 50 floors + 10 bosses + 80 locked chests + 18 shops = 158; more than 110 = filler added, fewer = filler trimmed first)
+### Tier levels
+Normal drops on floor -N are level N + 0..10 (chests, enemies), N + 10..20 (locked chests), N + 0..20 (shops); start gear is
+6-14. Copies are spread over the whole run, so copy k of c arrives around floor 100k/(c+1). The tiers match that depth,
+so each copy is a little behind (~5-10 levels) the normal drops there: weapon/armor 12.5k (12..87; was 10k = 10..70,
+which fell ~20 levels behind past floor -60), shield 25k (was 20k), accessory 20k (was 15k).
+
+## Final pool (110-item template; default locations: 50 floors + 10 bosses + 80 locked chests + 18 shops = 158)
+More than 110 locations: the extra slots get the template's useful + filler mix scaled up (largest remainder; never more
+progressive copies). Fewer than 110: filler is trimmed first. Default (158):
+
+| Item | template | extra | total |
+|---|---|---|---|
+| Progressive Weapon / Armor / Shield / Accessory / Spellbook | 7 / 7 / 3 / 4 / 6 | 0 | 27 |
+| Orb of Strength / Intelligence / Agility | 5 each | 3 each | 8 each |
+| Orb of Vitality | 7 | 4 | 11 |
+| Stat Point | 5 | 3 | 8 |
+| Yellow Orb (Gold) | 16 | 9 | 25 |
+| Gold Hoard | 4 | 2 | 6 |
+| Blue Orb (Stone) | 10 | 6 | 16 |
+| Pouch of Souls | 8 | 5 | 13 |
+| Red Potion Pack | 8 | 4 | 12 |
+| Blue Potion Pack | 4 | 2 | 6 |
+| White Potion | 3 | 2 | 5 |
+| Mystic Ring | 3 | 2 | 5 |
+| **Total** | 110 | 48 | 158 (27 progression, 43 useful, 88 filler) |
+
 Progression (27, gate nothing - logic stays open): Progressive Weapon 7, Armor 7, Shield 3, Accessory 4, Spellbook 6.
 Useful (27): Orb of Strength 5, Intelligence 5, Vitality 7, Agility 5, Stat Point 5.
 Filler (56): Yellow Orb (Gold) 16, Gold Hoard 4, Blue Orb (Stone) 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Mystic Ring 3.

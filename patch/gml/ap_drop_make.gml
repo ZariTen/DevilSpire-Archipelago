@@ -33,19 +33,19 @@ else if (rel >= 160 && rel <= 163)
     var c = ap_copies(idx);
     if (rel == 160)
     {
-        it = generate_weapon(10 * min(c, 7), (random(3) < 1) + (2 * irandom(11))); // same type roll as generate_equipment
+        it = generate_weapon(floor(12.5 * min(c, 7)), (random(3) < 1) + (2 * irandom(11))); // same type roll as generate_equipment
     }
     else if (rel == 161)
     {
-        it = generate_armor(10 * min(c, 7), min(part, 3)); // type 0-3: body, head, arms, legs
+        it = generate_armor(floor(12.5 * min(c, 7)), min(part, 3)); // type 0-3: body, head, arms, legs
     }
     else if (rel == 162)
     {
-        it = generate_shield(20 * min(c, 3));
+        it = generate_shield(25 * min(c, 3));
     }
     else
     {
-        it = generate_accessory(15 * min(c, 4), irandom(3));
+        it = generate_accessory(20 * min(c, 4), irandom(3));
     }
 }
 else if (rel == 151)

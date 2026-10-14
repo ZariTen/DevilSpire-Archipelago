@@ -104,6 +104,18 @@ def floor_step(floor_checks: int) -> int:
 
 HEARTBEAT_FILE = "ap_heartbeat.txt"
 SCOUTS_FILE = "ap_scouts.txt"
+MSGS_FILE = "ap_msgs.txt"
+
+
+def append_msg(save_dir: Path, idx: int, text: str, keep: int = 20) -> None:
+    """ap_msgs.txt: "idx|text" popups for the game (idx increasing), only the last `keep` lines are kept"""
+    p = Path(save_dir) / MSGS_FILE
+    try:
+        old = p.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        old = []
+    lines = (old + [f"{int(idx)}|{scout_text(text, 60)}"])[-keep:]
+    atomic_write_text(p, "\n".join(lines) + "\n")
 SCOUT_OFFSETS = tuple(range(250, 268)) + tuple(300 + n for n in range(1, 99) if n % 10 not in (0, 9))  # shops, locked chests
 
 
@@ -135,6 +147,7 @@ def render_config(slot_data: Mapping, poll_frames: Optional[int] = None, slot_id
     lines = ["[ap]",
              f"death_link={1 if slot_data.get('death_link') else 0}",
              f"floor_check_step={floor_step(slot_data.get('floor_checks', 0))}",
+             f"difficulty={int(slot_data.get('difficulty', 3))}",
              f"base_id={int(slot_data['base_id'])}"]
     if poll_frames:
         lines.append(f"poll_frames={int(poll_frames)}")
@@ -284,7 +297,7 @@ class InWriter:
 # Files that belong to one multiworld slot. On a seed/slot switch they are MOVED (never deleted) into
 # ap_backup/<timestamp>_<old slot>/ so the next run starts clean. Meta progression (souls.ini, unlocks.ini) stays.
 RESET_FILES = ("descent_character.ini", "corpse.ini", "ap_granted.txt", "ap_souls_granted.txt", "ap_checks.txt", OUT_FILE, IN_FILE,
-               CONFIG_FILE, STATE_FILE, SCOUTS_FILE)
+               CONFIG_FILE, STATE_FILE, SCOUTS_FILE, MSGS_FILE)
 BACKUP_DIR = "ap_backup"
 
 

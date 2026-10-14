@@ -11,6 +11,10 @@ if (global.ap_tick < global.ap_poll_frames)
 global.ap_tick = 0;
 ap_slot_check(ap_read_config());
 ap_heartbeat();
+if (!global.ap_stale)
+{
+    ap_msgs();
+}
 if (!global.ap_stale && file_exists("ap_in.txt"))
 {
     var f = file_text_open_read("ap_in.txt");

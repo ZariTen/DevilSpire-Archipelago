@@ -91,7 +91,7 @@ try:
     zc = start_client("Zari", zd, tmp / "zari.log")
     bc = start_client("Buddy", bd, tmp / "buddy.log")
     cfg = wait_for(lambda: read(zd / "ap_config.ini"))
-    check("ap_config.ini written", cfg.startswith(f"[ap]\ndeath_link=1\nfloor_check_step=5\nbase_id={BASE}\n") and "slot_id=" in cfg, repr(cfg))
+    check("ap_config.ini written", cfg.startswith(f"[ap]\ndeath_link=1\nfloor_check_step=5\ndifficulty=3\nbase_id={BASE}\n") and "slot_id=" in cfg, repr(cfg))
     # fresh slot, 0 items: the server sends no ReceivedItems; the client must still count as synced
     check("fresh slot with 0 items: empty ap_in.txt + heartbeat written",
           wait_for(lambda: (zd / "ap_in.txt").exists() and read(zd / "ap_heartbeat.txt") and
@@ -142,6 +142,10 @@ try:
     hb1 = wait_for(lambda: read(zd / "ap_heartbeat.txt"))
     check("heartbeat written with slot + name", hb1.rstrip().endswith("|Zari") and "|" in hb1, repr(hb1))
     check("heartbeat keeps changing", wait_for(lambda: read(zd / "ap_heartbeat.txt") not in ("", hb1), 8))
+    msgs = wait_for(lambda: read(zd / "ap_msgs.txt"))
+    check("'Sent <item> to Buddy' popups written for Zari's checks with Buddy's items",
+          bool(msgs) and all(" to Buddy" in l and l.split("|")[0].isdigit() for l in msgs.splitlines())
+          and len(msgs.splitlines()) <= 20, msgs[:200])
     check("item names resolved (no numeric fallback)", all(not l.split("|")[3].startswith("Item ") for l in zi), zi[:2])
     check("sender names resolved", {l.split("|")[4] for l in zi} <= {"Zari", "Buddy"})
     # DeathLink: Zari dies -> Buddy's ap_in gets D line, Zari's does not
