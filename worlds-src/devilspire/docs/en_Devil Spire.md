@@ -1,31 +1,32 @@
 # Devil Spire
 
-Fan-made. Not affiliated with the game's developer.
+Unofficial fan project. You need your own Steam copy of the game.
 
 ## What changes?
-You play one mode, **Archipelago**: 100 floors down the tower. Nothing is locked. Every floor and boss can be reached from the start.
+One mode, **Archipelago**: 100 floors down the tower. Nothing is locked; every floor can be reached from the start.
+The difficulty is set by the yaml (default Extreme) and locked in game.
 
 ## What is the goal?
 Beat Rhamdon on floor -100.
 
 ## What are the checks?
-- **Bosses** (always): floors -9, -19, ... -99 (10 checks; the two Golems count as one).
-- **Floors** (option `floor_checks`): every 2nd (default), every floor, every 5th, every 10th, or none.
-- **Chests** (option `chest_checks`, default 3): the first chests you open in each band of 10 floors. Mimics don't count.
-- **Shops** (always): on floors -10, -20, ... -90, two stands sell an Archipelago Item for 150 gold (18 checks).
+- **Bosses:** floors -9, -19, ... -99 (10).
+- **Floors:** every 2nd floor by default (option `floor_checks`).
+- **Locked chests:** one per floor, with its key on the floor (not on boss or shop floors; 80).
+- **Shops:** on floors -10 to -90, 2 stands sell an Archipelago Item for 150 gold (18).
+
+An Archipelago Item shows what it holds and for whom.
 
 ## What items can I get?
-Power boosts:
-- Stat orbs (+3 to a stat) and stat points.
-- Gold, stones, souls.
-- Potion packs.
-- Progressive Weapon, Armor (full set), Shield and Accessory: each copy is a better tier. A new run gives your best tier.
+- Stat orbs and stat points.
+- Gold, stones, souls, potion packs, Mystic Rings.
+- Progressive Weapon, Armor (full set), Shield and Accessory: each copy is a better tier.
 - Progressive Spellbook: a new spell per copy (Basic, Advanced, Master).
-- Mystic Rings.
-- Traps, if the host turns them on: Ambush, Plague, Pickpocket.
+- Traps, if the host turns them on.
 
 ## How do I get them?
-Stat boosts, gold, stones and spells go straight to you. Equipment, rings and potions lie on the ground around you at the camp (or at your feet during a run). When you die, you start a new run and get all your items again. Souls are only given once.
+At the camp: stat boosts, gold, stones and spells go straight to you; equipment, rings and potions lie on the ground.
+When you die, the next run gives you all your items again (gear: your best tier). Souls are given once.
 
 ## DeathLink
-Optional. Your death kills other DeathLink players, and theirs kills you, but only while you are inside the tower.
+Optional. Deaths are shared, but only while you are inside the tower.

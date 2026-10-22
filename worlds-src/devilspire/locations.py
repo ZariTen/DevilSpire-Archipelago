@@ -1,4 +1,4 @@
-"""Locations. Names verified against the code dump (docs/dev/locations-bosses.md); boss names = the game's object names (the game shows no boss names).
+"""Locations. Names verified against the code dump (docs/dev/game-notes.md); boss names = the game's object names (the game shows no boss names).
 
 Boss kill checks persist across runs (Slay-the-Spire-like loop): once sent, a boss check stays checked in the
 client/AP server even though the Descent save is wiped on death.
@@ -23,7 +23,7 @@ class LocationData(NamedTuple):
     code: int  # relative id
 
 
-# floor, boss object per docs/dev/locations-bosses.md. -99 has no boss object (15 plain obj_enemy) -> "gauntlet".
+# floor, boss object per docs/dev/game-notes.md. -99 has no boss object (15 plain obj_enemy) -> "gauntlet".
 BOSS_LOCATIONS: list[LocationData] = [
     LocationData("Slime defeated (Floor -9)", -9, 0, 0),
     LocationData("Abomination defeated (Floor -19)", -19, 1, 1),

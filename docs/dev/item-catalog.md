@@ -2,9 +2,9 @@
 
 Design: Slay-the-Spire style. **No gating**: all floors/bosses are reachable from the start, the multiworld is
 always completable without outside items. Received items are power boosts that persist across deaths and are
-**re-applied on every new run** (patch: `ap_granted` is reset by `ap_new_run`; consumables/gold/souls/equipment are
-handed out again each run - accepted behaviour; stat boosts stack as the list is replayed onto a fresh character).
-Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine code dump (CodeEntries); **no runtime test yet**.
+**re-applied on every new run** (`ap_granted` is reset by `ap_new_run`; consumables, gold and equipment come again each
+run; souls only once per slot; gear only the best tier).
+Item id = `base_id (38470000) + 500 + code`. "Verified" = read from the decompiled code (local, git-ignored).
 
 ## How the game creates/gives items (VERIFIED from code)
 - `generate_*` scripts create an item *instance* at (0,0) and return it; `get_item(inst)` (run as obj_player) adds it:
@@ -53,14 +53,19 @@ Item id = `base_id (38470000) + 500 + code`. Verified = read from the pristine c
 | Pickpocket Trap | lose half the carried gold | halve `count` of gold stacks | Mild | Opt (trap) | V |
 
 ### Tier levels
-Normal drops on floor -N are level N + 0..10 (chests, enemies), N + 10..20 (locked chests), N + 0..20 (shops); start gear is
-6-14. Copies are spread over the whole run, so copy k of c arrives around floor 100k/(c+1). The tiers match that depth,
-so each copy is a little behind (~5-10 levels) the normal drops there: weapon/armor 12.5k (12..87; was 10k = 10..70,
-which fell ~20 levels behind past floor -60), shield 25k (was 20k), accessory 20k (was 15k).
+Normal drops on floor -N are level N + 0..10 (chests, enemies), N + 10..20 (locked chests), N + 0..20 (shops); start gear
+is 6-14. Copy k of c arrives around floor 100k/(c+1), so the tiers sit a little (~5-10 levels) behind normal drops there:
 
-## Final pool (110-item template; default locations: 50 floors + 10 bosses + 80 locked chests + 18 shops = 158)
-More than 110 locations: the extra slots get the template's useful + filler mix scaled up (largest remainder; never more
-progressive copies). Fewer than 110: filler is trimmed first. Default (158):
+| Item | Levels |
+|---|---|
+| Progressive Weapon / Armor | 12, 25, 37, 50, 62, 75, 87 (floor of 12.5k) |
+| Progressive Shield | 25, 50, 75 |
+| Progressive Accessory | 20, 40, 60, 80 |
+
+## Pool
+A 110-item template. More locations: the extra slots get the template's useful + filler mix scaled up (largest
+remainder; never more progressive copies). Fewer: filler is trimmed first, then useful, then progressive copies (safe,
+nothing gates). Default (158 locations):
 
 | Item | template | extra | total |
 |---|---|---|---|
@@ -78,17 +83,12 @@ progressive copies). Fewer than 110: filler is trimmed first. Default (158):
 | Mystic Ring | 3 | 2 | 5 |
 | **Total** | 110 | 48 | 158 (27 progression, 43 useful, 88 filler) |
 
-Progression (27, gate nothing - logic stays open): Progressive Weapon 7, Armor 7, Shield 3, Accessory 4, Spellbook 6.
-Useful (27): Orb of Strength 5, Intelligence 5, Vitality 7, Agility 5, Stat Point 5.
-Filler (56): Yellow Orb (Gold) 16, Gold Hoard 4, Blue Orb (Stone) 10, Pouch of Souls 8, Red Potion Pack 8, Blue Potion Pack 4, White Potion 3, Mystic Ring 3.
-Progressive copy N = the Nth copy in received order (the patch counts them in `ap_in.txt`). Per run only the best gear tier
-is given (a mid-run copy adds the new tier); the spellbook gives every copy. The progressive items replaced 34 per-level
-items (Spell Page x9, Weapon/Armor/Accessory/Shield LvX x25): 34 -> 27; the 7 freed slots went to +1 each stat orb,
-+1 Stat Point, +2 Yellow Orb. Removed codes 130-132 and 140-150 are not reused (new codes 160-164).
-Traps: none by default; `trap_percentage` converts that % of fillers into Ambush/Plague/Pickpocket.
-With fewer locations the template is trimmed filler first, then useful, then progressive copies (safe: nothing gates; it only lowers the top tier). More locations than 110 are padded with random filler.
+- Progressive copy N = the Nth copy in received order (counted in `ap_in.txt`). Per run only the best gear tier is given;
+  the spellbook gives every copy.
+- Traps: none by default; `trap_percentage` turns that % of filler into Ambush/Plague/Pickpocket. Traps fire only for
+  items received live, never on a new run.
+- Retired item codes 130-132 and 140-150 are not reused.
 
 ## Open balance questions
-- Whether re-granting equipment every run (about 28 pieces cluttering the 100-slot inventory) is wanted; maybe cap or merge.
-- Tier levels (25/50/75) and orb counts are guesses; float-weight overencumbrance is not blocked (forced add) and slows the player.
-- Traps fire only for items received live (`ap_live`), never replayed on a new run.
+- Re-granting equipment every run clutters the 100-slot inventory; maybe cap or merge.
+- Orb counts are guesses. Over-encumbrance is not blocked (forced add) and slows the player.

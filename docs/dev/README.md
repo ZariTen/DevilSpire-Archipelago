@@ -1,14 +1,12 @@
 # Developer notes
 
 - [patch.md](patch.md): building the patch, game changes, file protocol, client behaviour.
-- [item-catalog.md](item-catalog.md): items and how the game creates them.
-- [locations-bosses.md](locations-bosses.md): boss and floor logic from the code dump.
-- [descent-goal.md](descent-goal.md): Descent unlock and the ending.
-- [save-and-hooks.md](save-and-hooks.md): save files, death, and hook points.
+- [item-catalog.md](item-catalog.md): items, tiers and the pool.
+- [game-notes.md](game-notes.md): game facts the patch relies on (modes, bosses, saves, death, items).
 - Client code and tests: [client/README.md](../../client/README.md). Open work: [TODO.md](../../TODO.md).
 
-These notes come from reading the decompiled original code (Devil Spire v1.5999, GameMaker Studio 1).
-The dump lives in `game-copy/` and is git-ignored.
+Notes come from reading the decompiled game (Devil Spire v1.5999, GameMaker Studio 1) locally.
+The dump lives in `game-copy/` and is git-ignored. Don't commit game code or assets.
 
 ## Why the install works this way
 Other GameMaker Archipelago games (Undertale, Pizza Tower, Deltarune) also patch `data.win` with a binary diff.

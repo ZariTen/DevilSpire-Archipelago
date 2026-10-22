@@ -1,3 +1,4 @@
+# Devil Spire player settings. Options: docs/HOST_GUIDE.md
 name: Zari
 game: Devil Spire
 description: Devil Spire test slot
@@ -6,7 +7,11 @@ requires:
 Devil Spire:
   progression_balancing: 50
   accessibility: full
+  # share deaths with other DeathLink players (only inside the tower)
   death_link: true
+  # which floors are checks: every_2nd, every_floor, every_5th, every_10th, off
   floor_checks: every_2nd
+  # locked in game: easy, normal, hard, extreme, nightmare
   difficulty: extreme
+  # percent of filler items that become traps (0-100)
   trap_percentage: 0

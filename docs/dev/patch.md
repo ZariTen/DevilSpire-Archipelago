@@ -25,9 +25,14 @@
 - Hooks: `obj_setup_Alarm_0` -> `ap_init`; `obj_god_Step_1` -> `ap_poll`; `next_floor` -> `ap_floor_reached`;
   boss floor cleared (`obj_enemy_Step_0`) -> `ap_boss_cleared`; `obj_rhamdon_Step_1` -> `ap_goal`;
   player death -> `ap_death_send`; new character -> `ap_new_run`.
+- Difficulty (`ap_force_difficulty`): the yaml value is forced on the title and after Continue; label e.g. `Extreme (AP)`.
+- Title: mod label, `Connected: <name>` / `Client not connected` (`ap_heartbeat`), and
+  `New seed connected - finish/quit the run to switch` while stale (`ap_slot_check`).
+- Popups (`ap_msgs`): `Archipelago: Sent X to Y`, at most 2 per poll, then `+N more sent`.
 - Items (`ap_poll`, player alive in `rom_dungeon`, no `obj_dungeoncreator`): `ap_grant_pending` processes up to 100 per poll.
   Weightless (`ap_item_weighted` = 0: stat orbs/point, gold, Blue Orb stone, souls, Progressive Spellbook, traps) are applied directly.
-  Weighted (potions 0.25 each, progressive gear, rings 0.1). Progressive: copy N = Nth in `ap_in` order (`ap_copies`); gear only if no later copy is received (best tier per run); ground key = index*10 + armor piece go to the ground list `global.ap_drops`.
+  Weighted (potions 0.25 each, progressive gear, rings 0.1) go to the ground list `global.ap_drops` (key = index*10 + armor piece).
+  Progressive: copy N = the Nth in `ap_in` order (`ap_copies`); gear only if no later copy was received (best tier per run).
 - Ground items (`ap_drop_spawn`): native `obj_droppeditem` (`item = ap_drop_make(id)`), picked up with the game's `interact`/`get_item`.
   Camp: grid (20 px) around the arrival point (0,212); tower: grid (16 px) around the player. Spot must be free for the
   player's mask and not on decor/shades/bonfire/entrance/tombstones; else at the anchor. Max 60 on the ground.
@@ -57,13 +62,15 @@ Text files, one record per line, fields split by `|`.
 [ap]
 death_link=1
 floor_check_step=2      ; 1, 2, 5, 10, or 0 = off (floor N counts if (N-1) mod step == 0)
+difficulty=3            ; 0 easy .. 4 nightmare
 base_id=38470000
+poll_frames=30          ; optional
 slot_id=<seed>:<team>:<slot>
 ```
 
 `ap_out.txt` (game -> client, append only):
 - `L|<location id>|<slot_id>` check. Boss: `base_id + (N-9)/10`. Floor -N: `base_id + 100 + N-1`.
-  Chest: `base_id + 200 + band*5 + k` (band = (N-1) div 10). Shop: `base_id + 250 + (N/10-1)*2 + stand` (N = 10..90).
+  Locked chest floor -N: `base_id + 300 + N`. Shop: `base_id + 250 + (N/10-1)*2 + stand` (N = 10..90).
 - `G|1|<slot_id>` goal. `D|<text>` death (DeathLink). `S|<protocol>|<mod label>` game started (the client warns on a mismatch).
 - `N|..` new run, `X|..` info, `E|..` error.
 - The client rescans the whole file on every connect (the server ignores duplicates).
@@ -79,12 +86,14 @@ Game-private: `ap_granted.txt` (items processed for the current run, `-1` = no r
 `ap_scouts.txt` (client: line 1 slot_id, then `offset|item|player|tag` for every shop / locked chest location, scouted without hints; the Archipelago Item description shows "item for player (tag)"),
 `ap_heartbeat.txt` (`counter|slot_id|name`, rewritten by the client every 3 s while connected and synced; the game counts it as connected if it changed in the last 10 s, and gives no items until it has changed once this session),
 `ap_checks.txt` (99 locked-chest flags, floor -1..-99; 18 shop flags; slot_id; cumulative per slot, reset by the client on a seed switch).
+`ap_msgs.txt` (client: `idx|text` popup lines, last 20 kept; the game shows each new idx once).
 
 ## Multiworld switch
 - First connection for a save folder: existing files are kept and offline checks are sent.
-- Different `slot_id`: the client moves the character and `ap_*` files to `ap_backup/<time>_<old slot>/`.
+- Different `slot_id`: the client moves the character and `ap_*` files (`RESET_FILES`) to `ap_backup/<time>_<old slot>/`.
   `souls.ini` and `unlocks.ini` stay.
-- A running game that sees a new `slot_id` stops sending checks and reading items until it restarts.
+- The game (`ap_slot_check`) adopts the new `slot_id` live outside the tower (title, menus, camp). A tower run of the old
+  seed goes stale (no checks, no items) until it ends; then it switches by itself.
 
 ## Client health warnings (`health.py`, every 10 s)
 `data.win` not the current build; game protocol mismatch; changes in the original `Devil_Spire` folder
