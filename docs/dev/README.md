@@ -19,3 +19,10 @@ We patch the Steam install in place, keep a backup, and use a separate save fold
   [network protocol](https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/network%20protocol.md).
 - Undertale world (same install approach): `worlds/undertale` and `UndertaleClient.py` in the Archipelago repo.
 - [UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool) (nixpkgs: `undertalemodcli`).
+
+## CI and releases
+- CI (`.github/workflows/ci.yml`) runs the client and world unit tests against Archipelago 0.6.8 on every push and PR.
+  It has no patch data, so it can't build the apworld.
+- Releases are made locally, because the patch is built from your own `data.win`:
+  add a `## vX.Y.Z` section to `CHANGELOG.md`, set `world_version`, rebuild the patched copy, push main, then
+  `PYTHON=/tmp/ap-venv/bin/python scripts/release.sh X.Y.Z` (needs `gh auth login`; 0.x versions are pre-releases).

@@ -1,0 +1,33 @@
+# Unit tests that don't need the game. The patch data (built from your own data.win) is never in git or CI.
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  AP_VERSION: "0.6.8"  # minimum supported Archipelago
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ArchipelagoMW/Archipelago
+          ref: ${{ env.AP_VERSION }}
+          path: ap
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Archipelago core requirements (no GUI)
+        run: |
+          grep -viE '^(kivy|kivymd|cython|pyshortcuts)' ap/requirements.txt > /tmp/req.txt
+          python -m pip install -r /tmp/req.txt pytest
+      - name: Client unit tests
+        run: python -m unittest discover -v client/tests
+      - name: World tests
+        run: |
+          cp -r worlds-src/devilspire ap/worlds/devilspire
+          cd ap && python -m pytest -q worlds/devilspire
