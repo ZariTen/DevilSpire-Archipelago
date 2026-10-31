@@ -40,7 +40,7 @@ class DevilSpireWorld(World):
     """
     Devil Spire is a roguelike dungeon crawler. In this fan-made randomizer you descend 100 floors of the
     Descent, defeat the bosses guarding every tenth floor, and finally slay Rhamdon. When you die the run
-    resets, but everything you have received (stat boosts, equipment, gold, ...) is re-granted on the next run. All floors are open from the start. (Unofficial; not affiliated with the developer.)
+    resets, but everything you have received (stat boosts, equipment, gold, ...) is re-granted on the next run. Deeper floors expect better gear in logic. (Unofficial; not affiliated with the developer.)
     """
 
     game = GAME_NAME
@@ -68,7 +68,7 @@ class DevilSpireWorld(World):
         pool = list(items.POOL_TEMPLATE)  # 110 entries = default location count
         if n_locations < len(pool):
             # fewer locations than the 110 template: drop filler first, then useful, then progressive copies
-            # (nothing gates anything, so dropping progressive copies is safe; it just lowers the top tier)
+            # (at least 108 locations exist, so in practice only filler is dropped; logic needs 6 Weapon + 6 Armor)
             self.random.shuffle(pool)
             rank = {items.F: 0, items.U: 1, items.P: 2}
             pool.sort(key=lambda n: rank.get(items.ITEM_TABLE[n].classification, 0))
@@ -95,7 +95,7 @@ class DevilSpireWorld(World):
             **self.options.as_dict("death_link", "floor_checks", "trap_percentage", "difficulty"),
             "goal": "descent_rhamdon",  # fixed
             "descent_unlocked": True,  # patch force-unlocks Descent
-            "gating": False,  # no depth keys: everything reachable from the start
+            "gating": False,  # no depth keys / game-side locks (depth is gated only in logic, by gear)
             "persistent_items": True,  # client must re-apply ALL received items on every new Descent save
             "base_id": BASE_ID,
             "items_version": 2,  # progressive gear/spellbook (codes 160-164); older builds used per-level items

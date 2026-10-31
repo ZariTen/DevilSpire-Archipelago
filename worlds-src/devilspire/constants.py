@@ -8,7 +8,7 @@ ID plan (reserved block: BASE_ID .. BASE_ID + 999):
     (+200 .. +249 were per-band chest checks in older builds; retired)
     ITEM ids = BASE_ID + ITEM_OFFSET(500) + code, codes documented in items.py / docs/dev/item-catalog.md:
     +100..+104 stat boosts, +110..+113 gold/stone/souls, +120..+122 potions, +130..+132 spell pages,
-    +140..+151 equipment, +200..+202 traps. (No keys / progression items: nothing gates anything.)
+    +140..+151 equipment, +160..+164 progressive, +200..+202 traps. (No keys; Progressive Weapon/Armor gate depth in logic.)
 """
 
 GAME_NAME = "Devil Spire"
@@ -21,6 +21,6 @@ LOCKED_OFFSET = 300
 ITEM_OFFSET = 500
 
 NUM_FLOORS = 100  # Descent floors -1 .. -100 (-100 = Rhamdon / goal floor)
-NUM_TIERS = 10  # floor tiers of 10 floors each (regions for readability only; NO gating): tier 0 = floors -1..-10, ... tier 9 = floors -91..-100
+NUM_TIERS = 10  # floor tiers of 10 floors each (gear rules: rules.GEAR_REQUIRED): tier 0 = floors -1..-10, ... tier 9 = floors -91..-100
 
 PATCH_PROTOCOL = 9  # must match ap_init.gml "S|<n>|patch started"; bump together with GML changes

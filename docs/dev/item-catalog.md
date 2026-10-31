@@ -1,7 +1,7 @@
 # Item catalog
 
-Design: Slay-the-Spire style. **No gating**: all floors/bosses are reachable from the start, the multiworld is
-always completable without outside items. Received items are power boosts that persist across deaths and are
+Design: Slay-the-Spire style. The game locks no floor. Logic: floors -1..-20 are free; each deeper tier of 10 floors expects
+n Progressive Weapon + n Progressive Armor, n = 1,2,2,3,4,4,5,6 for -21..-30 .. -91..-100 (`rules.GEAR_REQUIRED`). Received items are power boosts that persist across deaths and are
 **re-applied on every new run** (`ap_granted` is reset by `ap_new_run`; consumables, gold and equipment come again each
 run; souls only once per slot; gear only the best tier).
 Item id = `base_id (38470000) + 500 + code`. "Verified" = read from the decompiled code (local, git-ignored).
@@ -64,8 +64,8 @@ is 6-14. Copy k of c arrives around floor 100k/(c+1), so the tiers sit a little 
 
 ## Pool
 A 110-item template. More locations: the extra slots get the template's useful + filler mix scaled up (largest
-remainder; never more progressive copies). Fewer: filler is trimmed first, then useful, then progressive copies (safe,
-nothing gates). Default (158 locations):
+remainder; never more progressive copies). Fewer: filler is trimmed first, then useful, then progressive copies (in
+practice only filler: the minimum is 108 locations). Default (158 locations):
 
 | Item | template | extra | total |
 |---|---|---|---|

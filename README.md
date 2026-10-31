@@ -5,7 +5,7 @@ An [Archipelago](https://archipelago.gg) multiworld add-on for **Devil Spire**.
 > Early version (0.1.0). Expect bugs.
 
 ## How it plays
-- One mode: **Archipelago** (Descent, 100 floors down). Nothing is locked; every floor is reachable from the start.
+- One mode: **Archipelago** (Descent, 100 floors down). Floors -1 to -20 are in logic from the start; deeper floors expect more Progressive Weapon and Armor.
 - Checks: bosses, every 2nd floor, one locked chest per floor, and 2 shop items on floors -10 to -90.
 - Items you receive come to you at the camp. Equipment lies on the ground around you.
 - If you die, you start a new run and get all your items again.

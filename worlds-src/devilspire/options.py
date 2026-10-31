@@ -20,7 +20,7 @@ class FloorChecks(Choice):
     Granularity of "Reach Floor -N" location checks (separate from boss, locked chest and shop checks).
     Every 2nd (default): floors -1, -3, ..., -99 (50 checks). Every Floor: all 100 floors. Every 5th / Every 10th:
     -1, -6, ..., -96 / -1, -11, ..., -91. Off: no floor checks.
-    Every floor and boss is reachable from the start (no key gating).
+    Floors -1..-20 are in logic from the start; deeper floors expect Progressive Weapon + Armor.
     Checks persist across runs; your received items are re-granted on every new run.
     """
     display_name = "Floor Checks"

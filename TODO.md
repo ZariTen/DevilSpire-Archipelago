@@ -7,7 +7,7 @@ The patched game runs on the real Steam install (Proton). A partial 2-player run
 - The client patches your own Steam `data.win` in place (`/auto_patch`, backup `data.win.orig`, `/restore`). No game files in git.
 - Saves go to a separate folder, `Devil_Spire_AP`.
 - One game mode, "Archipelago" (Descent, 100 floors). Goal: beat Rhamdon on floor -100. Difficulty set by the yaml (default Extreme).
-- Checks: bosses, every 2nd floor (`floor_checks`), one locked chest per floor, 18 shop stands. No gating.
+- Checks: bosses, every 2nd floor (`floor_checks`), one locked chest per floor, 18 shop stands. Logic: floors -1..-20 open, deeper tiers need Progressive Weapon + Armor (up to 6 + 6 for -91..-100).
 - Items: 110-item template ([item-catalog](docs/dev/item-catalog.md)), extra slots scaled proportionally. Traps via `trap_percentage`.
 - Death starts a new run. Items are re-granted at the camp (weightless direct, equipment on the ground). Souls once.
 - Base ID 38,470,000. Minimum Archipelago 0.6.8. License MIT.

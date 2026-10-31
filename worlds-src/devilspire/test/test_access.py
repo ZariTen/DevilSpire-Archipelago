@@ -44,17 +44,32 @@ class TestFloorChecksDefault(DevilSpireTestBase):
         self.assertIn("Shop Floor -90 #2", names)
         self.assertNotIn("Shop Floor -100 #1", names)
 
-    def test_no_gating(self) -> None:
-        """Everything is reachable with an EMPTY inventory; no depth keys exist."""
+    def test_free_tiers(self) -> None:
+        """Floors -1..-20 (tiers 0-1) are reachable with an EMPTY inventory; tier 2 is not."""
         self.assertFalse(self.get_items_by_name("Progressive Depth Key"))
-        self.assertTrue(self.can_reach_location("Reach Floor -99"))
-        self.assertTrue(self.can_reach_location("Shop Floor -90 #2"))
-        self.assertTrue(self.can_reach_location("Gauntlet cleared (Floor -99)"))
-        self.assertTrue(self.can_reach_location("Rhamdon defeated"))
-        for t in range(10):
+        for t in (0, 1):
             self.assertTrue(self.can_reach_region(tier_region_name(t)))
+        for loc in ("Reach Floor -1", "Locked Chest Floor -1", "Slime defeated (Floor -9)", "Shop Floor -10 #1",
+                    "Reach Floor -19", "Locked Chest Floor -18", "Abomination defeated (Floor -19)", "Shop Floor -20 #2"):
+            self.assertTrue(self.can_reach_location(loc), loc)
+        self.assertFalse(self.can_reach_region(tier_region_name(2)))
+        self.assertFalse(self.can_reach_location("Reach Floor -21"))
+
+    def test_deep_needs_gear(self) -> None:
+        """Tier 9 (floors -91..-100, Rhamdon) needs 6 Progressive Weapon + 6 Progressive Armor."""
+        deep = ("Reach Floor -99", "Gauntlet cleared (Floor -99)", "Rhamdon defeated")
+        for loc in deep:
+            self.assertFalse(self.can_reach_location(loc), loc)
+        self.collect(self.get_items_by_name("Progressive Weapon")[:6])
+        self.collect(self.get_items_by_name("Progressive Armor")[:5])
+        self.assertFalse(self.can_reach_location("Reach Floor -99"))
+        self.assertTrue(self.can_reach_location("Robot defeated (Floor -89)"))  # tier 8 needs 5 + 5
+        self.collect(self.get_items_by_name("Progressive Armor")[5:6])
+        for loc in deep:
+            self.assertTrue(self.can_reach_location(loc), loc)
         self.assertBeatable(True)
-        # only the progressive items are progression; they gate nothing (everything reachable with an empty state)
+
+    def test_only_gear_is_progression(self) -> None:
         self.assertFalse([i for i in self.multiworld.itempool if i.advancement and not i.name.startswith("Progressive ")])
 
     def test_single_golem_check(self) -> None:
@@ -88,6 +103,8 @@ class TestTraps(DevilSpireTestBase):
         self.assertEqual(len(pool), 208)   # 100 floors + 10 bosses + 80 locked chests + 18 shops
         self.assertEqual(sum(1 for i in pool if i.classification == T), sum(1 for i in pool if not i.advancement
                          and not i.useful and i.classification != T) + sum(1 for i in pool if i.classification == T))
+        self.assertBeatable(False)  # no gear yet
+        self.collect_all_but([])
         self.assertBeatable(True)
 
 
@@ -112,6 +129,8 @@ class TestFloorChecks10(DevilSpireTestBase):
         names = [l.name for l in self.multiworld.get_locations(1)]
         self.assertIn("Reach Floor -11", names)
         self.assertNotIn("Reach Floor -10", names)
+        self.assertBeatable(False)  # no gear yet
+        self.collect_all_but([])
         self.assertBeatable(True)
 
 

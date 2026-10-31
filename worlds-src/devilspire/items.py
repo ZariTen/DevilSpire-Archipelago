@@ -1,4 +1,4 @@
-"""Items: power boosts. NOTHING gates progression (Slay-the-Spire style): all floors/bosses are reachable from the start.
+"""Items: power boosts. Progressive Weapon + Armor are the depth logic (rules.GEAR_REQUIRED); everything else is a boost.
 
 Received items persist across deaths: the patch re-applies the received list at the start of every new run
 (stat orbs stack, consumables/gold/souls are re-granted each run; progressive gear: only the best tier). Ids/effects: docs/dev/item-catalog.md.
@@ -43,7 +43,8 @@ _ITEMS: list[tuple[str, int, ItemClassification, int, str]] = [
     ("Red Potion Pack", 120, F, 8, "Consumables"),  # 3x Red Potion (full HP)
     ("Blue Potion Pack", 121, F, 4, "Consumables"),  # 3x Blue Potion (full MP)
     ("White Potion", 122, F, 3, "Consumables"),  # 1x White Potion (full heal + cure)
-    # progressive items (classification progression, but they gate NOTHING: logic stays open). The patch counts the copies
+    # progressive items. Weapon + Armor gate floor tiers in logic (rules.GEAR_REQUIRED); Shield/Accessory/Spellbook gate
+    # nothing (progression for balancing only). The patch counts the copies
     # received so far (ap_in order): copy N gives tier N. A new run re-grants only the best gear tier (spellbook: every copy).
     ("Progressive Weapon", 160, P, 7, "Progressive"),  # copy N: random weapon at L = floor(12.5*N) (12..87)
     ("Progressive Armor", 161, P, 7, "Progressive"),  # copy N: full set (body, head, arms, legs) at L = floor(12.5*N)

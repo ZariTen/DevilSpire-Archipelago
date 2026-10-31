@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Depth logic: floors -1 to -20 are open, deeper floors need Progressive Weapon + Armor (up to 6 of each for floor -91 to -100), so checks no longer all land in sphere 1.
+
 ## v0.1.0
 
 First public test version of the Devil Spire world for [Archipelago](https://archipelago.gg). Pre-release: expect bugs.

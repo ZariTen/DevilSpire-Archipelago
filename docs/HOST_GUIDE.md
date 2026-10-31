@@ -28,8 +28,17 @@ Use the same apworld version as your Devil Spire players.
 | Locked chest, one per floor (not boss or shop floors) | 80 |
 | Shop items on floors -10 to -90 (2 each) | 18 |
 
-Default total: 158. The goal is beating the boss on floor -100. Nothing is locked: no item gates any floor.
+Default total: 158. The goal is beating the boss on floor -100.
 Items: see the [item catalog](dev/item-catalog.md).
+
+## Logic
+Floors -1 to -20 are open. Deeper floors expect Progressive Weapon **and** Progressive Armor (n copies of each):
+
+| Floors | -1..-20 | -21..-30 | -31..-50 | -51..-60 | -61..-80 | -81..-90 | -91..-100 |
+|---|---|---|---|---|---|---|---|
+| n | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+
+This is logic only: the game locks nothing, a player may go deeper early at their own risk.
 
 ## Problems
 - **"Unknown game Devil Spire" when generating:** the apworld isn't installed on this computer.

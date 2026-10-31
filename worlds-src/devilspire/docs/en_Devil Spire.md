@@ -3,7 +3,8 @@
 Unofficial fan project. You need your own Steam copy of the game.
 
 ## What changes?
-One mode, **Archipelago**: 100 floors down the tower. Nothing is locked; every floor can be reached from the start.
+One mode, **Archipelago**: 100 floors down the tower. The game locks no floor, but the logic only expects floors -1 to -20
+at the start. Deeper floors expect Progressive Weapon and Armor: 1 of each for -21, up to 6 of each for -91 to -100.
 The difficulty is set by the yaml (default Extreme) and locked in game.
 
 ## What is the goal?

@@ -23,9 +23,10 @@ def create_regions(world: DevilSpireWorld) -> None:
     tiers = [Region(tier_region_name(t), p, mw) for t in range(NUM_TIERS)]
     mw.regions += [menu, *tiers]
 
-    # No gating: every tier is directly reachable from the start. Tier regions exist for readability only.
-    for t in range(NUM_TIERS):
-        menu.connect(tiers[t], f"Descend to tier {t}")
+    # Chain Menu -> tier 0 -> tier 1 -> ... -> tier 9. Gear rules on the entrances: rules.GEAR_REQUIRED.
+    menu.connect(tiers[0], "Descend to tier 0")
+    for t in range(1, NUM_TIERS):
+        tiers[t - 1].connect(tiers[t], f"Descend to tier {t}")
 
     locs = (list(BOSS_LOCATIONS) + floor_checks_enabled(world.options.floor_checks.step)
             + list(LOCKED_LOCATIONS) + list(SHOP_LOCATIONS))
