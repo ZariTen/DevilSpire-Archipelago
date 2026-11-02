@@ -68,7 +68,9 @@ class OriginalSaveWatch:
     @staticmethod
     def _newest(d: Path) -> float:
         try:
-            return max((f.stat().st_mtime for f in d.iterdir() if f.is_file()), default=0.0)
+            # Steam Cloud rewrites steam_autocloud.vdf on every game launch, patched or not: not a save
+            return max((f.stat().st_mtime for f in d.iterdir() if f.is_file() and f.name != CLOUD_FILE),
+                       default=0.0)
         except OSError:
             return 0.0
 

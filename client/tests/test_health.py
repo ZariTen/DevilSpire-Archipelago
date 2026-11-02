@@ -49,6 +49,22 @@ class HealthTests(unittest.TestCase):
         (ap / "steam_autocloud.vdf").write_text("")
         self.assertIn("Steam Cloud", health.cloud_warning(ap))
 
+    def test_cloud_file_in_original_folder_ignored(self):
+        roam = Path(tempfile.mkdtemp())
+        ap, orig = roam / "Devil_Spire_AP", roam / "Devil_Spire"
+        ap.mkdir(); orig.mkdir()
+        (orig / "descent_character.ini").write_text("old")
+        (orig / health.CLOUD_FILE).write_text("old")
+        w = health.OriginalSaveWatch()
+        self.assertIsNone(w.check(ap))
+        t = time.time() + 5
+        (orig / health.CLOUD_FILE).write_text("new")  # Steam rewrites it on every launch
+        os.utime(orig / health.CLOUD_FILE, (t, t))
+        self.assertIsNone(w.check(ap))
+        (orig / "descent_character.ini").write_text("new")
+        os.utime(orig / "descent_character.ini", (t + 5, t + 5))
+        self.assertIn("UNPATCHED", w.check(ap))
+
     def test_monitor_reports_changes_only(self):
         out = []
         m = health.HealthMonitor(out.append)

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Client: steam_autocloud.vdf in the original Devil_Spire save folder no longer triggers a false "UNPATCHED Devil Spire is being played" warning (Steam Cloud rewrites it on every launch).
 - Depth logic: floors -1 to -20 are open, deeper floors need Progressive Weapon + Armor (up to 6 of each for floor -91 to -100), so checks no longer all land in sphere 1.
 
 ## v0.1.0
