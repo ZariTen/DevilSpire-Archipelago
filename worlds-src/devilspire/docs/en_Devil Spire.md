@@ -16,6 +16,7 @@ Beat Rhamdon on floor -100.
 - **Locked chests:** one per floor, with its key on the floor (not on boss or shop floors; 80).
 - **Shops:** on floors -10 to -90, 2 stands sell an Archipelago Item for 150 gold (18).
 
+Bosses up to Snake (-59) and shop stands are reserved for progression items (someone's important item).
 An Archipelago Item shows what it holds and for whom.
 
 ## What items can I get?

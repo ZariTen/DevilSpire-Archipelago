@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Bosses up to Snake (-59, 6) and shop stands (18) are priority locations: they hold progression items. Apparition, Girl, Robot and the Gauntlet are not (as priority spots they made generation fail). `exclude_locations` still overrides this.
 - Client: steam_autocloud.vdf in the original Devil_Spire save folder no longer triggers a false "UNPATCHED Devil Spire is being played" warning (Steam Cloud rewrites it on every launch).
 - Depth logic: floors -1 to -20 are open, deeper floors need Progressive Weapon + Armor (up to 6 of each for floor -91 to -100), so checks no longer all land in sphere 1.
 

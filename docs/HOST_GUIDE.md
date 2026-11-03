@@ -40,6 +40,9 @@ Floors -1 to -20 are open. Deeper floors expect Progressive Weapon **and** Progr
 
 This is logic only: the game locks nothing, a player may go deeper early at their own risk.
 
+Bosses up to Snake (-59) and shop stands are priority locations: they always hold a progression item (for any
+player). Apparition, Girl, Robot and the Gauntlet are normal checks. A yaml's `exclude_locations` still wins.
+
 ## Problems
 - **"Unknown game Devil Spire" when generating:** the apworld isn't installed on this computer.
 - **Players can't connect:** check the port is open and the slot name is exact (case matters).

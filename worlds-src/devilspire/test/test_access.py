@@ -169,3 +169,41 @@ class TestLockedChestIds(DevilSpireTestBase):
         self.assertEqual(names["Shop Floor -10 #1"], 38_470_250)
         self.assertEqual(names["Shop Floor -90 #2"], 38_470_267)
         self.assertNotIn("chest_checks", self.world.fill_slot_data())
+
+
+class TestPriorityLocations(DevilSpireTestBase):
+    """Bosses Slime..Snake (6) + shop stands (18) are PRIORITY. Apparition, Girl, Robot, Gauntlet are not (deep spots
+    made fills fail). Rhamdon is the Victory event, not a check."""
+
+    def test_priority_set(self) -> None:
+        from BaseClasses import LocationProgressType as LPT
+        from ..locations import BOSS_LOCATIONS, SHOP_LOCATIONS, VICTORY_ITEM, VICTORY_LOCATION
+        prio = {l.name for l in self.multiworld.get_locations(1) if l.progress_type == LPT.PRIORITY}
+        self.assertEqual(prio, {d.name for d in BOSS_LOCATIONS[:6] + SHOP_LOCATIONS})
+        self.assertEqual(len(prio), 24)
+        self.assertNotIn("Gauntlet cleared (Floor -99)", prio)
+        rhamdon = self.multiworld.get_location(VICTORY_LOCATION, 1)
+        self.assertEqual(rhamdon.item.name, VICTORY_ITEM)
+        self.assertEqual(rhamdon.progress_type, LPT.DEFAULT)
+
+    def test_priority_filled_with_progression(self) -> None:
+        from BaseClasses import LocationProgressType as LPT
+        from Fill import distribute_items_restrictive
+        distribute_items_restrictive(self.multiworld)
+        prio = [l for l in self.multiworld.get_locations(1) if l.progress_type == LPT.PRIORITY]
+        n_prog = sum(1 for i in POOL_TEMPLATE if ITEM_TABLE[i].classification == P)
+        # solo: 27 progression items for 24 priority spots, so every priority spot gets one
+        self.assertEqual(sum(1 for l in prio if l.item.advancement), min(n_prog, len(prio)))
+
+
+class TestExcludeWinsOverPriority(DevilSpireTestBase):
+    options = {"exclude_locations": {"Slime defeated (Floor -9)", "Shop Floor -10 #1"}}
+
+    def test_exclude(self) -> None:
+        from BaseClasses import LocationProgressType as LPT
+        from worlds.generic.Rules import exclusion_rules
+        exclusion_rules(self.multiworld, 1, self.world.options.exclude_locations.value)  # as Main.py does after set_rules
+        get = lambda n: self.multiworld.get_location(n, 1).progress_type  # noqa: E731
+        self.assertEqual(get("Slime defeated (Floor -9)"), LPT.EXCLUDED)
+        self.assertEqual(get("Shop Floor -10 #1"), LPT.EXCLUDED)
+        self.assertEqual(get("Shop Floor -10 #2"), LPT.PRIORITY)
