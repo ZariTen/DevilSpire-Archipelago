@@ -12,6 +12,6 @@ Devil Spire:
   # which floors are checks: every_2nd, every_floor, every_5th, every_10th, off
   floor_checks: every_2nd
   # locked in game: easy, normal, hard, extreme, nightmare
-  difficulty: extreme
+  difficulty: hard
   # percent of filler items that become traps (0-100)
   trap_percentage: 0
