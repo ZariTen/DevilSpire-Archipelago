@@ -17,7 +17,7 @@ Type `/auto_patch` in the client and wait for "Patched".
 - It finds the game in your Steam library. If not, give the folder:
   `/auto_patch D:\SteamLibrary\steamapps\common\Devil Spire`
 - It keeps a backup of the original file (`data.win.orig`). Running it again is safe.
-- The title screen shows the mod version in the top-left corner, e.g. `Archipelago v0.1.0 (e183280)`.
+- The title screen shows the mod version in the top-left corner, e.g. `Archipelago v0.2.0 (e183280)`.
 
 ## 4. Connect
 1. In the client, connect to the server with your slot name.

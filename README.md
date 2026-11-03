@@ -2,7 +2,7 @@
 
 An [Archipelago](https://archipelago.gg) multiworld add-on for **Devil Spire**.
 
-> Early version (0.1.0). Expect bugs.
+> Early version (0.2.0). Expect bugs.
 
 ## How it plays
 - One mode: **Archipelago** (Descent, 100 floors down). Floors -1 to -20 are in logic from the start; deeper floors expect more Progressive Weapon and Armor.
